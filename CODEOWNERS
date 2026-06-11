@@ -1,0 +1,7 @@
+* @project-owners
+/apps/api/ @backend-owners
+/apps/web/ @frontend-owners
+/docs/ @tech-leads
+/docker/ @devops-owners
+/.github/ @devops-owners
+

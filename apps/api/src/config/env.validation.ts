@@ -1,0 +1,57 @@
+import { z } from 'zod';
+
+const envSchema = z
+  .object({
+    NODE_ENV: z.enum(['local', 'development', 'staging', 'production', 'test']).default('local'),
+    PORT: z.coerce.number().int().positive().default(4000),
+    APP_URL: z.string().url(),
+    API_URL: z.string().url(),
+    DATABASE_URL: z.string().optional().default(''),
+    SQLSERVER_AUTH_MODE: z.enum(['sql', 'windows']).default('sql'),
+    SQLSERVER_HOST: z.string().default('localhost'),
+    SQLSERVER_PORT: z.coerce.number().int().positive().default(1433),
+    SQLSERVER_DATABASE: z.string().default('TheWedding'),
+    SQLSERVER_ODBC_DRIVER: z.string().default('ODBC Driver 18 for SQL Server'),
+    JWT_ACCESS_SECRET: z.string().min(32),
+    JWT_REFRESH_SECRET: z.string().min(32),
+    ACCESS_TOKEN_EXPIRES_IN: z.string().default('15m'),
+    REFRESH_TOKEN_EXPIRES_IN: z.string().default('30d'),
+    COOKIE_SECRET: z.string().min(32),
+    CORS_ORIGINS: z.string().min(1),
+    STORAGE_PROVIDER: z.enum(['local', 's3', 'azure', 'r2']).default('local'),
+    LOCAL_STORAGE_PATH: z.string().default('./storage'),
+    S3_ENDPOINT: z.string().optional().default(''),
+    S3_REGION: z.string().optional().default(''),
+    S3_BUCKET: z.string().optional().default(''),
+    S3_ACCESS_KEY: z.string().optional().default(''),
+    S3_SECRET_KEY: z.string().optional().default(''),
+    REDIS_URL: z.string().min(1),
+    MAIL_PROVIDER: z.string().default('smtp'),
+    SMTP_HOST: z.string().optional().default('localhost'),
+    SMTP_PORT: z.coerce.number().int().positive().default(1025),
+    SMTP_USER: z.string().optional().default(''),
+    SMTP_PASSWORD: z.string().optional().default(''),
+    SUPER_ADMIN_EMAIL: z.string().email(),
+    SUPER_ADMIN_PASSWORD: z.string().min(12),
+  })
+  .superRefine((env, context) => {
+    if (env.SQLSERVER_AUTH_MODE === 'sql' && env.DATABASE_URL.length === 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'DATABASE_URL is required when SQLSERVER_AUTH_MODE=sql',
+        path: ['DATABASE_URL'],
+      });
+    }
+  });
+
+export type Env = z.infer<typeof envSchema>;
+
+export function validateEnv(config: Record<string, unknown>) {
+  const parsed = envSchema.safeParse(config);
+
+  if (!parsed.success) {
+    throw new Error(`Invalid environment variables: ${parsed.error.message}`);
+  }
+
+  return parsed.data;
+}

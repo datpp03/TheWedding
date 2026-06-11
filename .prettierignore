@@ -1,0 +1,8 @@
+node_modules/
+.next/
+.turbo/
+dist/
+coverage/
+logs/
+sieu_prompt_agent_web_anh_cuoi.md
+
