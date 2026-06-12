@@ -15,8 +15,16 @@ The Wedding is a multi-tenant wedding media platform. Couples can create a dedic
 - Enterprise-ready project foundation with documentation-first workflow.
 - NestJS API scaffolded around Clean Architecture and DDD.
 - Next.js App Router frontend scaffolded around public, auth, dashboard, and admin areas.
+- Youthful, energetic, Gen Z-friendly UI direction with smooth UX and fully responsive layouts across phones, tablets, and desktop screens.
 - SQL Server schema migration draft covering users, auth, tenants, albums, media, themes, permissions, audit, settings, storage, and feature flags.
 - Docker and CI foundations for local development and future deployment.
+
+## Experience Direction
+
+- Public wedding sites should feel emotional, modern, media-rich, and shareable.
+- Owner dashboard flows should be fast, smooth, and friendly for young couples managing albums, uploads, themes, and links.
+- Admin screens should stay clear and efficient while still matching the modern product visual language.
+- All frontend work must follow `docs/UI_UX_DESIGN.md`.
 
 ## Non-MVP Future Capabilities
 

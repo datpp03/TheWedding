@@ -30,14 +30,17 @@ Status: partially completed.
 
 - Tenant CRUD, slug routing, public site page, settings, visibility.
 - Tenant ownership and membership guards.
+- Establish the first full UI/UX pass using `docs/UI_UX_DESIGN.md`: youthful visual direction, mobile-first responsive shell, smooth empty/loading/error states.
 
 ## Phase 4: Album & Media
 
 - Album CRUD, media upload, bulk upload, gallery, lightbox, download permission.
+- Build responsive gallery, upload, and lightbox interactions that feel smooth on phones, tablets, and desktop screens.
 
 ## Phase 5: Theme Customization
 
 - Theme presets, colors, layouts, live preview, save/activate.
+- Support modern, energetic theme presets suitable for Gen Z couples while keeping public sites readable and media-focused.
 
 ## Phase 6: Admin Dashboard
 
@@ -50,6 +53,7 @@ Status: partially completed.
 ## Phase 8: Enterprise Hardening
 
 - MFA, feature flags, monitoring, backup, security audit, performance optimization.
+- Add formal cross-device UI QA, layout-shift checks, and interaction performance checks for critical frontend flows.
 
 ## Phase 9: Scale Future
 

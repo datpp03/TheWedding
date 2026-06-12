@@ -37,3 +37,4 @@ All notable changes to this project will be documented in this file.
 - Session listing and revocation endpoints.
 - Frontend login/register forms connected to the API.
 - Dashboard auth status and sign out action.
+- UI/UX design direction for youthful Gen Z-friendly visuals, smooth interactions, and responsive layouts across phone, tablet, and desktop sizes.
