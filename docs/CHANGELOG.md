@@ -27,3 +27,13 @@ All notable changes to this project will be documented in this file.
 - Installed dependencies with pnpm.
 - Ran initial migration and seed against local SQL Server.
 - Verified API and Web with HTTP smoke tests.
+- Added Phase 2 auth unit coverage for register, login failure, refresh rotation, and refresh token reuse detection.
+
+### Added
+
+- Database-backed auth and user foundation.
+- JWT access tokens in HttpOnly cookies.
+- Refresh token rotation with hashed refresh secrets in `user_sessions`.
+- Session listing and revocation endpoints.
+- Frontend login/register forms connected to the API.
+- Dashboard auth status and sign out action.

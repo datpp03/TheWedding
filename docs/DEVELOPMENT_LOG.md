@@ -144,3 +144,69 @@
 
 - Local SQL Server was modified from Windows-only auth to Mixed Mode. This is appropriate for the current TypeORM/Tedious setup but should be reviewed before production.
 - `msnodesqlv8` support remains available in config, but TypeORM was verified against SQL auth because Windows Auth through TypeORM hangs with the current driver option shape.
+
+## 2026-06-12 - Phase 2 Auth and User Foundation
+
+### Completed
+
+- Implemented database-backed user registration and login.
+- Added HttpOnly cookie auth with short-lived access token and refresh token rotation.
+- Stored refresh token secrets only as Argon2 hashes in `user_sessions`.
+- Added refresh token reuse detection that revokes the session family.
+- Added current user, session list, revoke one session, revoke all sessions, refresh, and logout APIs.
+- Added global access token guard with `@Public()` support.
+- Added TypeORM entities and repository methods for `users`, `user_sessions`, `user_login_histories`, roles, and permissions.
+- Added frontend login and register forms wired to the API.
+- Added dashboard auth status with current user fetch and sign out action.
+- Added Jest unit tests for auth registration, duplicate registration, failed login, refresh rotation, and refresh reuse handling.
+
+### Files Created or Updated
+
+- `apps/api/src/modules/auth/application/auth.service.ts`
+- `apps/api/src/modules/auth/application/auth-token.service.ts`
+- `apps/api/src/modules/auth/application/auth.types.ts`
+- `apps/api/src/modules/auth/application/auth.service.spec.ts`
+- `apps/api/src/modules/auth/infrastructure/typeorm-auth.repository.ts`
+- `apps/api/src/modules/auth/infrastructure/user-session.orm-entity.ts`
+- `apps/api/src/modules/auth/infrastructure/user-login-history.orm-entity.ts`
+- `apps/api/src/modules/auth/presentation/*`
+- `apps/api/src/modules/users/infrastructure/user.orm-entity.ts`
+- `apps/api/src/modules/permissions/infrastructure/*`
+- `apps/api/jest.config.cjs`
+- `apps/api/tsconfig.json`
+- `apps/web/src/features/auth/*`
+- `apps/web/src/app/(auth)/login/page.tsx`
+- `apps/web/src/app/(auth)/register/page.tsx`
+- `apps/web/src/components/app-shell.tsx`
+- `apps/web/src/lib/api-client.ts`
+- `docs/DEVELOPMENT_LOG.md`
+- `docs/CHANGELOG.md`
+- `docs/API_DESIGN.md`
+- `docs/AUTH_SECURITY.md`
+- `docs/ROADMAP.md`
+
+### Current Capability
+
+- Users can register and are assigned the `USER` role.
+- Users can login from the web app and access `/dashboard`.
+- API can identify the current user from `access_token` cookie or Bearer token.
+- API can rotate refresh tokens using the `refresh_token` cookie.
+- Users can list/revoke sessions and sign out.
+
+### Missing
+
+- Forgot/reset password and email verification endpoints are still planned.
+- CSRF token exchange is documented but not yet implemented.
+- Audit log writes are represented by login history for auth events; the full audit-log module remains planned.
+- Route protection on frontend is still light; dashboard currently shows sign-in status but does not server-redirect anonymous users.
+
+### Tests and Checks
+
+- API auth unit tests: pass.
+- API lint/typecheck: pass during implementation.
+- Web lint/typecheck: pass during implementation.
+
+### Technical Risks
+
+- Cookie security uses environment-aware settings; production deployment must set HTTPS and a strict CORS origin list.
+- Refresh token family revocation is implemented for one active session row per rotated token. Future multi-device/session-family behavior should be covered by e2e tests.

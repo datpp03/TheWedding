@@ -19,9 +19,12 @@ Status: completed for local scaffold and runtime verification.
 
 ## Phase 2: Auth & User
 
-- Register, login, logout, refresh token rotation.
-- Password reset, email verification, session management.
-- RBAC base and audit log base.
+Status: partially completed.
+
+- Completed: register, login, logout, current user, session list, revoke session, revoke all sessions, refresh token rotation.
+- Completed: RBAC payload base through role and permission lookup.
+- Completed: auth unit tests and frontend login/register wiring.
+- In progress later: password reset, email verification, CSRF token exchange, full audit-log integration, frontend route protection.
 
 ## Phase 3: Tenant/Site
 

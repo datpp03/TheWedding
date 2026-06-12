@@ -9,7 +9,7 @@
     "removeComments": true,
     "rootDir": "src",
     "sourceMap": true,
-    "types": ["node"]
+    "types": ["node", "jest"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules"]

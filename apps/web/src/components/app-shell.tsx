@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { AuthStatus } from '@/features/auth/auth-status';
 import { dashboardNavItems } from '@/lib/navigation';
 
 export function AppShell({
@@ -31,6 +32,7 @@ export function AppShell({
             </Link>
           ))}
         </nav>
+        <AuthStatus />
       </aside>
       <main className="lg:pl-64">
         <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{children}</div>

@@ -3,18 +3,32 @@
 ## Authentication
 
 - Passwords use Argon2id hashing.
-- Access tokens are short-lived.
-- Refresh tokens are stored only as hashes in `user_sessions`.
-- Refresh token rotation is mandatory.
+- Access tokens are short-lived JWTs.
+- Access tokens are sent in the `access_token` HttpOnly cookie, and Bearer token fallback is supported for API clients.
+- Refresh tokens are sent in the `refresh_token` HttpOnly cookie.
+- Refresh tokens use the format `sessionId.secret`; only the secret hash is stored in `user_sessions`.
+- Refresh token rotation is implemented.
 - Refresh token reuse revokes the session family.
-- Auth cookies use `HttpOnly`, `Secure`, and `SameSite=Lax` or stricter in production.
+- Auth cookies use `HttpOnly`, environment-aware `Secure`, and `SameSite=Lax`.
 - CSRF protection is required for cookie-authenticated mutations.
+
+## Implemented Auth Endpoints
+
+- `POST /api/v1/auth/register`
+- `POST /api/v1/auth/login`
+- `POST /api/v1/auth/logout`
+- `POST /api/v1/auth/refresh`
+- `GET /api/v1/auth/me`
+- `GET /api/v1/auth/sessions`
+- `DELETE /api/v1/auth/sessions/:sessionId`
+- `DELETE /api/v1/auth/sessions`
 
 ## Authorization
 
 - RBAC and permission checks are both supported.
 - Required decorators: `@CurrentUser()`, `@Public()`, `@Roles()`, `@Permissions()`.
-- Required guards: `AuthGuard`, `RolesGuard`, `PermissionsGuard`, `TenantAccessGuard`.
+- Required guards: `AccessTokenGuard`, `RolesGuard`, `PermissionsGuard`, `TenantAccessGuard`.
+- Phase 2 access tokens include role codes, permission codes, and tenant IDs.
 
 ## Tenant Isolation
 

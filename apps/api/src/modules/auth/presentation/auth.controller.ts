@@ -1,8 +1,21 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Req, Res } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import type { Request, Response } from 'express';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Public } from '../../../common/decorators/public.decorator';
+import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
+import { AuthService, REFRESH_TOKEN_COOKIE } from '../application/auth.service';
+import type { RequestContext } from '../application/auth.types';
+import { clearAuthCookies, setAuthCookies } from './auth-cookie.presenter';
+import { LoginDto, RefreshDto, RegisterDto } from './auth.dto';
 
 @Controller('auth')
 export class AuthController {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly config: ConfigService,
+  ) {}
+
   @Public()
   @Get('capabilities')
   capabilities() {
@@ -21,4 +34,122 @@ export class AuthController {
       ],
     };
   }
+
+  @Public()
+  @Post('register')
+  async register(
+    @Body() body: RegisterDto,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.authService.register({
+      email: body.email,
+      password: body.password,
+      displayName: body.displayName,
+      context: getRequestContext(request),
+    });
+
+    setAuthCookies(response, result.tokens, this.config);
+
+    return {
+      user: result.user,
+    };
+  }
+
+  @Public()
+  @Post('login')
+  async login(
+    @Body() body: LoginDto,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.authService.login({
+      email: body.email,
+      password: body.password,
+      context: getRequestContext(request),
+    });
+
+    setAuthCookies(response, result.tokens, this.config);
+
+    return {
+      user: result.user,
+    };
+  }
+
+  @Public()
+  @Post('refresh')
+  async refresh(
+    @Body() body: RefreshDto,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.authService.refresh(
+      readRefreshToken(request, body.refreshToken),
+      getRequestContext(request),
+    );
+
+    setAuthCookies(response, result.tokens, this.config);
+
+    return {
+      user: result.user,
+    };
+  }
+
+  @Public()
+  @Post('logout')
+  async logout(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
+    await this.authService.logout(readRefreshToken(request));
+    clearAuthCookies(response, this.config);
+
+    return {
+      loggedOut: true,
+    };
+  }
+
+  @Get('me')
+  me(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.getCurrentUser(user.id);
+  }
+
+  @Get('sessions')
+  sessions(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.listSessions(user.id);
+  }
+
+  @Delete('sessions/:sessionId')
+  async revokeSession(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sessionId') sessionId: string,
+  ) {
+    await this.authService.revokeSession(user.id, sessionId);
+
+    return {
+      revoked: true,
+    };
+  }
+
+  @Delete('sessions')
+  async revokeAllSessions(
+    @CurrentUser() user: AuthenticatedUser,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    await this.authService.revokeAllSessions(user.id);
+    clearAuthCookies(response, this.config);
+
+    return {
+      revoked: true,
+    };
+  }
+}
+
+function getRequestContext(request: Request): RequestContext {
+  return {
+    ipAddress: request.ip,
+    userAgent: request.headers['user-agent'],
+  };
+}
+
+function readRefreshToken(request: Request, fallback?: string) {
+  const cookies = request.cookies as Record<string, string | undefined> | undefined;
+  return cookies?.[REFRESH_TOKEN_COOKIE] ?? fallback;
 }

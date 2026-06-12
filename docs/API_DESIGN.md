@@ -36,12 +36,18 @@ All HTTP endpoints are under `/api/v1`.
 - `POST /api/v1/auth/login`
 - `POST /api/v1/auth/logout`
 - `POST /api/v1/auth/refresh`
+- `GET /api/v1/auth/capabilities`
 - `POST /api/v1/auth/forgot-password`
 - `POST /api/v1/auth/reset-password`
 - `POST /api/v1/auth/verify-email`
 - `GET /api/v1/auth/me`
 - `GET /api/v1/auth/sessions`
-- `POST /api/v1/auth/sessions/:id/revoke`
+- `DELETE /api/v1/auth/sessions/:sessionId`
+- `DELETE /api/v1/auth/sessions`
+
+Implemented in Phase 2: register, login, logout, refresh, capabilities, me, sessions, revoke one session, revoke all sessions.
+
+Planned after Phase 2: forgot password, reset password, verify email.
 
 ### Tenants and Public Sites
 

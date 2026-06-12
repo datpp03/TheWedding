@@ -19,4 +19,3 @@ export interface StorageService {
   getSignedUrl(key: string, options: { expiresInSeconds: number }): Promise<string>;
   getPublicUrl(key: string): string;
 }
-
