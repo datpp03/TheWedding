@@ -29,9 +29,12 @@ Status: completed for MVP auth. Email delivery is still provider-ready but SMTP 
 
 ## Phase 3: Tenant/Site
 
-- Tenant CRUD, slug routing, public site page, settings, visibility.
-- Tenant ownership and membership guards.
-- Establish the first full UI/UX pass using `docs/UI_UX_DESIGN.md`: youthful visual direction, mobile-first responsive shell, smooth empty/loading/error states.
+Status: completed for MVP tenant/site foundation.
+
+- Completed: tenant CRUD, owner membership creation, slug availability, public slug route, settings, visibility, SEO/share metadata, and audit log writes.
+- Completed: authenticated tenant isolation through membership-scoped repository reads and mutation checks.
+- Completed: dashboard onboarding, tenant settings page, public site shell, and private/password access gates with mobile-first loading/error/success states.
+- Later hardening: broader e2e coverage against a running SQL Server, public album/media reads, custom domains, and richer theme-driven public site sections.
 
 ## Phase 4: Album & Media
 

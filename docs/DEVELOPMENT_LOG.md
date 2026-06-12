@@ -282,3 +282,46 @@
 
 - SMTP delivery is not implemented yet; production must deliver reset/verification tokens by email and must not expose development tokens in responses.
 - Middleware checks cookie presence for route protection; API remains the source of truth for token validity.
+
+## 2026-06-12 - Phase 3 Tenant and Public Site Foundation
+
+### Completed
+
+- Implemented the tenants module with domain rules, TypeORM entities/repository, application use cases, DTOs, and controllers.
+- Added tenant CRUD, slug availability, settings, visibility, and public site endpoints.
+- Created the owner tenant member row when a tenant is created.
+- Added membership-scoped tenant reads/mutations and public visibility/password gating.
+- Added audit log writes for tenant create, update, settings, visibility, and delete operations.
+- Added dashboard tenant onboarding with slug preview and availability feedback.
+- Added tenant settings UI for identity, visibility, SEO, share metadata, and site settings.
+- Connected public `/(public)/[siteSlug]` to the public site API with private/password access gates.
+- Added backend unit tests for tenant access and public visibility rules.
+
+### Files Created or Updated
+
+- `apps/api/src/modules/tenants/**`
+- `apps/web/src/features/tenants/**`
+- `apps/web/src/app/(dashboard)/dashboard/page.tsx`
+- `apps/web/src/app/(dashboard)/dashboard/settings/page.tsx`
+- `apps/web/src/app/(public)/[siteSlug]/page.tsx`
+- `docs/API_DESIGN.md`
+- `docs/ROADMAP.md`
+- `docs/DEVELOPMENT_LOG.md`
+- `docs/CHANGELOG.md`
+
+### Current Capability
+
+- Logged-in users can create wedding sites and manage their own tenant settings.
+- Tenant creation creates an owner membership row for isolation and future collaboration.
+- Duplicate slugs are rejected, and the dashboard gives availability feedback before submit.
+- Public slug pages render site shell data when public, and show access gates for private/password-protected sites.
+
+### Tests and Checks
+
+- API tenant domain unit tests added.
+- Full workspace checks were run during implementation; see the final task summary for exact pass/fail status.
+
+### Technical Risks
+
+- Public album/media endpoints remain planned for Phase 4.
+- Password-protected public access currently uses a query parameter gate suitable for MVP smoke testing; a short-lived access token or signed cookie should replace this before production sharing.

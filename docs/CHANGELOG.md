@@ -40,3 +40,4 @@ All notable changes to this project will be documented in this file.
 - UI/UX design direction for youthful Gen Z-friendly visuals, smooth interactions, and responsive layouts across phone, tablet, and desktop sizes.
 - Forgot password, reset password, email verification, CSRF token exchange, auth audit log writes, and dashboard/admin route protection.
 - Auth unit coverage for one-time reset and verification token reuse rejection.
+- Phase 3 tenant/site foundation with tenant CRUD, owner membership creation, slug availability checks, settings, visibility, SEO/share metadata, audit logs, dashboard onboarding, tenant settings UI, public slug rendering, and private/password access gates.

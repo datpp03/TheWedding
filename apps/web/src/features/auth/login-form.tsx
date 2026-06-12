@@ -24,7 +24,7 @@ export function LoginForm() {
         email: getString(formData, 'email'),
         password: getString(formData, 'password'),
       });
-      router.push(getRedirectPath(searchParams.get('redirect')) as Route);
+      router.push(getRedirectPath(searchParams.get('redirect')));
       router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Sign in failed');
@@ -83,12 +83,12 @@ export function LoginForm() {
   );
 }
 
-function getRedirectPath(value: string | null) {
+function getRedirectPath(value: string | null): Route {
   if (!value?.startsWith('/') || value.startsWith('//')) {
     return '/dashboard';
   }
 
-  return value;
+  return value as Route;
 }
 
 function getString(formData: FormData, key: string) {

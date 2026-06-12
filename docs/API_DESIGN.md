@@ -54,12 +54,17 @@ Local development note: forgot password and register responses may include devel
 
 - `GET /api/v1/tenants`
 - `POST /api/v1/tenants`
-- `GET /api/v1/tenants/:id`
-- `PATCH /api/v1/tenants/:id`
-- `DELETE /api/v1/tenants/:id`
+- `GET /api/v1/tenants/slug-check?slug=...`
+- `GET /api/v1/tenants/:tenantId`
+- `PATCH /api/v1/tenants/:tenantId`
+- `PATCH /api/v1/tenants/:tenantId/settings`
+- `PATCH /api/v1/tenants/:tenantId/visibility`
+- `DELETE /api/v1/tenants/:tenantId`
 - `GET /api/v1/public/sites/:slug`
 - `GET /api/v1/public/sites/:slug/albums`
 - `GET /api/v1/public/sites/:slug/albums/:albumId/media`
+
+Implemented in Phase 3: tenant CRUD, owner membership creation, slug availability checks, settings and visibility updates, audit log writes for tenant mutations, and public site reads with private/password gates. Authenticated tenant endpoints only return tenants where the user is a member. Public site reads return full content for public sites, gated content for private/password-protected sites until a valid password is supplied, and 404 for missing or inactive sites.
 
 ### Albums, Media, Themes
 
