@@ -46,10 +46,34 @@ Status: completed for MVP album/media.
 - Completed: Phase 4 keeps `StorageService` provider-neutral and follows `docs/STORAGE_STRATEGY.md` for backend-generated keys and future S3-compatible/direct-upload expansion.
 - Later hardening: resumable uploads, progress backed by XHR/fetch upload events, virus scanning, thumbnails, optimized variants, signed URLs, and CDN delivery.
 
+## Living User Guide
+
+Status: active.
+
+- Vietnamese app usage guide lives at `docs/HUONG_DAN_SU_DUNG.md`.
+- Every future phase must update this guide when it changes user-facing behavior, routes, local test accounts, permissions, or known limitations.
+- Prompt completion is not considered done until this guide is checked and updated when relevant.
+
+## Internationalization and Localization
+
+Status: started in Phase 5 for the theme dashboard.
+
+- Added locale dictionaries in `apps/web/src/lib/i18n/locales.ts` with stable keys and fallback-to-English/missing-key behavior.
+- Extracted new theme dashboard visible text into language keys.
+- Initial supported locales: Vietnamese (`vi`), English (`en`), and Japanese (`ja`).
+- Add locale selection and persistence where appropriate for authenticated dashboard, admin, auth pages, and public wedding sites.
+- Make every future frontend feature add/update translation keys instead of hard-coding visible strings.
+- Document fallback behavior, missing-key handling, date/number formatting, and QA checks for all three initial locales.
+
 ## Phase 5: Theme Customization
 
-- Theme presets, colors, layouts, live preview, save/activate.
-- Support modern, energetic theme presets suitable for Gen Z couples while keeping public sites readable and media-focused.
+Status: completed for MVP theme customization.
+
+- Completed: shared theme presets, colors, layout, typography, animation, validation, tenant theme create/update/preview/activate/clone/reset, active theme in public site response, audit events, and backend tests.
+- Completed: dashboard preset gallery, color swatches, layout/typography controls, live preview, save/activate/reset/clone actions, loading/error/success/dirty states, and responsive layouts.
+- Completed: public site applies active theme colors, layout density, radius, and typography.
+- Completed: i18n/l10n foundation for new theme UI in `vi`, `en`, and `ja`.
+- Later hardening: locale picker/persistence across the whole app, visual regression screenshots in CI, richer public site section theming, and theme CSS sandboxing.
 
 ## Phase 6: Admin Dashboard
 
@@ -64,6 +88,7 @@ Status: completed for MVP album/media.
 
 - MFA, feature flags, monitoring, backup, security audit, performance optimization.
 - Add formal cross-device UI QA, layout-shift checks, and interaction performance checks for critical frontend flows.
+- Audit UI strings for i18n/l10n coverage and verify Vietnamese, English, and Japanese layouts do not overflow.
 
 ## Phase 9: Scale Future
 

@@ -36,8 +36,10 @@ The verified local setup uses SQL Server database `TheWedding`, TCP port `1433`,
 ## Storage
 
 - `STORAGE_PROVIDER`: `local`, `s3`, `azure`, or `r2`.
-- `LOCAL_STORAGE_PATH`: local development storage path.
+- `LOCAL_STORAGE_PATH`: local development storage path. With the default `./storage`, files are stored relative to the API process working directory; when running API from `apps/api`, this resolves to `apps/api/storage`.
 - `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`: S3-compatible storage.
+
+Future production storage variables are planned in `docs/STORAGE_STRATEGY.md` and should be added to env validation only when the S3-compatible adapter is implemented.
 
 ## Queue and Mail
 

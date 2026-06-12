@@ -45,3 +45,5 @@ All notable changes to this project will be documented in this file.
 - Long-term storage strategy covering local dev storage, S3-compatible production storage, CDN, signed URLs, processing, and future React Native upload sessions.
 - Phase 4 album/media MVP with tenant-scoped album CRUD, reorder, cover selection, visibility and download controls, local storage adapter, validated single/bulk uploads, media list/update/reorder/move/batch delete, authenticated/public file endpoints, public gallery, and lightbox.
 - Backend media tests for invalid upload rejection, cross-tenant denial, and download permission checks.
+- Phase 5 theme customization MVP with shared presets, tenant theme create/update/preview/activate/clone/reset, active public-site theme rendering, theme audit logs, responsive theme dashboard, live preview, and backend theme tests.
+- i18n/l10n foundation for the new theme UI with stable `vi`, `en`, and `ja` locale keys and fallback behavior.

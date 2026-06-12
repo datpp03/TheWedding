@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import type { WeddingTheme } from '@the-wedding/shared';
 import { Repository } from 'typeorm';
 import type {
   CreateTenantInput,
@@ -7,6 +8,8 @@ import type {
   UpdateTenantInput,
 } from '../domain/tenant.repository';
 import type { TenantSeo, TenantSettings, TenantSharing, TenantView } from '../domain/tenant';
+import { ThemeOrmEntity } from '../../themes/infrastructure/theme.orm-entity';
+import { toView as themeToView } from '../../themes/infrastructure/typeorm-theme.repository';
 import { TenantMemberOrmEntity } from './tenant-member.orm-entity';
 import { TenantOrmEntity } from './tenant.orm-entity';
 
@@ -17,6 +20,8 @@ export class TypeOrmTenantRepository implements TenantRepository {
     private readonly tenants: Repository<TenantOrmEntity>,
     @InjectRepository(TenantMemberOrmEntity)
     private readonly members: Repository<TenantMemberOrmEntity>,
+    @InjectRepository(ThemeOrmEntity)
+    private readonly themes: Repository<ThemeOrmEntity>,
   ) {}
 
   async create(input: CreateTenantInput): Promise<TenantView> {
@@ -75,7 +80,9 @@ export class TypeOrmTenantRepository implements TenantRepository {
 
   async findPublicBySlug(
     slug: string,
-  ): Promise<(TenantView & { passwordHash: string | null }) | null> {
+  ): Promise<
+    (TenantView & { activeTheme?: WeddingTheme | null; passwordHash: string | null }) | null
+  > {
     const tenant = await this.tenants.findOne({
       where: {
         slug,
@@ -86,8 +93,14 @@ export class TypeOrmTenantRepository implements TenantRepository {
       return null;
     }
 
+    const activeTheme = await this.themes.findOne({
+      order: { updatedAt: 'DESC' },
+      where: { isActive: true, tenantId: tenant.id },
+    });
+
     return {
       ...toView(tenant),
+      activeTheme: activeTheme ? themeToView(activeTheme) : null,
       passwordHash: tenant.passwordHash,
     };
   }

@@ -2,6 +2,8 @@
 
 PLEASE IMPLEMENT THIS PROMPT.
 
+IMPORTANT PROMPT LIFECYCLE: Chi xoa file prompt nay sau khi hoan thanh tat ca muc trong prompt, pass verification, cap nhat docs, commit va push thanh cong. Neu con bat ky hang muc nao chua xong, giu nguyen file prompt va ghi ro phan con lai.
+
 Ban dang lam trong repo `D:\AJT\TheWedding`. Hay bat dau Phase 6.
 
 ## Muc Tieu
@@ -24,6 +26,7 @@ Xay dung admin dashboard cho quan ly users, tenants, media, audit logs, system s
 
 ## Frontend Tasks
 
+- All new admin UI text must use i18n/l10n translation keys and include `vi`, `en`, `ja` entries.
 - Admin shell and navigation.
 - Dashboard stats.
 - Users table/detail actions.
@@ -47,10 +50,13 @@ Xay dung admin dashboard cho quan ly users, tenants, media, audit logs, system s
 ## Docs
 
 - Update API, role/permission docs, roadmap, development log, changelog.
+- Update `docs/HUONG_DAN_SU_DUNG.md` bang tieng Viet de huong dan dang nhap super admin, mo admin dashboard, va su dung cac man users/tenants/media/audit/settings/feature flags da hoan thanh.
+- Update i18n/l10n docs/locale files for admin terminology, filters, statuses, errors, empty states, and action labels.
 
 ## Acceptance Criteria
 
 - Super admin can manage core resources.
 - Non-admin users are denied.
 - Admin UI is usable on desktop and has mobile fallback.
+- Admin UI text is available through locale keys for Vietnamese, English, and Japanese.
 - Commit va push len `origin/main`.

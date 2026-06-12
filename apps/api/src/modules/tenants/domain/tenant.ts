@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
-import { TENANT_VISIBILITY, type TenantVisibility } from '@the-wedding/shared';
+import { TENANT_VISIBILITY, type TenantVisibility, type WeddingTheme } from '@the-wedding/shared';
 
 export type TenantSettings = {
   accentColor?: string;
@@ -39,6 +39,7 @@ export type TenantView = {
 };
 
 export type PublicTenantView = Omit<TenantView, 'ownerUserId' | 'customDomain' | 'status'> & {
+  activeTheme?: WeddingTheme | null;
   requiresPassword: boolean;
 };
 

@@ -91,10 +91,17 @@ Implemented in Phase 4: tenant-scoped album CRUD, album reorder, cover selection
 
 ### Themes
 
-- `GET /api/v1/themes`
-- `POST /api/v1/themes`
-- `PATCH /api/v1/themes/:id`
-- `POST /api/v1/themes/:id/activate`
+- `GET /api/v1/theme-presets`
+- `POST /api/v1/theme-preview`
+- `GET /api/v1/tenants/:tenantId/themes`
+- `GET /api/v1/tenants/:tenantId/themes/active`
+- `POST /api/v1/tenants/:tenantId/themes`
+- `PATCH /api/v1/tenants/:tenantId/themes/:themeId`
+- `PATCH /api/v1/tenants/:tenantId/themes/:themeId/activate`
+- `POST /api/v1/tenants/:tenantId/themes/:themeId/clone`
+- `POST /api/v1/tenants/:tenantId/themes/reset?presetId=...`
+
+Implemented in Phase 5: shared theme presets, tenant-scoped create/update/preview, activate, clone, reset, active theme bootstrap, and audit log writes for create/update/activate/clone/reset. All tenant theme mutations verify tenant membership through the tenants application service. Public site reads include `activeTheme` when one exists; otherwise the web client falls back to the default preset.
 
 ### Admin
 

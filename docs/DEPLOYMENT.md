@@ -29,7 +29,8 @@ pnpm build
 ## Production Notes
 
 - Use managed SQL Server or hardened container orchestration.
-- Use S3-compatible storage with private buckets.
+- Use S3-compatible object storage with private buckets. Keep original media private and generate signed URLs for protected access.
 - Put CDN in front of public optimized media only.
 - Keep original media private by default.
 - Configure backup/restore and retention policy before launch.
+- See `docs/STORAGE_STRATEGY.md` for the storage rollout plan, mobile upload model, CDN direction, and provider boundary.

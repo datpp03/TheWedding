@@ -1,5 +1,6 @@
 export const TENANT_REPOSITORY = Symbol('TENANT_REPOSITORY');
 
+import type { WeddingTheme } from '@the-wedding/shared';
 import type { TenantSeo, TenantSettings, TenantSharing, TenantView } from './tenant';
 
 export type CreateTenantInput = {
@@ -37,7 +38,11 @@ export type UpdateTenantInput = Partial<
 export interface TenantRepository {
   create(input: CreateTenantInput): Promise<TenantView>;
   findByIdForUser(tenantId: string, userId: string): Promise<TenantView | null>;
-  findPublicBySlug(slug: string): Promise<(TenantView & { passwordHash: string | null }) | null>;
+  findPublicBySlug(
+    slug: string,
+  ): Promise<
+    (TenantView & { activeTheme?: WeddingTheme | null; passwordHash: string | null }) | null
+  >;
   isSlugAvailable(slug: string, excludeTenantId?: string): Promise<boolean>;
   listForUser(userId: string): Promise<TenantView[]>;
   softDelete(tenantId: string): Promise<void>;

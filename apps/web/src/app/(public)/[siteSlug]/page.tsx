@@ -1,4 +1,5 @@
 import type { ApiResponse } from '@the-wedding/shared';
+import { createThemeFromPreset, normalizeTheme } from '@the-wedding/shared';
 import { PublicGallery } from '@/features/media/public-gallery';
 import type { PublicGallery as PublicGalleryData } from '@/features/media/media-api';
 import type { PublicTenant } from '@/features/tenants/tenant-api';
@@ -57,25 +58,68 @@ export default async function PublicSitePage({ params, searchParams }: PageProps
 
   const title = site.seo.title || site.sharing.headline || site.siteName;
   const subtitle = site.settings.welcomeMessage || site.description;
+  const theme = normalizeTheme(site.activeTheme ?? createThemeFromPreset());
+  const radius = `${theme.config.borderRadius}px`;
 
   return (
-    <main className="min-h-screen bg-pearl">
+    <main
+      className="min-h-screen"
+      style={{
+        background: theme.colors.background,
+        color: theme.colors.text,
+        fontFamily: theme.typography.bodyFont,
+      }}
+    >
       <section className="px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+        <div
+          className={`mx-auto grid max-w-6xl gap-8 lg:items-center ${
+            theme.config.heroStyle === 'centered' ? 'text-center' : 'lg:grid-cols-[0.95fr_1.05fr]'
+          }`}
+        >
           <div>
-            <p className="text-sm font-semibold uppercase text-sage">/{site.slug}</p>
-            <h1 className="mt-3 text-4xl font-semibold text-ink sm:text-5xl">{title}</h1>
+            <p className="text-sm font-semibold uppercase" style={{ color: theme.colors.primary }}>
+              /{site.slug}
+            </p>
+            <h1
+              className="mt-3 text-4xl sm:text-5xl"
+              style={{
+                color: theme.colors.text,
+                fontFamily: theme.typography.headingFont,
+                fontWeight: theme.typography.headingWeight,
+              }}
+            >
+              {title}
+            </h1>
             {subtitle ? (
-              <p className="mt-4 max-w-2xl text-base leading-7 text-neutral-600">{subtitle}</p>
+              <p
+                className="mt-4 max-w-2xl text-base leading-7"
+                style={{ color: theme.colors.muted }}
+              >
+                {subtitle}
+              </p>
             ) : null}
             <div className="mt-6 flex flex-wrap gap-3 text-sm text-neutral-700">
               {site.brideName || site.groomName ? (
-                <span className="rounded-md bg-white px-3 py-2 shadow-sm">
+                <span
+                  className="px-3 py-2 shadow-sm"
+                  style={{
+                    background: theme.colors.surface,
+                    borderRadius: radius,
+                    color: theme.colors.text,
+                  }}
+                >
                   {[site.brideName, site.groomName].filter(Boolean).join(' & ')}
                 </span>
               ) : null}
               {site.weddingDate ? (
-                <span className="rounded-md bg-white px-3 py-2 shadow-sm">
+                <span
+                  className="px-3 py-2 shadow-sm"
+                  style={{
+                    background: theme.colors.primary,
+                    borderRadius: radius,
+                    color: theme.colors.surface,
+                  }}
+                >
                   {new Intl.DateTimeFormat('en', { dateStyle: 'long' }).format(
                     new Date(site.weddingDate),
                   )}
@@ -83,11 +127,16 @@ export default async function PublicSitePage({ params, searchParams }: PageProps
               ) : null}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div
+            className={`grid gap-3 ${
+              theme.config.mediaDensity === 'compact' ? 'grid-cols-3' : 'grid-cols-2'
+            } ${theme.config.heroStyle === 'centered' ? 'mx-auto w-full max-w-3xl' : ''}`}
+          >
             {(gallery?.albums.flatMap((album) => album.media).slice(0, 4) ?? []).map((item) => (
               <div
                 key={item.id}
-                className="aspect-[4/3] overflow-hidden rounded-md border border-white/70 bg-neutral-100 shadow-sm"
+                className="aspect-[4/3] overflow-hidden border border-white/70 shadow-sm"
+                style={{ background: theme.colors.surface, borderRadius: radius }}
               >
                 {item.type === 'image' ? (
                   <img
@@ -107,16 +156,24 @@ export default async function PublicSitePage({ params, searchParams }: PageProps
             ))}
             {gallery?.albums.flatMap((album) => album.media).length ? null : (
               <>
-                <div className="aspect-[4/3] rounded-md bg-champagne shadow-sm" />
-                <div className="aspect-[4/3] rounded-md bg-sage shadow-sm" />
-                <div className="aspect-[4/3] rounded-md bg-rosewood shadow-sm" />
-                <div className="aspect-[4/3] rounded-md bg-neutral-900 shadow-sm" />
+                {[
+                  theme.colors.primary,
+                  theme.colors.secondary,
+                  theme.colors.surface,
+                  theme.colors.text,
+                ].map((color) => (
+                  <div
+                    key={color}
+                    className="aspect-[4/3] shadow-sm"
+                    style={{ background: color, borderRadius: radius }}
+                  />
+                ))}
               </>
             )}
           </div>
         </div>
       </section>
-      <PublicGallery gallery={gallery} />
+      <PublicGallery gallery={gallery} theme={theme} />
     </main>
   );
 }

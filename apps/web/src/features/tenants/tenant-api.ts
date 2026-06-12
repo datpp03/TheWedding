@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api-client';
-import type { TenantVisibility } from '@the-wedding/shared';
+import type { TenantVisibility, WeddingTheme } from '@the-wedding/shared';
 
 export type Tenant = {
   id: string;
@@ -30,6 +30,7 @@ export type Tenant = {
 };
 
 export type PublicTenant = Tenant & {
+  activeTheme?: WeddingTheme | null;
   requiresPassword: boolean;
 };
 

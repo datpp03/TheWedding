@@ -49,3 +49,10 @@ The Wedding frontend should feel youthful, energetic, polished, and emotionally 
 - Buttons, forms, menus, tabs, uploads, and galleries have complete interaction states.
 - Main flows have loading, empty, error, and success states.
 - Mobile QA covers at least 320px, 360px, 390px, 414px, 768px, 1024px, and desktop widths.
+
+## i18n/l10n Foundation
+
+- New theme UI strings use stable keys in `apps/web/src/lib/i18n/locales.ts`.
+- Initial dictionaries are `vi`, `en`, and `ja`.
+- `t(key, locale)` falls back to English and then to the raw key when a translation is missing.
+- Future frontend work should add visible text through locale keys, then check mobile layouts in all three initial locales.

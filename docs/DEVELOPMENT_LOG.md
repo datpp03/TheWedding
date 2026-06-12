@@ -377,3 +377,44 @@
 
 - Upload progress in the web MVP is queue-status based; precise byte progress should be added with an upload transport that exposes progress events.
 - Local storage file serving is suitable for development. Production should use private object storage, signed URLs, CDN-backed optimized derivatives, and malware scanning before broad public uploads.
+
+## 2026-06-12 - Phase 5 Theme Customization MVP
+
+### Completed
+
+- Replaced simple theme name constants with shared preset objects, theme settings, validation helpers, and default preset fallback.
+- Implemented the themes backend module with TypeORM repository, application service, DTOs, and controller endpoints.
+- Added tenant-scoped theme list, active theme bootstrap, create, update, preview, activate, clone, and reset.
+- Enforced tenant membership on theme reads/mutations through the tenants application service.
+- Added audit log writes for theme create/update/activate/clone/reset.
+- Extended public site reads to include `activeTheme` and updated the public site shell to apply colors, typography, radius, hero style, and media density.
+- Built the theme dashboard with preset gallery, swatches, color inputs, layout selectors, typography/style controls, live preview, save/activate/reset/clone actions, loading/error/success/dirty states, and responsive controls.
+- Started i18n/l10n foundation for new theme UI with stable keys and `vi`, `en`, `ja` dictionaries.
+- Added backend theme tests for validation, tenant access denial, activation audit, and reset behavior.
+
+### Files Created or Updated
+
+- `packages/shared/src/theme.ts`
+- `apps/api/src/modules/themes/**`
+- `apps/api/src/modules/tenants/**`
+- `apps/web/src/features/themes/**`
+- `apps/web/src/lib/i18n/locales.ts`
+- `apps/web/src/app/(dashboard)/dashboard/themes/page.tsx`
+- `apps/web/src/app/(public)/[siteSlug]/page.tsx`
+- `docs/API_DESIGN.md`
+- `docs/ROADMAP.md`
+- `docs/CHANGELOG.md`
+- `docs/HUONG_DAN_SU_DUNG.md`
+- `docs/UI_UX_DESIGN.md`
+
+### Tests and Checks
+
+- `pnpm.cmd format`: pass
+- `pnpm.cmd typecheck`: pass
+- `pnpm.cmd test`: pass
+
+### Technical Risks
+
+- Theme custom CSS is stored but not surfaced in the editor yet; production use should sandbox or restrict custom CSS before exposing it broadly.
+- Web smoke tests are not automated yet; the current web test script still reports no web tests.
+- Locale selection/persistence is not app-wide yet; Phase 5 only localizes the new theme UI.

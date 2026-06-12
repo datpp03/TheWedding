@@ -38,6 +38,6 @@ Controllers must not contain business logic or direct database access.
 ## Integration Boundaries
 
 - Database: SQL Server through TypeORM infrastructure repositories.
-- Storage: adapter interface with local and S3-compatible providers.
+- Storage: adapter interface with local development storage and S3-compatible production providers. See `docs/STORAGE_STRATEGY.md`.
 - Queue: BullMQ/Redis planned for async media processing.
 - Mail: provider interface for verification and password reset flows.
