@@ -41,3 +41,7 @@ All notable changes to this project will be documented in this file.
 - Forgot password, reset password, email verification, CSRF token exchange, auth audit log writes, and dashboard/admin route protection.
 - Auth unit coverage for one-time reset and verification token reuse rejection.
 - Phase 3 tenant/site foundation with tenant CRUD, owner membership creation, slug availability checks, settings, visibility, SEO/share metadata, audit logs, dashboard onboarding, tenant settings UI, public slug rendering, and private/password access gates.
+- Planning notes for app-managed media storage and prompt lifecycle cleanup rules.
+- Long-term storage strategy covering local dev storage, S3-compatible production storage, CDN, signed URLs, processing, and future React Native upload sessions.
+- Phase 4 album/media MVP with tenant-scoped album CRUD, reorder, cover selection, visibility and download controls, local storage adapter, validated single/bulk uploads, media list/update/reorder/move/batch delete, authenticated/public file endpoints, public gallery, and lightbox.
+- Backend media tests for invalid upload rejection, cross-tenant denial, and download permission checks.

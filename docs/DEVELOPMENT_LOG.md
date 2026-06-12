@@ -325,3 +325,55 @@
 
 - Public album/media endpoints remain planned for Phase 4.
 - Password-protected public access currently uses a query parameter gate suitable for MVP smoke testing; a short-lived access token or signed cookie should replace this before production sharing.
+
+## 2026-06-12 - Planning Updates for Prompt Lifecycle and App Storage
+
+### Completed
+
+- Added a prompt lifecycle rule to every prompt file: only delete a prompt after every item in that prompt is complete, verified, documented, committed, and pushed.
+- Removed the previously planned external-drive integration path.
+- Clarified that media uploads should use app-managed storage: local filesystem for development and S3-compatible object storage for production readiness.
+- Added `docs/STORAGE_STRATEGY.md` to guide local storage, production object storage, CDN delivery, signed URLs, media processing, and future React Native iOS/Android upload sessions.
+
+## 2026-06-12 - Phase 4 Album and Media MVP
+
+### Completed
+
+- Implemented album CRUD, reorder, cover selection, visibility, and allow-download controls.
+- Implemented media single upload, bulk upload, listing, metadata update, reorder, move, batch delete, authenticated file serving, public gallery file serving, and download permission checks.
+- Added local filesystem storage adapter behind `StorageService` using backend-generated randomized keys and path traversal protection.
+- Added upload validation for MIME type, file extension, and size before storage writes.
+- Added audit log writes for album mutations and media upload/update/reorder/move/delete/download events.
+- Built album dashboard, media dashboard with drag/drop queue and batch actions, public gallery, and keyboard lightbox.
+- Confirmed Phase 4 follows `docs/STORAGE_STRATEGY.md`: local dev storage now, provider-neutral boundary, no trusted user filenames in storage paths, and raw storage keys kept out of API DTOs.
+
+### Files Created or Updated
+
+- `apps/api/src/modules/albums/**`
+- `apps/api/src/modules/media/**`
+- `apps/api/src/modules/storage/**`
+- `apps/web/src/features/media/**`
+- `apps/web/src/app/(dashboard)/dashboard/albums/page.tsx`
+- `apps/web/src/app/(dashboard)/dashboard/media/page.tsx`
+- `apps/web/src/app/(public)/[siteSlug]/page.tsx`
+- `docs/API_DESIGN.md`
+- `docs/DATABASE_DESIGN.md`
+- `docs/ROADMAP.md`
+- `docs/CHANGELOG.md`
+- `docs/DEVELOPMENT_LOG.md`
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass
+- `pnpm.cmd --filter @the-wedding/web typecheck`: pass
+- `pnpm.cmd --filter @the-wedding/api test`: pass
+- `pnpm.cmd --filter @the-wedding/web test`: pass, script currently reports no web tests yet
+- `pnpm.cmd --filter @the-wedding/api lint`: pass
+- `pnpm.cmd --filter @the-wedding/web lint`: pass
+- `pnpm.cmd --filter @the-wedding/api build`: pass
+- `pnpm.cmd --filter @the-wedding/web build`: pass
+
+### Technical Risks
+
+- Upload progress in the web MVP is queue-status based; precise byte progress should be added with an upload transport that exposes progress events.
+- Local storage file serving is suitable for development. Production should use private object storage, signed URLs, CDN-backed optimized derivatives, and malware scanning before broad public uploads.

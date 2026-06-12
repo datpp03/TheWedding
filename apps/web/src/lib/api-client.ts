@@ -9,7 +9,7 @@ export async function apiClient<TData>(path: string, init?: RequestInit): Promis
   const method = init?.method?.toUpperCase() ?? 'GET';
   const headers = new Headers(init?.headers);
 
-  if (!headers.has('Content-Type')) {
+  if (!(init?.body instanceof FormData) && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
 

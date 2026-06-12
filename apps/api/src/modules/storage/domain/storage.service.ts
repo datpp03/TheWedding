@@ -2,6 +2,8 @@ export const STORAGE_SERVICE = Symbol('STORAGE_SERVICE');
 
 export type UploadOptions = {
   tenantId: string;
+  mediaId: string;
+  extension: string;
   contentType: string;
   visibility: 'public' | 'private';
 };

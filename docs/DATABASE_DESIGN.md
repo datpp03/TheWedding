@@ -13,8 +13,8 @@ SQL Server is the primary database. TypeORM is used for migrations and infrastru
 - `roles`, `permissions`, `user_roles`, `role_permissions`: RBAC and permission model.
 - `tenants`, `tenant_members`: wedding sites and membership.
 - `albums`: tenant album metadata, visibility, layout, cover.
-- `media`: photo/video metadata, storage keys, processing state.
-- `media_versions`: original, optimized, thumbnail, edited variants.
+- `media`: photo/video metadata, provider name, backend-generated storage keys, processing state, and user-facing original filename.
+- `media_versions`: original, optimized, thumbnail, edited variants, each tied to provider storage keys.
 - `themes`: tenant theme presets and customizations.
 - `audit_logs`: sensitive actions and admin operations.
 - `system_settings`, `feature_flags`: runtime configuration.
@@ -31,6 +31,14 @@ SQL Server is the primary database. TypeORM is used for migrations and infrastru
 ## Migration
 
 Initial migration is located in `apps/api/src/database/migrations/1710000000000-InitialSchema.ts`.
+
+## Phase 4 Media Storage Notes
+
+- `albums.coverMediaId`, `albums.visibility`, `albums.allowDownload`, and `albums.sortOrder` drive the MVP album dashboard and public gallery.
+- `media.storageProvider` and `media.storageKey` store backend-generated provider metadata only. User filenames are preserved in `media.originalFileName` for display/download names and are not trusted for paths.
+- Local development writes originals under keys shaped like `tenants/{tenantId}/media/{mediaId}/original/{random}.{ext}` through the storage adapter.
+- Public API media DTOs expose API file URLs, not raw object keys, so tenant, album visibility, and download permissions can be checked before bytes are served.
+- `media_versions` currently records the original version. Thumbnail, optimized image, and video preview variants remain planned for Phase 7 processing.
 
 ## Seeds
 

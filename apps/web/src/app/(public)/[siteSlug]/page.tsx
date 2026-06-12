@@ -1,4 +1,6 @@
 import type { ApiResponse } from '@the-wedding/shared';
+import { PublicGallery } from '@/features/media/public-gallery';
+import type { PublicGallery as PublicGalleryData } from '@/features/media/media-api';
 import type { PublicTenant } from '@/features/tenants/tenant-api';
 
 type PageProps = {
@@ -14,6 +16,7 @@ export default async function PublicSitePage({ params, searchParams }: PageProps
   const { siteSlug } = await params;
   const { password } = await searchParams;
   const site = await fetchPublicSite(siteSlug, password);
+  const gallery = site ? await fetchPublicGallery(siteSlug) : null;
 
   if (!site) {
     return (
@@ -81,16 +84,39 @@ export default async function PublicSitePage({ params, searchParams }: PageProps
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {['bg-champagne', 'bg-sage', 'bg-rosewood', 'bg-neutral-900'].map((frame, index) => (
+            {(gallery?.albums.flatMap((album) => album.media).slice(0, 4) ?? []).map((item) => (
               <div
-                key={frame}
-                className={`aspect-[4/3] rounded-md border border-white/70 shadow-sm ${frame}`}
-                aria-label={`Wedding frame ${index + 1}`}
-              />
+                key={item.id}
+                className="aspect-[4/3] overflow-hidden rounded-md border border-white/70 bg-neutral-100 shadow-sm"
+              >
+                {item.type === 'image' ? (
+                  <img
+                    className="h-full w-full object-cover"
+                    src={absoluteMediaUrl(item.publicUrl)}
+                    alt=""
+                  />
+                ) : (
+                  <video
+                    className="h-full w-full object-cover"
+                    src={absoluteMediaUrl(item.publicUrl)}
+                    muted
+                    playsInline
+                  />
+                )}
+              </div>
             ))}
+            {gallery?.albums.flatMap((album) => album.media).length ? null : (
+              <>
+                <div className="aspect-[4/3] rounded-md bg-champagne shadow-sm" />
+                <div className="aspect-[4/3] rounded-md bg-sage shadow-sm" />
+                <div className="aspect-[4/3] rounded-md bg-rosewood shadow-sm" />
+                <div className="aspect-[4/3] rounded-md bg-neutral-900 shadow-sm" />
+              </>
+            )}
           </div>
         </div>
       </section>
+      <PublicGallery gallery={gallery} />
     </main>
   );
 }
@@ -112,4 +138,23 @@ async function fetchPublicSite(slug: string, password?: string) {
 
   const payload = (await response.json()) as ApiResponse<PublicTenant>;
   return payload.success ? payload.data : null;
+}
+
+async function fetchPublicGallery(slug: string) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+  const response = await fetch(`${apiUrl}/api/v1/public/sites/${slug}/gallery`, {
+    cache: 'no-store',
+  }).catch(() => null);
+
+  if (!response?.ok) {
+    return null;
+  }
+
+  const payload = (await response.json()) as ApiResponse<PublicGalleryData>;
+  return payload.success ? payload.data : null;
+}
+
+function absoluteMediaUrl(url: string) {
+  if (/^https?:\/\//.test(url)) return url;
+  return `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}${url}`;
 }

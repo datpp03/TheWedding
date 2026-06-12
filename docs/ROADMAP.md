@@ -38,8 +38,13 @@ Status: completed for MVP tenant/site foundation.
 
 ## Phase 4: Album & Media
 
-- Album CRUD, media upload, bulk upload, gallery, lightbox, download permission.
-- Build responsive gallery, upload, and lightbox interactions that feel smooth on phones, tablets, and desktop screens.
+Status: completed for MVP album/media.
+
+- Completed: album CRUD, reorder, cover selection, visibility, and allow-download controls.
+- Completed: single and bulk upload through API multipart form data, local development storage, randomized storage keys, MIME/extension/size validation, media list, metadata update, reorder, move, batch delete, authenticated file serving, and download permission checks.
+- Completed: dashboard album/media management, drag/drop upload queue with retryable failure state, grid view, batch select/delete/move, cover selection, public gallery, responsive media grid, and keyboard lightbox.
+- Completed: Phase 4 keeps `StorageService` provider-neutral and follows `docs/STORAGE_STRATEGY.md` for backend-generated keys and future S3-compatible/direct-upload expansion.
+- Later hardening: resumable uploads, progress backed by XHR/fetch upload events, virus scanning, thumbnails, optimized variants, signed URLs, and CDN delivery.
 
 ## Phase 5: Theme Customization
 
@@ -53,6 +58,7 @@ Status: completed for MVP tenant/site foundation.
 ## Phase 7: Media Processing Advanced
 
 - Queue, thumbnails, optimization, video preview, media versions, editor placeholders.
+- Add retryable media processing jobs, responsive image/video variants, storage usage accounting, and idempotent worker behavior.
 
 ## Phase 8: Enterprise Hardening
 
@@ -61,4 +67,4 @@ Status: completed for MVP tenant/site foundation.
 
 ## Phase 9: Scale Future
 
-- Payment/subscription, custom domain, CDN, AI tagging, watermark, analytics.
+- Payment/subscription, custom domain, CDN, S3-compatible production storage, signed URL upload/download, React Native multipart upload sessions, AI tagging, watermark, analytics.

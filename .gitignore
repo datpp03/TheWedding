@@ -24,6 +24,7 @@ yarn-debug.log*
 
 # local media/storage
 /storage/
+/apps/api/storage/
 /uploads/
 /tmp/
 

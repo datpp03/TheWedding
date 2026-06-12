@@ -66,16 +66,31 @@ Local development note: forgot password and register responses may include devel
 
 Implemented in Phase 3: tenant CRUD, owner membership creation, slug availability checks, settings and visibility updates, audit log writes for tenant mutations, and public site reads with private/password gates. Authenticated tenant endpoints only return tenants where the user is a member. Public site reads return full content for public sites, gated content for private/password-protected sites until a valid password is supplied, and 404 for missing or inactive sites.
 
-### Albums, Media, Themes
+### Albums and Media
 
-- `GET /api/v1/albums`
-- `POST /api/v1/albums`
-- `PATCH /api/v1/albums/:id`
-- `DELETE /api/v1/albums/:id`
-- `POST /api/v1/albums/reorder`
-- `POST /api/v1/media/upload`
-- `POST /api/v1/media/bulk-upload`
-- `GET /api/v1/media/:id/download`
+- `GET /api/v1/tenants/:tenantId/albums`
+- `POST /api/v1/tenants/:tenantId/albums`
+- `PATCH /api/v1/tenants/:tenantId/albums/reorder`
+- `PATCH /api/v1/tenants/:tenantId/albums/:albumId`
+- `PATCH /api/v1/tenants/:tenantId/albums/:albumId/cover`
+- `DELETE /api/v1/tenants/:tenantId/albums/:albumId`
+- `GET /api/v1/tenants/:tenantId/albums/:albumId/media`
+- `POST /api/v1/tenants/:tenantId/media/upload`
+- `POST /api/v1/tenants/:tenantId/media/bulk-upload`
+- `PATCH /api/v1/tenants/:tenantId/media/reorder/:albumId`
+- `PATCH /api/v1/tenants/:tenantId/media/:mediaId`
+- `PATCH /api/v1/tenants/:tenantId/media/:mediaId/move`
+- `DELETE /api/v1/tenants/:tenantId/media`
+- `GET /api/v1/tenants/:tenantId/media/:mediaId/file`
+- `GET /api/v1/tenants/:tenantId/media/:mediaId/download`
+- `GET /api/v1/public/sites/:slug/gallery`
+- `GET /api/v1/public/tenants/:tenantId/media/:mediaId/file`
+- `GET /api/v1/public/tenants/:tenantId/media/:mediaId/download`
+
+Implemented in Phase 4: tenant-scoped album CRUD, album reorder, cover selection, visibility, download controls, single and bulk upload through API multipart form data, media metadata update, media reorder, move, batch delete, authenticated media file serving, public gallery reads, lightbox media file serving, and download permission checks. Uploads validate MIME type, file extension, file size, tenant membership, and album ownership before storage writes. API responses do not expose raw storage keys.
+
+### Themes
+
 - `GET /api/v1/themes`
 - `POST /api/v1/themes`
 - `PATCH /api/v1/themes/:id`
