@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import type { Route } from 'next';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { login } from './auth-api';
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -22,7 +24,7 @@ export function LoginForm() {
         email: getString(formData, 'email'),
         password: getString(formData, 'password'),
       });
-      router.push('/dashboard');
+      router.push(getRedirectPath(searchParams.get('redirect')) as Route);
       router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Sign in failed');
@@ -79,6 +81,14 @@ export function LoginForm() {
       </div>
     </form>
   );
+}
+
+function getRedirectPath(value: string | null) {
+  if (!value?.startsWith('/') || value.startsWith('//')) {
+    return '/dashboard';
+  }
+
+  return value;
 }
 
 function getString(formData: FormData, key: string) {

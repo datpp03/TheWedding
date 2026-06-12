@@ -29,6 +29,8 @@ The verified local setup uses SQL Server database `TheWedding`, TCP port `1433`,
 - `JWT_REFRESH_SECRET`: refresh token signing secret.
 - `ACCESS_TOKEN_EXPIRES_IN`: access token TTL.
 - `REFRESH_TOKEN_EXPIRES_IN`: refresh token TTL.
+- `PASSWORD_RESET_TOKEN_EXPIRES_IN`: password reset token TTL.
+- `EMAIL_VERIFICATION_TOKEN_EXPIRES_IN`: email verification token TTL.
 - `COOKIE_SECRET`: cookie signing/encryption secret.
 
 ## Storage

@@ -6,8 +6,15 @@ import { Public } from '../../../common/decorators/public.decorator';
 import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
 import { AuthService, REFRESH_TOKEN_COOKIE } from '../application/auth.service';
 import type { RequestContext } from '../application/auth.types';
-import { clearAuthCookies, setAuthCookies } from './auth-cookie.presenter';
-import { LoginDto, RefreshDto, RegisterDto } from './auth.dto';
+import { clearAuthCookies, setAuthCookies, setCsrfCookie } from './auth-cookie.presenter';
+import {
+  ForgotPasswordDto,
+  LoginDto,
+  RefreshDto,
+  RegisterDto,
+  ResetPasswordDto,
+  VerifyEmailDto,
+} from './auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -21,7 +28,7 @@ export class AuthController {
   capabilities() {
     return {
       module: 'auth',
-      phase: '2-planned',
+      phase: '2-completed',
       capabilities: [
         'register',
         'login',
@@ -30,9 +37,19 @@ export class AuthController {
         'forgot-password',
         'reset-password',
         'verify-email',
+        'csrf',
         'sessions',
       ],
     };
+  }
+
+  @Public()
+  @Get('csrf')
+  csrf(@Res({ passthrough: true }) response: Response) {
+    const token = this.authService.createCsrfToken();
+    setCsrfCookie(response, token, this.config);
+
+    return { token };
   }
 
   @Public()
@@ -52,8 +69,39 @@ export class AuthController {
     setAuthCookies(response, result.tokens, this.config);
 
     return {
+      devEmailVerificationToken: result.devEmailVerificationToken,
       user: result.user,
     };
+  }
+
+  @Public()
+  @Post('forgot-password')
+  forgotPassword(@Body() body: ForgotPasswordDto, @Req() request: Request) {
+    return this.authService.forgotPassword({
+      email: body.email,
+      context: getRequestContext(request),
+    });
+  }
+
+  @Public()
+  @Post('reset-password')
+  async resetPassword(@Body() body: ResetPasswordDto, @Req() request: Request) {
+    await this.authService.resetPassword({
+      token: body.token,
+      password: body.password,
+      context: getRequestContext(request),
+    });
+
+    return { reset: true };
+  }
+
+  @Public()
+  @Post('verify-email')
+  verifyEmail(@Body() body: VerifyEmailDto, @Req() request: Request) {
+    return this.authService.verifyEmail({
+      token: body.token,
+      context: getRequestContext(request),
+    });
   }
 
   @Public()
@@ -98,7 +146,7 @@ export class AuthController {
   @Public()
   @Post('logout')
   async logout(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
-    await this.authService.logout(readRefreshToken(request));
+    await this.authService.logout(readRefreshToken(request), getRequestContext(request));
     clearAuthCookies(response, this.config);
 
     return {
@@ -120,8 +168,9 @@ export class AuthController {
   async revokeSession(
     @CurrentUser() user: AuthenticatedUser,
     @Param('sessionId') sessionId: string,
+    @Req() request: Request,
   ) {
-    await this.authService.revokeSession(user.id, sessionId);
+    await this.authService.revokeSession(user.id, sessionId, getRequestContext(request));
 
     return {
       revoked: true,
@@ -131,9 +180,10 @@ export class AuthController {
   @Delete('sessions')
   async revokeAllSessions(
     @CurrentUser() user: AuthenticatedUser,
+    @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
-    await this.authService.revokeAllSessions(user.id);
+    await this.authService.revokeAllSessions(user.id, getRequestContext(request));
     clearAuthCookies(response, this.config);
 
     return {

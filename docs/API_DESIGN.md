@@ -37,6 +37,7 @@ All HTTP endpoints are under `/api/v1`.
 - `POST /api/v1/auth/logout`
 - `POST /api/v1/auth/refresh`
 - `GET /api/v1/auth/capabilities`
+- `GET /api/v1/auth/csrf`
 - `POST /api/v1/auth/forgot-password`
 - `POST /api/v1/auth/reset-password`
 - `POST /api/v1/auth/verify-email`
@@ -45,9 +46,9 @@ All HTTP endpoints are under `/api/v1`.
 - `DELETE /api/v1/auth/sessions/:sessionId`
 - `DELETE /api/v1/auth/sessions`
 
-Implemented in Phase 2: register, login, logout, refresh, capabilities, me, sessions, revoke one session, revoke all sessions.
+Implemented in Phase 2: register, login, logout, refresh, capabilities, CSRF token exchange, forgot password, reset password, verify email, me, sessions, revoke one session, revoke all sessions.
 
-Planned after Phase 2: forgot password, reset password, verify email.
+Local development note: forgot password and register responses may include development-only reset/verification tokens while SMTP delivery is not wired. Production must deliver these tokens by email and must not return them in API payloads.
 
 ### Tenants and Public Sites
 

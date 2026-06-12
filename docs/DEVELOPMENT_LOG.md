@@ -232,3 +232,53 @@
 ### Tests and Checks
 
 - Documentation-only change; formatting check is sufficient.
+
+## 2026-06-12 - Phase 2 Auth Completion
+
+### Completed
+
+- Added password reset token entity/repository support using hashed one-time token secrets.
+- Added email verification token entity/repository support using hashed one-time token secrets.
+- Added audit log TypeORM repository and wired auth security events into audit logs.
+- Added CSRF token endpoint and CSRF validation inside the access-token guard for non-public mutations.
+- Added backend endpoints for forgot password, reset password, verify email, and CSRF token exchange.
+- Added frontend forgot password, reset password, and email verification screens.
+- Added dashboard/admin route protection through Next middleware.
+- Updated auth API client to fetch and send CSRF tokens for mutations.
+- Extended auth unit coverage from 4 to 8 cases.
+
+### Files Created or Updated
+
+- `.env.example`
+- `apps/api/src/config/env.validation.ts`
+- `apps/api/src/modules/audit-logs/**`
+- `apps/api/src/modules/auth/**`
+- `apps/web/src/app/(auth)/**`
+- `apps/web/src/features/auth/**`
+- `apps/web/src/lib/api-client.ts`
+- `apps/web/src/middleware.ts`
+- `docs/API_DESIGN.md`
+- `docs/AUTH_SECURITY.md`
+- `docs/ENVIRONMENT_VARIABLES.md`
+- `docs/DEVELOPMENT_LOG.md`
+- `docs/CHANGELOG.md`
+- `docs/ROADMAP.md`
+
+### Current Capability
+
+- Users can request a password reset without email enumeration.
+- Users can reset password with a valid one-time token; sessions are revoked after reset.
+- Users can verify email with a valid one-time token.
+- Local development returns reset/verification tokens in API payloads because SMTP delivery is not wired yet.
+- Dashboard/admin routes redirect anonymous visitors to login with a preserved redirect path.
+
+### Tests and Checks
+
+- API auth unit tests: 8 passing.
+- API lint/typecheck: pass during implementation.
+- Web lint/typecheck: pass during implementation.
+
+### Technical Risks
+
+- SMTP delivery is not implemented yet; production must deliver reset/verification tokens by email and must not expose development tokens in responses.
+- Middleware checks cookie presence for route protection; API remains the source of truth for token validity.

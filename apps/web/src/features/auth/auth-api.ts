@@ -13,6 +13,7 @@ export type AuthUser = {
 
 export type AuthResult = {
   user: AuthUser;
+  devEmailVerificationToken?: string;
 };
 
 export function login(input: { email: string; password: string }) {
@@ -31,6 +32,27 @@ export function register(input: { displayName: string; email: string; password: 
 
 export function getCurrentUser() {
   return apiClient<AuthUser>('/auth/me');
+}
+
+export function forgotPassword(input: { email: string }) {
+  return apiClient<{ message: string; devResetToken?: string }>('/auth/forgot-password', {
+    body: JSON.stringify(input),
+    method: 'POST',
+  });
+}
+
+export function resetPassword(input: { token: string; password: string }) {
+  return apiClient<{ reset: boolean }>('/auth/reset-password', {
+    body: JSON.stringify(input),
+    method: 'POST',
+  });
+}
+
+export function verifyEmail(input: { token: string }) {
+  return apiClient<AuthUser>('/auth/verify-email', {
+    body: JSON.stringify(input),
+    method: 'POST',
+  });
 }
 
 export function logout() {

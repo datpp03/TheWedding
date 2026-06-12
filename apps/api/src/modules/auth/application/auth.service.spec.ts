@@ -6,8 +6,12 @@ import { AuthService } from './auth.service';
 
 type MockRepository = {
   assignUserRole: jest.MockedFunction<(userId: string) => Promise<void>>;
+  createEmailVerificationToken: jest.MockedFunction<(input: unknown) => Promise<{ id: string }>>;
+  createPasswordResetToken: jest.MockedFunction<(input: unknown) => Promise<{ id: string }>>;
   createSession: jest.MockedFunction<(input: unknown) => Promise<{ id: string }>>;
   createUser: jest.MockedFunction<(input: unknown) => Promise<UserOrmEntity>>;
+  findEmailVerificationTokenById: jest.MockedFunction<(id: string) => Promise<OneTimeToken | null>>;
+  findPasswordResetTokenById: jest.MockedFunction<(id: string) => Promise<OneTimeToken | null>>;
   findSessionById: jest.MockedFunction<(id: string) => Promise<Session | null>>;
   findUserByEmail: jest.MockedFunction<(email: string) => Promise<UserOrmEntity | null>>;
   findUserById: jest.MockedFunction<(id: string) => Promise<UserOrmEntity | null>>;
@@ -15,12 +19,17 @@ type MockRepository = {
   getRoleCodes: jest.MockedFunction<(userId: string) => Promise<['USER']>>;
   getTenantIds: jest.MockedFunction<(userId: string) => Promise<[]>>;
   listSessions: jest.MockedFunction<(userId: string) => Promise<[]>>;
+  markEmailVerificationTokenUsed: jest.MockedFunction<(id: string) => Promise<void>>;
+  markPasswordResetTokenUsed: jest.MockedFunction<(id: string) => Promise<void>>;
+  markUserEmailVerified: jest.MockedFunction<(userId: string) => Promise<UserOrmEntity | null>>;
   recordLogin: jest.MockedFunction<(input: unknown) => Promise<void>>;
   revokeSession: jest.MockedFunction<(sessionId: string) => Promise<void>>;
   revokeSessionFamily: jest.MockedFunction<(familyId: string) => Promise<void>>;
+  revokeUserSessions: jest.MockedFunction<(userId: string) => Promise<void>>;
   rotateSession: jest.MockedFunction<
     (sessionId: string, refreshTokenHash: string, expiresAt: Date) => Promise<void>
   >;
+  updateUserPassword: jest.MockedFunction<(userId: string, passwordHash: string) => Promise<void>>;
 };
 
 type Session = {
@@ -30,6 +39,14 @@ type Session = {
   refreshTokenFamilyId: string;
   expiresAt: Date;
   revokedAt: Date | null;
+};
+
+type OneTimeToken = {
+  id: string;
+  userId: string;
+  tokenHash: string;
+  expiresAt: Date;
+  usedAt: Date | null;
 };
 
 type MockPasswordHasher = {
@@ -64,9 +81,13 @@ describe(AuthService.name, () => {
       status: 'pending_verification',
     });
     expect(repository.assignUserRole).toHaveBeenCalledWith(user.id);
+    expect(repository.createEmailVerificationToken).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: user.id }),
+    );
     expect(result.user.email).toBe('new@example.com');
     expect(result.tokens.accessToken).toBe('access-token');
     expect(result.tokens.refreshToken).toMatch(/^session-1\./);
+    expect(result.devEmailVerificationToken).toMatch(/^email-token-1\./);
   });
 
   it('blocks duplicate registration', async () => {
@@ -130,15 +151,135 @@ describe(AuthService.name, () => {
     );
     expect(repository.revokeSessionFamily).toHaveBeenCalledWith('family-1');
   });
+
+  it('returns a generic forgot password response and creates a reset token for existing users', async () => {
+    const user = createUser({ id: 'user-1', email: 'owner@example.com' });
+    const { repository, service } = createService();
+
+    repository.findUserByEmail.mockResolvedValue(user);
+
+    const result = await service.forgotPassword({
+      email: 'Owner@Example.com',
+      context,
+    });
+
+    expect(result.message).toContain('If this email is registered');
+    expect(result.devResetToken).toMatch(/^reset-token-1\./);
+    expect(repository.createPasswordResetToken).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: user.id }),
+    );
+  });
+
+  it('does not reveal missing emails during forgot password', async () => {
+    const { repository, service } = createService();
+
+    repository.findUserByEmail.mockResolvedValue(null);
+
+    const result = await service.forgotPassword({
+      email: 'missing@example.com',
+      context,
+    });
+
+    expect(result.message).toContain('If this email is registered');
+    expect(result.devResetToken).toBeUndefined();
+    expect(repository.createPasswordResetToken).not.toHaveBeenCalled();
+  });
+
+  it('resets password, revokes sessions, and rejects token reuse', async () => {
+    const user = createUser({ id: 'user-1' });
+    const { repository, service } = createService();
+
+    repository.findPasswordResetTokenById.mockResolvedValue(
+      createOneTimeToken({
+        id: 'reset-token-1',
+        userId: user.id,
+        tokenHash: 'hash:reset-secret',
+      }),
+    );
+    repository.findUserById.mockResolvedValue(user);
+
+    await service.resetPassword({
+      token: 'reset-token-1.reset-secret',
+      password: 'NewPassword!123',
+      context,
+    });
+
+    expect(repository.updateUserPassword).toHaveBeenCalledWith(user.id, 'hash:NewPassword!123');
+    expect(repository.markPasswordResetTokenUsed).toHaveBeenCalledWith('reset-token-1');
+    expect(repository.revokeUserSessions).toHaveBeenCalledWith(user.id);
+
+    repository.findPasswordResetTokenById.mockResolvedValue(
+      createOneTimeToken({
+        id: 'reset-token-1',
+        usedAt: new Date(),
+      }),
+    );
+
+    await expect(
+      service.resetPassword({
+        token: 'reset-token-1.reset-secret',
+        password: 'NewPassword!123',
+        context,
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it('verifies email and rejects reused verification tokens', async () => {
+    const verifiedUser = createUser({
+      emailVerifiedAt: new Date(),
+      status: 'active',
+    });
+    const { repository, service } = createService();
+
+    repository.findEmailVerificationTokenById.mockResolvedValue(
+      createOneTimeToken({
+        id: 'email-token-1',
+        userId: verifiedUser.id,
+        tokenHash: 'hash:email-secret',
+      }),
+    );
+    repository.markUserEmailVerified.mockResolvedValue(verifiedUser);
+
+    const result = await service.verifyEmail({
+      token: 'email-token-1.email-secret',
+      context,
+    });
+
+    expect(repository.markUserEmailVerified).toHaveBeenCalledWith(verifiedUser.id);
+    expect(repository.markEmailVerificationTokenUsed).toHaveBeenCalledWith('email-token-1');
+    expect(result.emailVerifiedAt).toEqual(verifiedUser.emailVerifiedAt);
+
+    repository.findEmailVerificationTokenById.mockResolvedValue(
+      createOneTimeToken({
+        id: 'email-token-1',
+        usedAt: new Date(),
+      }),
+    );
+
+    await expect(
+      service.verifyEmail({
+        token: 'email-token-1.email-secret',
+        context,
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+  });
 });
 
 function createService() {
   const repository: MockRepository = {
     assignUserRole: jest.fn<Promise<void>, [string]>().mockResolvedValue(undefined),
+    createEmailVerificationToken: jest
+      .fn<Promise<{ id: string }>, [unknown]>()
+      .mockResolvedValue({ id: 'email-token-1' }),
+    createPasswordResetToken: jest
+      .fn<Promise<{ id: string }>, [unknown]>()
+      .mockResolvedValue({ id: 'reset-token-1' }),
     createSession: jest
       .fn<Promise<{ id: string }>, [unknown]>()
       .mockResolvedValue({ id: 'session-1' }),
     createUser: jest.fn<Promise<UserOrmEntity>, [unknown]>(),
+    findEmailVerificationTokenById: jest.fn<Promise<OneTimeToken | null>, [string]>(),
+    findPasswordResetTokenById: jest.fn<Promise<OneTimeToken | null>, [string]>(),
     findSessionById: jest.fn<Promise<Session | null>, [string]>(),
     findUserByEmail: jest.fn<Promise<UserOrmEntity | null>, [string]>(),
     findUserById: jest.fn<Promise<UserOrmEntity | null>, [string]>(),
@@ -146,10 +287,15 @@ function createService() {
     getRoleCodes: jest.fn<Promise<['USER']>, [string]>().mockResolvedValue(['USER']),
     getTenantIds: jest.fn<Promise<[]>, [string]>().mockResolvedValue([]),
     listSessions: jest.fn<Promise<[]>, [string]>().mockResolvedValue([]),
+    markEmailVerificationTokenUsed: jest.fn<Promise<void>, [string]>().mockResolvedValue(undefined),
+    markPasswordResetTokenUsed: jest.fn<Promise<void>, [string]>().mockResolvedValue(undefined),
+    markUserEmailVerified: jest.fn<Promise<UserOrmEntity | null>, [string]>(),
     recordLogin: jest.fn<Promise<void>, [unknown]>().mockResolvedValue(undefined),
     revokeSession: jest.fn<Promise<void>, [string]>().mockResolvedValue(undefined),
     revokeSessionFamily: jest.fn<Promise<void>, [string]>().mockResolvedValue(undefined),
+    revokeUserSessions: jest.fn<Promise<void>, [string]>().mockResolvedValue(undefined),
     rotateSession: jest.fn<Promise<void>, [string, string, Date]>().mockResolvedValue(undefined),
+    updateUserPassword: jest.fn<Promise<void>, [string, string]>().mockResolvedValue(undefined),
   };
   const passwordHasher: MockPasswordHasher = {
     hash: jest
@@ -163,7 +309,15 @@ function createService() {
     signAccessToken: jest.fn<Promise<string>, []>().mockResolvedValue('access-token'),
   };
   const config = {
-    get: jest.fn<unknown, Parameters<ConfigService['get']>>().mockReturnValue('30d'),
+    get: jest
+      .fn<unknown, Parameters<ConfigService['get']>>()
+      .mockImplementation((key: string, defaultValue?: unknown) => {
+        if (key === 'NODE_ENV') {
+          return 'local';
+        }
+
+        return defaultValue ?? '30d';
+      }),
   };
   const service = new AuthService(
     repository as never,
@@ -173,6 +327,17 @@ function createService() {
   );
 
   return { passwordHasher, repository, service };
+}
+
+function createOneTimeToken(overrides: Partial<OneTimeToken> = {}): OneTimeToken {
+  return {
+    id: 'token-1',
+    userId: 'user-1',
+    tokenHash: 'hash:secret',
+    expiresAt: new Date(Date.now() + 60_000),
+    usedAt: null,
+    ...overrides,
+  };
 }
 
 function createUser(overrides: Partial<UserOrmEntity> = {}): UserOrmEntity {

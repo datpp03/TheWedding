@@ -10,7 +10,11 @@
 - Refresh token rotation is implemented.
 - Refresh token reuse revokes the session family.
 - Auth cookies use `HttpOnly`, environment-aware `Secure`, and `SameSite=Lax`.
-- CSRF protection is required for cookie-authenticated mutations.
+- Auth cookies are set with `Path=/` so the frontend can perform route protection and API requests consistently.
+- CSRF protection is implemented for non-public mutations with a double-submit token from `GET /api/v1/auth/csrf`.
+- Public auth mutations such as login, register, forgot password, reset password, verify email, refresh, and logout are explicitly public. The frontend still sends CSRF headers for mutations where available.
+- Password reset and email verification tokens use `tokenId.secret`; only the secret hash is stored in SQL Server.
+- Development/local responses can expose reset or verification tokens because SMTP delivery is not wired yet. Production must not expose these tokens in responses.
 
 ## Implemented Auth Endpoints
 
@@ -18,10 +22,26 @@
 - `POST /api/v1/auth/login`
 - `POST /api/v1/auth/logout`
 - `POST /api/v1/auth/refresh`
+- `GET /api/v1/auth/csrf`
+- `POST /api/v1/auth/forgot-password`
+- `POST /api/v1/auth/reset-password`
+- `POST /api/v1/auth/verify-email`
 - `GET /api/v1/auth/me`
 - `GET /api/v1/auth/sessions`
 - `DELETE /api/v1/auth/sessions/:sessionId`
 - `DELETE /api/v1/auth/sessions`
+
+## Auth Audit Events
+
+- `auth.register`
+- `auth.login`
+- `auth.refresh`
+- `auth.logout`
+- `auth.password_reset_requested`
+- `auth.password_reset_completed`
+- `auth.email_verified`
+- `auth.session_revoked`
+- `auth.sessions_revoked`
 
 ## Authorization
 

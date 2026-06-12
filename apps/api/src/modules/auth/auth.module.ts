@@ -2,10 +2,13 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 import { UserOrmEntity } from '../users/infrastructure/user.orm-entity';
 import { AuthService } from './application/auth.service';
 import { AuthTokenService } from './application/auth-token.service';
 import { Argon2PasswordHasher } from './infrastructure/argon2-password-hasher';
+import { EmailVerificationTokenOrmEntity } from './infrastructure/email-verification-token.orm-entity';
+import { PasswordResetTokenOrmEntity } from './infrastructure/password-reset-token.orm-entity';
 import { TypeOrmAuthRepository } from './infrastructure/typeorm-auth.repository';
 import { UserLoginHistoryOrmEntity } from './infrastructure/user-login-history.orm-entity';
 import { UserSessionOrmEntity } from './infrastructure/user-session.orm-entity';
@@ -14,8 +17,15 @@ import { AuthController } from './presentation/auth.controller';
 
 @Module({
   imports: [
+    AuditLogsModule,
     JwtModule.register({}),
-    TypeOrmModule.forFeature([UserOrmEntity, UserSessionOrmEntity, UserLoginHistoryOrmEntity]),
+    TypeOrmModule.forFeature([
+      UserOrmEntity,
+      UserSessionOrmEntity,
+      UserLoginHistoryOrmEntity,
+      PasswordResetTokenOrmEntity,
+      EmailVerificationTokenOrmEntity,
+    ]),
   ],
   controllers: [AuthController],
   providers: [

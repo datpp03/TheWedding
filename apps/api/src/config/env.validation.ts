@@ -16,6 +16,8 @@ const envSchema = z
     JWT_REFRESH_SECRET: z.string().min(32),
     ACCESS_TOKEN_EXPIRES_IN: z.string().default('15m'),
     REFRESH_TOKEN_EXPIRES_IN: z.string().default('30d'),
+    PASSWORD_RESET_TOKEN_EXPIRES_IN: z.string().default('1h'),
+    EMAIL_VERIFICATION_TOKEN_EXPIRES_IN: z.string().default('7d'),
     COOKIE_SECRET: z.string().min(32),
     CORS_ORIGINS: z.string().min(1),
     STORAGE_PROVIDER: z.enum(['local', 's3', 'azure', 'r2']).default('local'),

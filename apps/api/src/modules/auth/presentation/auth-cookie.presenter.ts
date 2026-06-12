@@ -2,6 +2,7 @@ import type { Response } from 'express';
 import type { ConfigService } from '@nestjs/config';
 import {
   ACCESS_TOKEN_COOKIE,
+  CSRF_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
   type AuthService,
 } from '../application/auth.service';
@@ -14,12 +15,14 @@ export function setAuthCookies(response: Response, tokens: AuthTokens, config: C
   response.cookie(ACCESS_TOKEN_COOKIE, tokens.accessToken, {
     httpOnly: true,
     maxAge: 15 * 60 * 1000,
+    path: '/',
     sameSite: 'lax',
     secure,
   });
   response.cookie(REFRESH_TOKEN_COOKIE, tokens.refreshToken, {
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000,
+    path: '/',
     sameSite: 'lax',
     secure,
   });
@@ -27,6 +30,18 @@ export function setAuthCookies(response: Response, tokens: AuthTokens, config: C
 
 export function clearAuthCookies(response: Response, config: ConfigService) {
   const secure = config.get<string>('NODE_ENV') === 'production';
-  response.clearCookie(ACCESS_TOKEN_COOKIE, { sameSite: 'lax', secure });
-  response.clearCookie(REFRESH_TOKEN_COOKIE, { sameSite: 'lax', secure });
+  response.clearCookie(ACCESS_TOKEN_COOKIE, { path: '/', sameSite: 'lax', secure });
+  response.clearCookie(REFRESH_TOKEN_COOKIE, { path: '/', sameSite: 'lax', secure });
+}
+
+export function setCsrfCookie(response: Response, token: string, config: ConfigService) {
+  const secure = config.get<string>('NODE_ENV') === 'production';
+
+  response.cookie(CSRF_TOKEN_COOKIE, token, {
+    httpOnly: false,
+    maxAge: 24 * 60 * 60 * 1000,
+    path: '/',
+    sameSite: 'lax',
+    secure,
+  });
 }

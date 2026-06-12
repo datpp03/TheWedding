@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import type { PermissionCode, RoleCode } from '@the-wedding/shared';
 import { Repository } from 'typeorm';
 import { UserOrmEntity } from '../../users/infrastructure/user.orm-entity';
+import { EmailVerificationTokenOrmEntity } from './email-verification-token.orm-entity';
+import { PasswordResetTokenOrmEntity } from './password-reset-token.orm-entity';
 import { UserLoginHistoryOrmEntity } from './user-login-history.orm-entity';
 import { UserSessionOrmEntity } from './user-session.orm-entity';
 
@@ -41,6 +43,18 @@ export type SessionView = {
   createdAt: Date;
 };
 
+export type CreatePasswordResetTokenInput = {
+  userId: string;
+  tokenHash: string;
+  expiresAt: Date;
+};
+
+export type CreateEmailVerificationTokenInput = {
+  userId: string;
+  tokenHash: string;
+  expiresAt: Date;
+};
+
 @Injectable()
 export class TypeOrmAuthRepository {
   constructor(
@@ -50,6 +64,10 @@ export class TypeOrmAuthRepository {
     private readonly sessions: Repository<UserSessionOrmEntity>,
     @InjectRepository(UserLoginHistoryOrmEntity)
     private readonly loginHistories: Repository<UserLoginHistoryOrmEntity>,
+    @InjectRepository(PasswordResetTokenOrmEntity)
+    private readonly passwordResetTokens: Repository<PasswordResetTokenOrmEntity>,
+    @InjectRepository(EmailVerificationTokenOrmEntity)
+    private readonly emailVerificationTokens: Repository<EmailVerificationTokenOrmEntity>,
   ) {}
 
   findUserByEmail(email: string): Promise<UserOrmEntity | null> {
@@ -63,6 +81,23 @@ export class TypeOrmAuthRepository {
   async createUser(input: CreateUserInput): Promise<UserOrmEntity> {
     const user = this.users.create(input);
     return this.users.save(user);
+  }
+
+  async updateUserPassword(userId: string, passwordHash: string): Promise<void> {
+    await this.users.update(userId, {
+      passwordHash,
+      updatedAt: new Date(),
+    });
+  }
+
+  async markUserEmailVerified(userId: string): Promise<UserOrmEntity | null> {
+    await this.users.update(userId, {
+      emailVerifiedAt: new Date(),
+      status: 'active',
+      updatedAt: new Date(),
+    });
+
+    return this.findUserById(userId);
   }
 
   async getRoleCodes(userId: string): Promise<RoleCode[]> {
@@ -175,6 +210,10 @@ export class TypeOrmAuthRepository {
     await this.sessions.update({ refreshTokenFamilyId }, { revokedAt: new Date() });
   }
 
+  async revokeUserSessions(userId: string): Promise<void> {
+    await this.sessions.update({ userId }, { revokedAt: new Date() });
+  }
+
   async listSessions(userId: string): Promise<SessionView[]> {
     const sessions = await this.sessions.find({
       order: { createdAt: 'DESC' },
@@ -190,6 +229,48 @@ export class TypeOrmAuthRepository {
       revokedAt: session.revokedAt,
       createdAt: session.createdAt,
     }));
+  }
+
+  async createPasswordResetToken(
+    input: CreatePasswordResetTokenInput,
+  ): Promise<PasswordResetTokenOrmEntity> {
+    const token = this.passwordResetTokens.create({
+      userId: input.userId,
+      tokenHash: input.tokenHash,
+      expiresAt: input.expiresAt,
+      usedAt: null,
+    });
+
+    return this.passwordResetTokens.save(token);
+  }
+
+  findPasswordResetTokenById(id: string): Promise<PasswordResetTokenOrmEntity | null> {
+    return this.passwordResetTokens.findOne({ where: { id } });
+  }
+
+  async markPasswordResetTokenUsed(id: string): Promise<void> {
+    await this.passwordResetTokens.update(id, { usedAt: new Date() });
+  }
+
+  async createEmailVerificationToken(
+    input: CreateEmailVerificationTokenInput,
+  ): Promise<EmailVerificationTokenOrmEntity> {
+    const token = this.emailVerificationTokens.create({
+      userId: input.userId,
+      tokenHash: input.tokenHash,
+      expiresAt: input.expiresAt,
+      usedAt: null,
+    });
+
+    return this.emailVerificationTokens.save(token);
+  }
+
+  findEmailVerificationTokenById(id: string): Promise<EmailVerificationTokenOrmEntity | null> {
+    return this.emailVerificationTokens.findOne({ where: { id } });
+  }
+
+  async markEmailVerificationTokenUsed(id: string): Promise<void> {
+    await this.emailVerificationTokens.update(id, { usedAt: new Date() });
   }
 }
 

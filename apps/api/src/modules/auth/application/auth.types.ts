@@ -24,6 +24,12 @@ export type AuthTokens = {
 export type AuthResult = {
   user: SafeUser;
   tokens: AuthTokens;
+  devEmailVerificationToken?: string;
+};
+
+export type ForgotPasswordResult = {
+  message: string;
+  devResetToken?: string;
 };
 
 export type AccessTokenPayload = {

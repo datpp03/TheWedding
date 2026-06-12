@@ -1,39 +1,34 @@
 'use client';
 
 import Link from 'next/link';
-import type { Route } from 'next';
-import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import { register } from './auth-api';
+import { resetPassword } from './auth-api';
 
-export function RegisterForm() {
-  const router = useRouter();
+export function ResetPasswordForm() {
+  const searchParams = useSearchParams();
+  const initialToken = searchParams.get('token') ?? '';
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    setSuccess(false);
     setIsSubmitting(true);
 
     const formData = new FormData(event.currentTarget);
 
     try {
-      const result = await register({
-        displayName: getString(formData, 'displayName'),
-        email: getString(formData, 'email'),
+      await resetPassword({
+        token: getString(formData, 'token'),
         password: getString(formData, 'password'),
       });
-      const nextPath = (
-        result.devEmailVerificationToken
-          ? `/verify-email?token=${encodeURIComponent(result.devEmailVerificationToken)}`
-          : '/dashboard'
-      ) as Route;
-
-      router.push(nextPath);
-      router.refresh();
+      setSuccess(true);
+      event.currentTarget.reset();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Registration failed');
+      setError(caught instanceof Error ? caught.message : 'Password reset failed');
     } finally {
       setIsSubmitting(false);
     }
@@ -46,29 +41,19 @@ export function RegisterForm() {
         void handleSubmit(event);
       }}
     >
-      <h1 className="text-xl font-semibold text-ink">Create account</h1>
+      <h1 className="text-xl font-semibold text-ink">Create new password</h1>
       <div className="mt-6 grid gap-4">
         <label className="grid gap-2 text-sm font-medium text-neutral-700">
-          Display name
+          Reset token
           <input
             className="rounded-md border-neutral-300"
-            name="displayName"
-            autoComplete="name"
+            name="token"
+            defaultValue={initialToken}
             required
           />
         </label>
         <label className="grid gap-2 text-sm font-medium text-neutral-700">
-          Email
-          <input
-            className="rounded-md border-neutral-300"
-            type="email"
-            name="email"
-            autoComplete="email"
-            required
-          />
-        </label>
-        <label className="grid gap-2 text-sm font-medium text-neutral-700">
-          Password
+          New password
           <input
             className="rounded-md border-neutral-300"
             type="password"
@@ -83,12 +68,17 @@ export function RegisterForm() {
             {error}
           </p>
         ) : null}
+        {success ? (
+          <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+            Password updated. You can sign in with the new password.
+          </p>
+        ) : null}
         <button
           className="h-10 rounded-md bg-ink px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
           type="submit"
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Creating...' : 'Register'}
+          {isSubmitting ? 'Saving...' : 'Save new password'}
         </button>
       </div>
       <p className="mt-4 text-sm text-neutral-600">

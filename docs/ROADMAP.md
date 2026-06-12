@@ -19,12 +19,13 @@ Status: completed for local scaffold and runtime verification.
 
 ## Phase 2: Auth & User
 
-Status: partially completed.
+Status: completed for MVP auth. Email delivery is still provider-ready but SMTP sending is not implemented.
 
 - Completed: register, login, logout, current user, session list, revoke session, revoke all sessions, refresh token rotation.
+- Completed: forgot password, reset password, email verification, CSRF token exchange, route protection for dashboard/admin, auth audit log writes.
 - Completed: RBAC payload base through role and permission lookup.
-- Completed: auth unit tests and frontend login/register wiring.
-- In progress later: password reset, email verification, CSRF token exchange, full audit-log integration, frontend route protection.
+- Completed: auth unit tests and frontend login/register/forgot/reset/verify wiring.
+- Later hardening: real SMTP delivery, MFA, advanced rate limits, and broader e2e security coverage.
 
 ## Phase 3: Tenant/Site
 
