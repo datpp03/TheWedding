@@ -14,6 +14,7 @@ const envSchema = z.object({
   PASSWORD_RESET_TOKEN_EXPIRES_IN: z.string().default('1h'),
   EMAIL_VERIFICATION_TOKEN_EXPIRES_IN: z.string().default('7d'),
   COOKIE_SECRET: z.string().min(32),
+  COOKIE_DOMAIN: z.string().optional().default(''),
   CORS_ORIGINS: z.string().min(1),
   STORAGE_PROVIDER: z.enum(['local', 's3', 'azure', 'r2']).default('local'),
   LOCAL_STORAGE_PATH: z.string().default('./storage'),

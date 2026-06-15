@@ -28,6 +28,8 @@ services:
         generateValue: true
       - key: COOKIE_SECRET
         generateValue: true
+      - key: COOKIE_DOMAIN
+        sync: false
       - key: ACCESS_TOKEN_EXPIRES_IN
         value: 15m
       - key: REFRESH_TOKEN_EXPIRES_IN

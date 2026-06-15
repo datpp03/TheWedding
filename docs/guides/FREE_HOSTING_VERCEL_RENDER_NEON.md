@@ -47,6 +47,7 @@ DATABASE_SSL=true
 JWT_ACCESS_SECRET=<random-64-chars>
 JWT_REFRESH_SECRET=<random-64-chars>
 COOKIE_SECRET=<random-64-chars>
+COOKIE_DOMAIN=
 ACCESS_TOKEN_EXPIRES_IN=15m
 REFRESH_TOKEN_EXPIRES_IN=30d
 PASSWORD_RESET_TOKEN_EXPIRES_IN=1h
@@ -190,6 +191,15 @@ CORS_ORIGINS=https://YOUR_VERCEL_APP.vercel.app
 ```
 
 Redeploy API.
+
+Neu dung custom domain, nen dat web va API chung root domain de cookie dang nhap hoat dong on dinh:
+
+```env
+APP_URL=https://d-ajt.app
+API_URL=https://api.d-ajt.app
+CORS_ORIGINS=https://d-ajt.app
+COOKIE_DOMAIN=.d-ajt.app
+```
 
 ## Buoc 5: CI/CD
 
