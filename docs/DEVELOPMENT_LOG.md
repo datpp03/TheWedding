@@ -504,3 +504,27 @@
 
 - `pnpm.cmd exec prettier --check docs/guides/HUONG_DAN_DI_DOI_HOST_DATABASE_STORAGE.md docs/guides/README.md docs/DEPLOYMENT.md`: pass
 - `git diff --check`: pass
+
+## 2026-06-16 - Prompt Workflow and R2 Deferral Update
+
+### Completed
+
+- Reordered the remaining prompt workflow around the active Vercel + Render + Neon deployment path.
+- Moved Docker VPS CI/CD to an optional later track instead of the next required prompt.
+- Deferred Cloudflare R2 activation until Phase 9 implements the S3/R2 adapter, signed URL/upload sessions, docs, tests, and smoke tests.
+- Clarified that production should keep `STORAGE_PROVIDER=local` during the current free-hosting smoke-test stage.
+
+### Files Created or Updated
+
+- `prompts/README.md`
+- `prompts/08_phase_9_scale_features.md`
+- `prompts/09_final_release_qa.md`
+- `docs/ROADMAP.md`
+- `docs/STORAGE_STRATEGY.md`
+- `docs/guides/FREE_HOSTING_VERCEL_RENDER_NEON.md`
+- `docs/CHANGELOG.md`
+- `docs/DEVELOPMENT_LOG.md`
+
+### Tests and Checks
+
+- Documentation-only planning update.

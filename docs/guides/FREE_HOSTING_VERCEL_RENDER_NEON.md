@@ -303,6 +303,13 @@ Redeploy API sau khi cap nhat.
 
 Chi bat khi adapter S3/R2 da on dinh.
 
+Trang thai hien tai: chua bat R2. Khong can bam `Add R2 subscription` tren Cloudflare va khong them cac bien `S3_*` vao Render cho den khi Phase 9 implement xong adapter R2, signed URL/upload session, docs, tests, va smoke test. Production tam thoi giu:
+
+```env
+STORAGE_PROVIDER=local
+LOCAL_STORAGE_PATH=/app/storage
+```
+
 ```env
 STORAGE_PROVIDER=r2
 S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com

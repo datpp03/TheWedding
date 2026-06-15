@@ -22,6 +22,8 @@ Them nen tang cho scale/future: payment/plans, Cloudflare R2 production storage,
   - payment provider adapter with MoMo as the first provider and placeholders/interfaces for later providers.
   - MoMo checkout/webhook flow with idempotent payment event handling if implementing the real provider in this phase.
 - CDN/storage production readiness:
+  - Do not require the owner to enable or subscribe to Cloudflare R2 before the adapter is implemented and verified.
+  - Keep production on `STORAGE_PROVIDER=local` until this phase delivers the R2 path end to end.
   - Cloudflare R2 as the first production provider through S3-compatible config.
   - Vietnamese setup guide for Cloudflare account registration, R2 bucket creation, access key generation, env configuration, CORS if direct uploads are exposed, and smoke testing.
   - signed URLs.
@@ -78,6 +80,7 @@ Them nen tang cho scale/future: payment/plans, Cloudflare R2 production storage,
 - Future-scale features have clean interfaces and safe placeholders.
 - No half-wired provider secrets are required for local dev.
 - Cloudflare R2 setup and MoMo setup are documented before requiring real credentials.
+- R2 is only enabled in Render after adapter code, env validation, upload/download smoke tests, and rollback docs are complete.
 - Admin can unlock premium/storage entitlements manually if this phase implements entitlement UI/API.
 - Public album URL planning/implementation includes user handle to avoid cross-user duplicate-name ambiguity.
 - Future-feature UI copy is managed through locale keys for Vietnamese, English, and Japanese.

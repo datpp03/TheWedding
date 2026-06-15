@@ -188,6 +188,8 @@ MAX_VIDEO_UPLOAD_BYTES=
 
 For Cloudflare R2, map `S3_ENDPOINT` to the R2 S3 API endpoint, `S3_BUCKET` to the bucket name, and the access key/secret key to an R2 API token with least-privilege object access. When Phase 9 starts, add a Vietnamese step-by-step guide for creating a Cloudflare account, enabling R2, creating the bucket, generating credentials, configuring CORS if direct uploads are used, and validating the upload/optimized-display flow.
 
+Current production status: do not enable R2 subscription or set `STORAGE_PROVIDER=r2` on Render until Phase 9 implements and verifies the adapter. Keep production on `STORAGE_PROVIDER=local` for the free-hosting smoke-test stage.
+
 Do not commit real credentials.
 
 ## Phase Plan

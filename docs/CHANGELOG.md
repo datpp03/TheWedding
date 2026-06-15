@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Changed
+
+- Reordered the remaining prompt workflow around the active Vercel + Render + Neon deployment path.
+- Marked Docker VPS CI/CD as an optional later deployment track instead of the next required phase.
+- Deferred Cloudflare R2 activation to Phase 9 until the S3/R2 adapter, signed URLs/upload sessions, tests, docs, and smoke tests are complete.
+- Clarified that production should keep `STORAGE_PROVIDER=local` before R2 is implemented and verified.
+
 ## 0.1.0 - 2026-06-12
 
 ### Added

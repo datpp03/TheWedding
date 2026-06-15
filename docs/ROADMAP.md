@@ -75,11 +75,21 @@ Status: completed for MVP theme customization.
 - Completed: i18n/l10n foundation for new theme UI in `vi`, `en`, and `ja`.
 - Later hardening: locale picker/persistence across the whole app, visual regression screenshots in CI, richer public site section theming, and theme CSS sandboxing.
 
-## Priority Phase: CI/CD Docker VPS
+## Deployment Track: Vercel + Render + Neon
 
-Status: do before Phase 6 so the project can be viewed remotely on a VPS while development continues.
+Status: active free-hosting path for current production testing.
 
-- Add a production deployment pipeline following `docs/guides/CI_CD_DOCKER_VPS.md`.
+- Web runs on Vercel with the custom domain `thewedding.d-ajt.app`.
+- API runs on Render with the custom domain `thewedding-api.d-ajt.app`.
+- Database runs on Neon PostgreSQL.
+- Render and Vercel auto-deploy from `main`.
+- Keep `STORAGE_PROVIDER=local` until the Cloudflare R2 adapter is implemented and verified.
+
+## Optional Deployment Track: CI/CD Docker VPS
+
+Status: optional later path if the project moves from Vercel/Render to self-hosted VPS.
+
+- Add or finish a production deployment pipeline following `docs/guides/CI_CD_DOCKER_VPS.md`.
 - Target flow: GitHub Actions builds API/Web Docker images, pushes them to Docker Hub or GHCR, the VPS pulls the new images, and Docker Compose restarts containers.
 - Keep the existing CI checks as the quality gate before deploy.
 - Add image tags for both `latest` and commit SHA so rollback can pin a previous image.
@@ -110,6 +120,7 @@ Status: do before Phase 6 so the project can be viewed remotely on a VPS while d
 ## Phase 9: Scale Future
 
 - Payment/subscription, custom domain, CDN, Cloudflare R2/S3-compatible production storage, signed URL upload/download, React Native multipart upload sessions, AI tagging, watermark, analytics.
+- Cloudflare R2 remains deferred until this phase. Do not enable R2 env vars or billing-backed R2 usage in production before the adapter, signed URL/upload session flow, tests, smoke tests, and rollback docs are complete.
 - Use Cloudflare R2 as the first production object-storage target, while keeping the adapter S3-compatible for future provider swaps.
 - Add documentation and guided setup steps for registering Cloudflare, creating an R2 bucket, generating credentials, configuring env vars, and validating uploads when this implementation step begins.
 - Add subscription plans and premium feature gates that can unlock advanced utilities and increase photo/video storage quota.

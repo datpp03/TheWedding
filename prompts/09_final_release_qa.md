@@ -74,4 +74,5 @@ Kiem tra toan bo du an truoc khi xem nhu MVP release-ready.
 - User-facing text is managed by i18n/l10n keys with Vietnamese, English, and Japanese coverage.
 - MVP status and remaining roadmap are clear.
 - Remaining roadmap clearly states whether Cloudflare R2 setup, MoMo payment, premium entitlements, and handle-based album URLs are implemented or still planned.
+- If Cloudflare R2 is still planned, production env docs must explicitly say to keep `STORAGE_PROVIDER=local` and not enable R2 subscription/credentials yet.
 - Commit va push len `origin/main`.
