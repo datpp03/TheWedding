@@ -45,16 +45,18 @@ async function seed() {
   try {
     for (const [code, description] of Object.entries(roleDescriptions)) {
       await queryRunner.query(
-        `IF NOT EXISTS (SELECT 1 FROM [roles] WHERE [code] = @0)
-         INSERT INTO [roles] ([code], [name], [description]) VALUES (@0, @1, @2);`,
+        `INSERT INTO "roles" ("code", "name", "description")
+         VALUES ($1, $2, $3)
+         ON CONFLICT ("code") DO NOTHING;`,
         [code, code.replaceAll('_', ' '), description],
       );
     }
 
     for (const code of DEFAULT_PERMISSION_CODES) {
       await queryRunner.query(
-        `IF NOT EXISTS (SELECT 1 FROM [permissions] WHERE [code] = @0)
-         INSERT INTO [permissions] ([code], [name]) VALUES (@0, @1);`,
+        `INSERT INTO "permissions" ("code", "name")
+         VALUES ($1, $2)
+         ON CONFLICT ("code") DO NOTHING;`,
         [code, code],
       );
     }
@@ -62,15 +64,12 @@ async function seed() {
     for (const [roleCode, permissions] of Object.entries(rolePermissions)) {
       for (const permissionCode of permissions) {
         await queryRunner.query(
-          `INSERT INTO [role_permissions] ([roleId], [permissionId])
-           SELECT r.[id], p.[id]
-           FROM [roles] r
-           CROSS JOIN [permissions] p
-           WHERE r.[code] = @0 AND p.[code] = @1
-             AND NOT EXISTS (
-               SELECT 1 FROM [role_permissions] rp
-               WHERE rp.[roleId] = r.[id] AND rp.[permissionId] = p.[id]
-             );`,
+          `INSERT INTO "role_permissions" ("roleId", "permissionId")
+           SELECT r."id", p."id"
+           FROM "roles" r
+           CROSS JOIN "permissions" p
+           WHERE r."code" = $1 AND p."code" = $2
+           ON CONFLICT ("roleId", "permissionId") DO NOTHING;`,
           [roleCode, permissionCode],
         );
       }
@@ -79,26 +78,28 @@ async function seed() {
     const adminEmail = process.env.SUPER_ADMIN_EMAIL;
     const adminPassword = process.env.SUPER_ADMIN_PASSWORD;
 
-    if (adminEmail && adminPassword) {
+    const shouldCreateSuperAdmin =
+      adminEmail && adminPassword && adminPassword !== 'ChangeMe!123456';
+
+    if (shouldCreateSuperAdmin) {
       const passwordHash = await argon2.hash(adminPassword, { type: argon2.argon2id });
 
       await queryRunner.query(
-        `IF NOT EXISTS (SELECT 1 FROM [users] WHERE [email] = @0)
-         INSERT INTO [users] ([email], [passwordHash], [displayName], [status], [emailVerifiedAt])
-         VALUES (@0, @1, 'Super Admin', 'active', SYSUTCDATETIME());`,
+        `INSERT INTO "users" ("email", "passwordHash", "displayName", "status", "emailVerifiedAt")
+         SELECT $1::varchar, $2::varchar, 'Super Admin', 'active', now()
+         WHERE NOT EXISTS (
+           SELECT 1 FROM "users" WHERE "email" = $1 AND "deletedAt" IS NULL
+         );`,
         [adminEmail, passwordHash],
       );
 
       await queryRunner.query(
-        `INSERT INTO [user_roles] ([userId], [roleId])
-         SELECT u.[id], r.[id]
-         FROM [users] u
-         CROSS JOIN [roles] r
-         WHERE u.[email] = @0 AND r.[code] = @1
-           AND NOT EXISTS (
-             SELECT 1 FROM [user_roles] ur
-             WHERE ur.[userId] = u.[id] AND ur.[roleId] = r.[id]
-           );`,
+        `INSERT INTO "user_roles" ("userId", "roleId")
+         SELECT u."id", r."id"
+         FROM "users" u
+         CROSS JOIN "roles" r
+         WHERE u."email" = $1 AND r."code" = $2 AND u."deletedAt" IS NULL
+         ON CONFLICT ("userId", "roleId") DO NOTHING;`,
         [adminEmail, ROLES.SUPER_ADMIN],
       );
     }

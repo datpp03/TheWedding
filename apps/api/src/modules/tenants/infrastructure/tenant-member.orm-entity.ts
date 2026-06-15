@@ -11,18 +11,18 @@ export class TenantMemberOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'uniqueidentifier' })
+  @Column({ type: 'uuid' })
   tenantId!: string;
 
-  @Column({ type: 'uniqueidentifier' })
+  @Column({ type: 'uuid' })
   userId!: string;
 
   @Column({ length: 60 })
   role!: string;
 
-  @CreateDateColumn({ type: 'datetime2' })
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'datetime2' })
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 }

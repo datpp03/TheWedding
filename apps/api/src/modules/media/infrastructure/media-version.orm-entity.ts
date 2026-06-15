@@ -5,7 +5,7 @@ export class MediaVersionOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'uniqueidentifier' })
+  @Column({ type: 'uuid' })
   mediaId!: string;
 
   @Column({ length: 40 })
@@ -14,12 +14,12 @@ export class MediaVersionOrmEntity {
   @Column({ length: 1000 })
   storageKey!: string;
 
-  @Column({ length: 1000, nullable: true, type: 'nvarchar' })
+  @Column({ length: 1000, nullable: true, type: 'varchar' })
   url!: string | null;
 
-  @Column({ nullable: true, type: 'nvarchar' })
+  @Column({ nullable: true, type: 'text' })
   metadataJson!: string | null;
 
-  @CreateDateColumn({ type: 'datetime2' })
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 }

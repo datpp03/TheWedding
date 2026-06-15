@@ -12,22 +12,22 @@ export class AlbumOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'uniqueidentifier' })
+  @Column({ type: 'uuid' })
   tenantId!: string;
 
   @Column({ length: 200 })
   title!: string;
 
-  @Column({ nullable: true, type: 'nvarchar' })
+  @Column({ nullable: true, type: 'text' })
   description!: string | null;
 
-  @Column({ nullable: true, type: 'uniqueidentifier' })
+  @Column({ nullable: true, type: 'uuid' })
   coverMediaId!: string | null;
 
   @Column({ length: 40 })
   visibility!: string;
 
-  @Column({ length: 500, nullable: true, type: 'nvarchar' })
+  @Column({ length: 500, nullable: true, type: 'varchar' })
   passwordHash!: string | null;
 
   @Column({ type: 'int' })
@@ -36,18 +36,18 @@ export class AlbumOrmEntity {
   @Column({ length: 60 })
   layoutType!: string;
 
-  @Column({ nullable: true, type: 'nvarchar' })
+  @Column({ nullable: true, type: 'text' })
   themeOverrideJson!: string | null;
 
-  @Column({ type: 'bit' })
+  @Column({ type: 'boolean' })
   allowDownload!: boolean;
 
-  @CreateDateColumn({ type: 'datetime2' })
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'datetime2' })
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 
-  @DeleteDateColumn({ nullable: true, type: 'datetime2' })
+  @DeleteDateColumn({ nullable: true, type: 'timestamptz' })
   deletedAt!: Date | null;
 }

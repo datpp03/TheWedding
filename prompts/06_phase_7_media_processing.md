@@ -12,6 +12,8 @@ Them media processing pipeline: BullMQ + Redis, thumbnails, optimization, media 
 
 Storage/processing direction phai theo `docs/STORAGE_STRATEGY.md`.
 
+Target image flow: user uploads the original image, backend validates it, backend resizes/compresses it, storage keeps the private original plus optimized versions, and frontend displays the compressed/optimized version by default.
+
 ## Backend Tasks
 
 - Add BullMQ/Redis integration.
@@ -19,6 +21,7 @@ Storage/processing direction phai theo `docs/STORAGE_STRATEGY.md`.
 - Create jobs for:
   - image thumbnail generation.
   - image optimization.
+  - image resize/compression profiles for gallery, lightbox, and thumbnail usage.
   - video preview placeholder/metadata extraction where feasible.
   - media version rows.
 - Update `media.processingStatus`.
@@ -26,6 +29,7 @@ Storage/processing direction phai theo `docs/STORAGE_STRATEGY.md`.
 - Make jobs idempotent so retry does not create duplicate/corrupt media versions.
 - Update storage usage accounting after processing completes.
 - Preserve original media private by default and generate derived versions with backend-controlled storage keys.
+- Keep original download permission checks separate from optimized display URLs.
 - Admin/media dashboard can see processing status.
 - Keep processing pluggable for production workers later.
 
@@ -38,6 +42,7 @@ Storage/processing direction phai theo `docs/STORAGE_STRATEGY.md`.
   - ready.
   - failed/retry.
 - Responsive thumbnails and placeholders.
+- Prefer optimized image URLs in gallery/lightbox once ready, with graceful fallback while processing.
 - Smooth status updates via polling or query invalidation.
 
 ## Tests
@@ -56,6 +61,7 @@ Storage/processing direction phai theo `docs/STORAGE_STRATEGY.md`.
 ## Acceptance Criteria
 
 - Uploaded media gets processing status flow.
+- Optimized/compressed image versions are generated and used for normal display when available.
 - Failed processing can be diagnosed/retried.
 - UI clearly communicates status.
 - Processing UI copy is available through locale keys for Vietnamese, English, and Japanese.

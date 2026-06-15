@@ -13,7 +13,7 @@
 - Auth cookies are set with `Path=/` so the frontend can perform route protection and API requests consistently.
 - CSRF protection is implemented for non-public mutations with a double-submit token from `GET /api/v1/auth/csrf`.
 - Public auth mutations such as login, register, forgot password, reset password, verify email, refresh, and logout are explicitly public. The frontend still sends CSRF headers for mutations where available.
-- Password reset and email verification tokens use `tokenId.secret`; only the secret hash is stored in SQL Server.
+- Password reset and email verification tokens use `tokenId.secret`; only the secret hash is stored in PostgreSQL.
 - Development/local responses can expose reset or verification tokens because SMTP delivery is not wired yet. Production must not expose these tokens in responses.
 
 ## Implemented Auth Endpoints

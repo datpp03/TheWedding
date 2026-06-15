@@ -47,9 +47,14 @@ Kiem tra toan bo du an truoc khi xem nhu MVP release-ready.
   - create tenant.
   - create album/upload media.
   - verify media storage path/provider behavior.
+  - verify optimized/compressed image display behavior where media processing is implemented.
   - public gallery/lightbox.
+  - user handle based public album route if implemented.
   - theme customization.
   - admin dashboard.
+  - system parameter toggles for registration/login/read-only mode if implemented.
+  - subscription/payment/entitlement/storage quota flows if implemented.
+  - CI/CD Docker VPS workflow, registry images, VPS pull/restart, and remote URL smoke test if configured.
   - switch/check locales Vietnamese, English, Japanese.
   - mobile widths: 320, 360, 390, 414, 768, 1024, desktop.
 - Update docs:
@@ -68,4 +73,5 @@ Kiem tra toan bo du an truoc khi xem nhu MVP release-ready.
 - `docs/HUONG_DAN_SU_DUNG.md` can guide a Vietnamese QA/user through all MVP features and test accounts.
 - User-facing text is managed by i18n/l10n keys with Vietnamese, English, and Japanese coverage.
 - MVP status and remaining roadmap are clear.
+- Remaining roadmap clearly states whether Cloudflare R2 setup, MoMo payment, premium entitlements, and handle-based album URLs are implemented or still planned.
 - Commit va push len `origin/main`.

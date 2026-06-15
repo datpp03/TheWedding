@@ -53,7 +53,11 @@ Hệ thống cần có:
 - Quản lý tenant
 - Quản lý audit log
 - Quản lý cấu hình hệ thống
-- Sẵn sàng mở rộng cho thanh toán, gói dịch vụ, CDN, watermark, AI tagging, chỉnh sửa ảnh/video nâng cao
+- Quản lý tham số hệ thống/feature flags để bật tắt đăng ký, đăng nhập, upload, download, public gallery, payment và các chức năng lớn mà không cần deploy lại
+- Quản lý gói dịch vụ, thanh toán, dung lượng lưu trữ, premium feature và admin entitlement unlock
+- Sẵn sàng mở rộng cho thanh toán, gói dịch vụ, Cloudflare R2, CDN, watermark, AI tagging, chỉnh sửa ảnh/video nâng cao
+- Thanh toán ưu tiên MoMo trước, nhưng kiến trúc phải hỗ trợ thêm provider sau này
+- Public album URL phải có user handle/id cá nhân hóa giống TikTok để nhiều user có album trùng tên vẫn không xung đột đường dẫn
 
 ---
 
@@ -221,6 +225,7 @@ Bảo mật auth:
 User gồm:
 
 - id
+- publicHandle/userHandle unique, cho phép người dùng tự đặt giống TikTok ID
 - email
 - passwordHash
 - displayName
@@ -273,6 +278,7 @@ Album gồm:
 - id
 - tenantId
 - title
+- slug hoặc shortId dùng cho URL, chỉ cần unique trong phạm vi user/tenant; public URL canonical phải có userHandle
 - description
 - coverMediaId
 - visibility
@@ -444,7 +450,9 @@ Admin có toàn quyền quản lý:
 - System settings
 - Reports
 - Feature flags
-- Plans/subscriptions trong tương lai
+- Plans/subscriptions
+- Payment/MoMo transactions
+- Manual entitlement unlock/revoke cho user/tenant
 
 Admin dashboard cần có:
 
@@ -459,6 +467,15 @@ Admin dashboard cần có:
 - Audit log nhạy cảm
 - Quản lý khóa/mở tài khoản
 - Impersonation user nếu cần, nhưng phải audit rất kỹ
+- Quản lý tham số hệ thống:
+  - bật/tắt đăng ký người dùng mới
+  - bật/tắt đăng nhập; khi tắt thì người dùng chỉ được xem public/read-only theo cấu hình
+  - bật/tắt upload, download, public gallery, payment checkout và các feature lớn khác
+  - thông báo bảo trì/disabled flow
+- Quản lý plan/subscription:
+  - giới hạn dung lượng theo gói
+  - mở khóa chức năng nâng cao
+  - admin có thể tự mở khóa quyền hoặc tăng quota cho bất kỳ user/tenant nào
 
 ### 4.9 Role Permission
 
@@ -531,6 +548,12 @@ Bắt buộc có:
 - system_settings
 - storage_usage
 - feature_flags
+- plans
+- plan_features
+- subscriptions
+- payments
+- payment_events
+- entitlements
 
 Yêu cầu database:
 
@@ -545,6 +568,8 @@ Yêu cầu database:
 - Có transaction cho nghiệp vụ quan trọng
 - Có optimistic locking nếu cần
 - Có audit log cho thao tác nhạy cảm
+- users.publicHandle phải unique
+- album slug/display name có thể trùng giữa các user; canonical public album URL phải chứa userHandle hoặc userId
 
 Hãy quyết định dùng Prisma hoặc TypeORM. Nếu chọn Prisma, repository vẫn phải nằm ở infrastructure layer, không để Prisma model leak lên domain. Nếu chọn TypeORM cũng phải tách ORM entity khỏi domain entity nếu cần.
 
@@ -758,8 +783,8 @@ Error response chuẩn:
 Thiết kế storage adapter để dễ đổi:
 
 - Local storage cho development
-- S3-compatible storage cho production
-- Azure Blob hoặc Cloudflare R2 trong tương lai
+- Cloudflare R2/S3-compatible storage cho production
+- Azure Blob hoặc AWS S3 trong tương lai nếu cần
 - CDN-ready
 
 Interface:
@@ -778,10 +803,13 @@ Media processing:
 - Dùng queue
 - Tạo thumbnail async
 - Tối ưu ảnh async
+- Resize/nén ảnh async; frontend ưu tiên hiển thị bản optimized/compressed
+- Flow mục tiêu: người dùng upload ảnh gốc -> backend validate, resize/nén -> lưu original private và bản optimized lên Cloudflare R2 qua StorageService -> frontend tải bản đã nén/optimized để hiển thị
 - Xử lý video async
 - Lưu trạng thái processing
 - Có retry failed jobs
 - Có logs
+- Khi tới bước triển khai R2, phải hướng dẫn người dùng đăng ký Cloudflare, bật R2, tạo bucket, tạo access key, cấu hình env/CORS và smoke test upload
 
 Có thể dùng BullMQ/Redis cho queue. Nếu chưa dùng ngay, hãy thiết kế interface rõ ràng.
 
@@ -919,6 +947,8 @@ docker-compose.yml
   /api.Dockerfile
   /web.Dockerfile
   /sqlserver
+/docs/guides
+  /CI_CD_DOCKER_VPS.md
 ```
 
 Môi trường:
@@ -988,6 +1018,7 @@ Tạo:
 - SQL Server connection
 - Env validation
 - CI base
+- CI/CD plan: GitHub Actions build Docker image -> push Docker Hub/GHCR -> VPS pull image mới -> restart container
 
 ### Phase 2: Auth & User
 
@@ -1025,6 +1056,18 @@ Tạo:
 - Live preview
 - Save/activate theme
 
+### Priority Phase: CI/CD Docker VPS
+
+Thực hiện trước các phase còn lại để có thể deploy lên host/VPS và xem tiến độ từ xa.
+
+- GitHub Actions build API/Web Docker images
+- Push image lên Docker Hub hoặc GHCR
+- VPS pull image mới
+- Restart container bằng Docker Compose
+- GitHub Secrets cho registry và VPS SSH
+- Tag image bằng latest/main và commit SHA để rollback
+- Hướng dẫn cấu hình nằm trong `docs/guides/CI_CD_DOCKER_VPS.md`
+
 ### Phase 6: Admin Dashboard
 
 - Manage users
@@ -1033,11 +1076,13 @@ Tạo:
 - Manage settings
 - Audit logs
 - Reports
+- System parameters/feature flags cho đăng ký, đăng nhập/read-only mode, upload, download, public gallery, payment và maintenance message
 
 ### Phase 7: Media Processing Advanced
 
 - Queue
 - Image optimization
+- Resize/nén ảnh và ưu tiên frontend hiển thị bản optimized
 - Video thumbnail
 - Media versions
 - Basic editor
@@ -1055,10 +1100,12 @@ Tạo:
 
 ### Phase 9: Scale Future
 
-- Payment/subscription
+- Payment/subscription với MoMo là provider đầu tiên
+- Plan, premium feature, storage quota upgrades và admin entitlement unlock/revoke
 - Custom domain
 - CDN
-- Multi-region storage
+- Cloudflare R2 production storage, signed URLs và hướng dẫn đăng ký/cấu hình R2
+- Multi-region storage nếu provider hỗ trợ hoặc cần mở rộng
 - AI tagging/search
 - Theme marketplace
 - Guest comment/reaction
@@ -1066,6 +1113,7 @@ Tạo:
 - Watermark
 - Analytics
 - Notification/email campaign
+- User public handle giống TikTok và canonical album URL có userHandle để tránh trùng tên album giữa các user
 
 ---
 

@@ -5,10 +5,10 @@ export class AuditLogOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ nullable: true, type: 'uniqueidentifier' })
+  @Column({ nullable: true, type: 'uuid' })
   actorUserId!: string | null;
 
-  @Column({ nullable: true, type: 'uniqueidentifier' })
+  @Column({ nullable: true, type: 'uuid' })
   tenantId!: string | null;
 
   @Column({ length: 160 })
@@ -17,18 +17,18 @@ export class AuditLogOrmEntity {
   @Column({ length: 120 })
   entityType!: string;
 
-  @Column({ nullable: true, type: 'uniqueidentifier' })
+  @Column({ nullable: true, type: 'uuid' })
   entityId!: string | null;
 
-  @Column({ nullable: true, type: 'nvarchar' })
+  @Column({ nullable: true, type: 'text' })
   metadataJson!: string | null;
 
-  @Column({ length: 80, nullable: true, type: 'nvarchar' })
+  @Column({ length: 80, nullable: true, type: 'varchar' })
   ipAddress!: string | null;
 
-  @Column({ length: 1000, nullable: true, type: 'nvarchar' })
+  @Column({ length: 1000, nullable: true, type: 'varchar' })
   userAgent!: string | null;
 
-  @CreateDateColumn({ type: 'datetime2' })
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 }

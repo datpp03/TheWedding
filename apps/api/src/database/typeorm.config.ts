@@ -1,56 +1,35 @@
 import type { ConfigService } from '@nestjs/config';
 import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import mssqlMsNodeSqlV8 from 'mssql/msnodesqlv8';
 
 export function createTypeOrmOptions(config: ConfigService): TypeOrmModuleOptions {
-  const commonOptions = {
-    autoLoadEntities: true,
-    synchronize: false,
-    migrationsRun: false,
-    migrations: ['dist/database/migrations/*.js'],
-  };
-
-  if (config.get<string>('SQLSERVER_AUTH_MODE') === 'windows') {
-    return {
-      ...commonOptions,
-      type: 'mssql',
-      driver: mssqlMsNodeSqlV8,
-      host: config.get<string>('SQLSERVER_HOST', 'localhost'),
-      port: config.get<number>('SQLSERVER_PORT', 1433),
-      database: config.get<string>('SQLSERVER_DATABASE', 'TheWedding'),
-      options: {
-        encrypt: false,
-        trustServerCertificate: true,
-      },
-      extra: {
-        connectionString: buildTrustedConnectionString(config),
-      },
-    };
-  }
+  const databaseUrl = config.getOrThrow<string>('DATABASE_URL');
 
   return {
-    ...commonOptions,
-    type: 'mssql',
-    url: config.getOrThrow<string>('DATABASE_URL'),
-    options: {
-      encrypt: false,
-      trustServerCertificate: true,
-    },
+    autoLoadEntities: true,
+    migrations: ['dist/database/migrations/*.js'],
+    migrationsRun: false,
+    ssl: resolvePostgresSsl(
+      databaseUrl,
+      config.get<string>('DATABASE_SSL', 'auto'),
+      config.get<string>('NODE_ENV', 'local'),
+    ),
+    synchronize: false,
+    type: 'postgres',
+    url: databaseUrl,
   };
 }
 
-export function buildTrustedConnectionString(config: Pick<ConfigService, 'get'>) {
-  const driver = config.get<string>('SQLSERVER_ODBC_DRIVER', 'ODBC Driver 18 for SQL Server');
-  const host = config.get<string>('SQLSERVER_HOST', 'localhost');
-  const port = config.get<number>('SQLSERVER_PORT', 1433);
-  const database = config.get<string>('SQLSERVER_DATABASE', 'TheWedding');
+export function resolvePostgresSsl(
+  databaseUrl: string,
+  mode = 'auto',
+  nodeEnv = 'local',
+): false | { rejectUnauthorized: false } {
+  if (mode === 'false') {
+    return false;
+  }
 
-  return [
-    `Driver={${driver}}`,
-    `Server=${host},${port}`,
-    `Database=${database}`,
-    'Trusted_Connection=Yes',
-    'TrustServerCertificate=Yes',
-    'Encrypt=No',
-  ].join(';');
+  const shouldUseSsl =
+    mode === 'true' || nodeEnv === 'production' || databaseUrl.includes('sslmode=require');
+
+  return shouldUseSsl ? { rejectUnauthorized: false } : false;
 }

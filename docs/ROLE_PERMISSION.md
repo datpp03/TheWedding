@@ -18,7 +18,13 @@
 - `admin.access`
 - `audit.read`
 - `settings.manage`
+- `feature_flags.manage`
+- `system_parameters.manage`
+- `plan.manage`, `subscription.manage`, `payment.read`
+- `entitlement.manage`
 
 ## Enforcement
 
 Use roles for broad access and permissions for specific capabilities. Tenant ownership/membership must still be checked even when a user has a general `USER` role.
+
+System parameter, feature flag, plan, payment, and entitlement changes are sensitive admin operations. They must require explicit permissions, write audit logs, and never bypass tenant ownership checks for user-facing resources.

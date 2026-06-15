@@ -11,7 +11,7 @@ packages/shared Shared types, constants, and utilities
 packages/ui     Shared UI components
 packages/config Shared TypeScript, ESLint, and formatting config
 docs            Product, architecture, security, API, and delivery docs
-docker          Runtime Dockerfiles and SQL Server setup
+docker          Runtime Dockerfiles and production env templates
 scripts         Local setup and operational helpers
 ```
 
@@ -20,7 +20,7 @@ scripts         Local setup and operational helpers
 - Node.js 22 LTS or newer
 - pnpm 10 or newer
 - Docker Desktop with Linux containers
-- Microsoft SQL Server container image access
+- PostgreSQL 16 through Docker Compose for local development
 
 ## First Run
 
@@ -29,7 +29,7 @@ pnpm install
 pnpm lint
 pnpm typecheck
 pnpm build
-docker compose up -d sqlserver redis
+docker compose up -d postgres redis
 ```
 
 Runtime tools are not currently available in this Codex environment, so dependency installation and builds have not been executed here.
@@ -44,3 +44,6 @@ Start with:
 - [API Design](docs/API_DESIGN.md)
 - [Auth & Security](docs/AUTH_SECURITY.md)
 - [Roadmap](docs/ROADMAP.md)
+- [Guides](docs/guides/README.md)
+- [CI/CD Docker VPS Guide](docs/guides/CI_CD_DOCKER_VPS.md)
+- [Free Hosting Vercel + Render + Neon Guide](docs/guides/FREE_HOSTING_VERCEL_RENDER_NEON.md)

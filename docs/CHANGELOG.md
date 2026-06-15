@@ -47,3 +47,6 @@ All notable changes to this project will be documented in this file.
 - Backend media tests for invalid upload rejection, cross-tenant denial, and download permission checks.
 - Phase 5 theme customization MVP with shared presets, tenant theme create/update/preview/activate/clone/reset, active public-site theme rendering, theme audit logs, responsive theme dashboard, live preview, and backend theme tests.
 - i18n/l10n foundation for the new theme UI with stable `vi`, `en`, and `ja` locale keys and fallback behavior.
+- Planning updates for Cloudflare R2 production storage, backend image resize/compression before optimized display, admin-managed system parameters, subscription/payment foundation with MoMo first, admin entitlement unlocks, storage quota upgrades, and user-handle-based public album URLs.
+- Early-priority CI/CD Docker VPS foundation with GitHub Actions deploy workflow, production Docker Compose template, VPS env example, Docker Hub/GHCR support, secrets guidance, verification, and rollback.
+- Vietnamese migration guide for reconfiguring host/VPS, SQL Server database, local media storage, Cloudflare R2 storage, CI/CD secrets, smoke tests, DNS, and rollback.

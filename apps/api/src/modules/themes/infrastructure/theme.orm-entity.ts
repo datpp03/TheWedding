@@ -11,7 +11,7 @@ export class ThemeOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'uniqueidentifier' })
+  @Column({ type: 'uuid' })
   tenantId!: string;
 
   @Column({ length: 160 })
@@ -35,21 +35,21 @@ export class ThemeOrmEntity {
   @Column({ length: 60 })
   layoutType!: string;
 
-  @Column({ length: 60, nullable: true, type: 'nvarchar' })
+  @Column({ length: 60, nullable: true, type: 'varchar' })
   animationType!: string | null;
 
-  @Column({ nullable: true, type: 'nvarchar' })
+  @Column({ nullable: true, type: 'text' })
   customCss!: string | null;
 
-  @Column({ nullable: true, type: 'nvarchar' })
+  @Column({ nullable: true, type: 'text' })
   configJson!: string | null;
 
   @Column()
   isActive!: boolean;
 
-  @CreateDateColumn({ type: 'datetime2' })
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'datetime2' })
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 }

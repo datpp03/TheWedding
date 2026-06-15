@@ -28,6 +28,11 @@ Storage hardening phai theo `docs/STORAGE_STRATEGY.md`.
 - Refresh token reuse e2e tests.
 - Backup/restore documentation for SQL Server and app-managed media storage.
 - Feature flag hardening.
+- System parameter hardening:
+  - tests for registration disabled.
+  - tests for login disabled/read-only public mode.
+  - tests for upload/download/payment/public-gallery disabled switches if implemented.
+  - cache invalidation and fail-safe defaults for runtime settings.
 
 ## Frontend UX Tasks
 
@@ -57,7 +62,7 @@ Storage hardening phai theo `docs/STORAGE_STRATEGY.md`.
 ## Docs
 
 - Update security, deployment, testing, troubleshooting, roadmap, changelog, development log.
-- Update `docs/HUONG_DAN_SU_DUNG.md` bang tieng Viet neu co thay doi dang nhap, MFA, rate limit, thong bao loi, backup/restore, quyen truy cap, hoac cac buoc QA nguoi dung can biet.
+- Update `docs/HUONG_DAN_SU_DUNG.md` bang tieng Viet neu co thay doi dang nhap, dang ky, read-only mode, system parameters, MFA, rate limit, thong bao loi, backup/restore, quyen truy cap, hoac cac buoc QA nguoi dung can biet.
 - Update i18n/l10n docs with QA procedure, fallback behavior, missing-key policy, and supported locale list.
 
 ## Acceptance Criteria

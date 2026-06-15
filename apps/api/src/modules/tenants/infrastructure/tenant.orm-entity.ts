@@ -12,7 +12,7 @@ export class TenantOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'uniqueidentifier' })
+  @Column({ type: 'uuid' })
   ownerUserId!: string;
 
   @Column({ length: 120 })
@@ -21,45 +21,45 @@ export class TenantOrmEntity {
   @Column({ length: 200 })
   siteName!: string;
 
-  @Column({ length: 160, nullable: true, type: 'nvarchar' })
+  @Column({ length: 160, nullable: true, type: 'varchar' })
   brideName!: string | null;
 
-  @Column({ length: 160, nullable: true, type: 'nvarchar' })
+  @Column({ length: 160, nullable: true, type: 'varchar' })
   groomName!: string | null;
 
   @Column({ nullable: true, type: 'date' })
   weddingDate!: string | null;
 
-  @Column({ nullable: true, type: 'nvarchar' })
+  @Column({ nullable: true, type: 'text' })
   description!: string | null;
 
   @Column({ length: 40 })
   visibility!: string;
 
-  @Column({ length: 500, nullable: true, type: 'nvarchar' })
+  @Column({ length: 500, nullable: true, type: 'varchar' })
   passwordHash!: string | null;
 
-  @Column({ length: 255, nullable: true, type: 'nvarchar' })
+  @Column({ length: 255, nullable: true, type: 'varchar' })
   customDomain!: string | null;
 
   @Column({ length: 40 })
   status!: string;
 
-  @Column({ nullable: true, type: 'nvarchar' })
+  @Column({ nullable: true, type: 'text' })
   settingsJson!: string | null;
 
-  @Column({ nullable: true, type: 'nvarchar' })
+  @Column({ nullable: true, type: 'text' })
   seoJson!: string | null;
 
-  @Column({ nullable: true, type: 'nvarchar' })
+  @Column({ nullable: true, type: 'text' })
   sharingJson!: string | null;
 
-  @CreateDateColumn({ type: 'datetime2' })
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'datetime2' })
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 
-  @DeleteDateColumn({ nullable: true, type: 'datetime2' })
+  @DeleteDateColumn({ nullable: true, type: 'timestamptz' })
   deletedAt!: Date | null;
 }

@@ -20,9 +20,16 @@ Xay dung admin dashboard cho quan ly users, tenants, media, audit logs, system s
   - audit logs list/filter/detail.
   - system settings read/update.
   - feature flags read/update.
+  - system parameters read/update for runtime feature controls.
 - Enforce `ADMIN_ACCESS` va permission guard.
 - Audit all admin actions.
 - Add pagination, filtering, sorting cho data-heavy endpoints.
+- System parameters phai co validation schema, cache invalidation, audit log va fail-safe defaults.
+- System parameter examples can implement now or prepare cleanly:
+  - disable new user registration.
+  - disable login globally while allowing public/read-only browsing.
+  - disable upload, download, public gallery, payment checkout, or other major feature surfaces.
+  - maintenance banner/message for disabled flows.
 
 ## Frontend Tasks
 
@@ -34,6 +41,7 @@ Xay dung admin dashboard cho quan ly users, tenants, media, audit logs, system s
 - Media moderation table/grid.
 - Audit log explorer.
 - Settings/feature flags forms.
+- System Parameters screen with clear toggle controls for registration, login/read-only mode, upload, download, public gallery, payment, and maintenance messages.
 - Responsive admin UX:
   - Desktop data tables.
   - Tablet/mobile fallback with stacked rows/cards/action menus.
@@ -59,4 +67,5 @@ Xay dung admin dashboard cho quan ly users, tenants, media, audit logs, system s
 - Non-admin users are denied.
 - Admin UI is usable on desktop and has mobile fallback.
 - Admin UI text is available through locale keys for Vietnamese, English, and Japanese.
+- Registration/login disabled states are enforced by backend settings and visible through clear frontend messages where implemented.
 - Commit va push len `origin/main`.

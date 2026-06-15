@@ -7,10 +7,10 @@ The Wedding uses app-managed media storage. The storage system must support web 
 Recommended long-term direction:
 
 - Local development: filesystem storage through the existing `StorageService` boundary.
-- Production: S3-compatible object storage with private buckets, signed URLs, CDN for public optimized media, and background processing for thumbnails/video variants.
+- Production: Cloudflare R2 through the S3-compatible adapter with private buckets, signed URLs, CDN for public optimized media, and background processing for thumbnails/video variants.
 - Mobile: direct-to-object-storage uploads through API-created signed upload sessions, with resumable multipart uploads for large files.
 
-Keep the provider replaceable. Cloudflare R2, AWS S3, MinIO, or another S3-compatible provider should all fit behind the same infrastructure adapter.
+Cloudflare R2 is the first production target. Keep the provider replaceable so AWS S3, MinIO, or another S3-compatible provider can still fit behind the same infrastructure adapter later.
 
 ## Local Development
 
@@ -35,7 +35,7 @@ The folder is local runtime data and must never be committed. The repository ign
 sequenceDiagram
   participant Client as Web or React Native App
   participant API as NestJS API
-  participant DB as SQL Server
+  participant DB as PostgreSQL
   participant Storage as Object Storage
   participant Queue as Redis/BullMQ Worker
   participant CDN as CDN
@@ -81,6 +81,18 @@ For production and React Native:
 5. API verifies the object and queues processing.
 
 Use single signed PUT for small files. Use multipart upload for large videos or unreliable mobile networks, because failed parts can be retried independently.
+
+### R2 Optimized Image Flow
+
+The target production image flow is:
+
+1. User uploads the original image.
+2. Backend validates tenant access, MIME/extension, file size, quota, and feature gates.
+3. Backend resizes/compresses the image and strips unsafe metadata where appropriate.
+4. Backend stores the private original and optimized derivatives in Cloudflare R2 through `StorageService`.
+5. Backend saves `media` and `media_versions` rows with backend-generated keys only.
+6. Frontend receives API media DTOs and displays the compressed/optimized version by default.
+7. Original files remain private and are served only through permission-checked download or signed URL flows.
 
 ## Mobile Requirements
 
@@ -140,11 +152,11 @@ Processing must be idempotent. Re-running a job should not corrupt existing medi
 
 ## Provider Recommendation
 
-Default implementation target: S3-compatible adapter.
+Default implementation target: Cloudflare R2 using the S3-compatible adapter.
 
 Provider choice:
 
-- Cloudflare R2 is a strong default if the app uses Cloudflare CDN and wants S3-compatible APIs with simple global delivery.
+- Cloudflare R2 is the first production choice because the app can use S3-compatible APIs and a Cloudflare delivery path for optimized public assets.
 - AWS S3 is a strong default if the production stack already lives in AWS or needs deeper AWS ecosystem integrations.
 - MinIO is useful for local or self-hosted S3-compatible testing.
 
@@ -162,7 +174,7 @@ LOCAL_STORAGE_PATH=./storage
 Future production variables should be added when the S3-compatible adapter is implemented:
 
 ```env
-STORAGE_PROVIDER=s3
+STORAGE_PROVIDER=r2
 S3_ENDPOINT=
 S3_REGION=
 S3_BUCKET=
@@ -174,6 +186,8 @@ MAX_UPLOAD_BYTES=
 MAX_VIDEO_UPLOAD_BYTES=
 ```
 
+For Cloudflare R2, map `S3_ENDPOINT` to the R2 S3 API endpoint, `S3_BUCKET` to the bucket name, and the access key/secret key to an R2 API token with least-privilege object access. When Phase 9 starts, add a Vietnamese step-by-step guide for creating a Cloudflare account, enabling R2, creating the bucket, generating credentials, configuring CORS if direct uploads are used, and validating the upload/optimized-display flow.
+
 Do not commit real credentials.
 
 ## Phase Plan
@@ -182,7 +196,7 @@ Do not commit real credentials.
 
 - Implement local storage adapter.
 - Upload through API for MVP.
-- Store provider/key metadata in SQL Server.
+- Store provider/key metadata in PostgreSQL.
 - Validate file type, extension, size, tenant access, and download permissions.
 - Keep `StorageService` provider-neutral.
 
@@ -190,6 +204,7 @@ Do not commit real credentials.
 
 - Add processing queue and media versions.
 - Add thumbnails, optimized images, video preview, retryable jobs, and storage usage updates.
+- Make the default frontend media response prefer optimized images while preserving original download permission checks.
 
 ### Phase 8
 
@@ -197,8 +212,9 @@ Do not commit real credentials.
 
 ### Phase 9
 
-- Add S3-compatible production adapter.
+- Add Cloudflare R2 production adapter through the S3-compatible boundary.
 - Add signed upload/download URLs.
 - Add CDN for public optimized assets.
 - Add multipart upload sessions for large mobile uploads.
 - Add migration tooling from local storage to object storage if needed.
+- Add setup docs that guide the owner through Cloudflare/R2 registration, bucket creation, credential generation, env configuration, and smoke testing.

@@ -13,12 +13,13 @@ Thu muc nay chua cac prompt ban co the gui lan luot cho Codex de hoan thanh du a
 
 ## Thu Tu Khuyen Nghi
 
-1. `04_phase_5_theme_customization.md`: Theme presets, customize, preview.
-2. `05_phase_6_admin_dashboard.md`: Admin dashboard va management screens.
-3. `06_phase_7_media_processing.md`: Queue, thumbnail, media versions.
-4. `07_phase_8_hardening.md`: Security, monitoring, backup, QA.
-5. `08_phase_9_scale_features.md`: Payment, CDN, custom domain, AI, analytics.
-6. `09_final_release_qa.md`: Full release QA va cleanup.
+1. `10_phase_10_cicd_docker_vps.md`: Lam truoc de deploy len VPS va xem tien do tu xa.
+2. `04_phase_5_theme_customization.md`: Theme presets, customize, preview.
+3. `05_phase_6_admin_dashboard.md`: Admin dashboard va management screens.
+4. `06_phase_7_media_processing.md`: Queue, thumbnail, media versions.
+5. `07_phase_8_hardening.md`: Security, monitoring, backup, QA.
+6. `08_phase_9_scale_features.md`: Payment, CDN, custom domain, AI, analytics.
+7. `09_final_release_qa.md`: Full release QA va cleanup.
 
 ## Nguyen Tac Chung Cho Moi Prompt
 

@@ -30,14 +30,17 @@ Controllers must not contain business logic or direct database access.
 
 ## Frontend Areas
 
-- `(public)/[siteSlug]`: public wedding site, albums, gallery, lightbox.
+- `(public)/[siteSlug]`: current public wedding site, albums, gallery, lightbox.
+- `(public)/[@userHandle]/[siteSlug]`: planned canonical public path so user-selected handles personalize album URLs and prevent duplicate album-name ambiguity across users.
 - `(auth)`: login, register, forgot/reset password.
 - `(dashboard)`: owner workflows for sites, albums, media, themes, settings.
 - `(admin)`: system management, audit logs, feature flags, reports.
 
 ## Integration Boundaries
 
-- Database: SQL Server through TypeORM infrastructure repositories.
+- Database: PostgreSQL through TypeORM infrastructure repositories. Neon PostgreSQL is the first hosted free-tier target.
 - Storage: adapter interface with local development storage and S3-compatible production providers. See `docs/STORAGE_STRATEGY.md`.
 - Queue: BullMQ/Redis planned for async media processing.
 - Mail: provider interface for verification and password reset flows.
+- Payments: provider adapter planned with MoMo first, keeping checkout/webhook logic outside subscription domain rules.
+- Runtime settings: admin-managed system parameters and feature flags should be read through an application service with caching, invalidation, permission checks, and audit logging.

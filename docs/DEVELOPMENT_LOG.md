@@ -418,3 +418,89 @@
 - Theme custom CSS is stored but not surfaced in the editor yet; production use should sandbox or restrict custom CSS before exposing it broadly.
 - Web smoke tests are not automated yet; the current web test script still reports no web tests.
 - Locale selection/persistence is not app-wide yet; Phase 5 only localizes the new theme UI.
+
+## 2026-06-15 - Planning Update for R2, System Parameters, Payments, and User Handles
+
+### Completed
+
+- Updated the roadmap and implementation prompts to make Cloudflare R2 the first production object-storage target behind the S3-compatible `StorageService` boundary.
+- Added the target image flow: original upload, backend validation, resize/compression, private original storage, optimized derivatives in R2, and frontend display from compressed versions.
+- Added admin-managed system parameters for disabling registration, disabling login into read-only/public browsing mode, and toggling upload/download/payment/public-gallery behavior.
+- Added subscription/payment planning with MoMo as the first payment provider, storage quota upgrades, premium feature gates, and admin-granted entitlements.
+- Added user-chosen public handles and handle-based public album URL planning so duplicate album names across users remain unambiguous.
+
+### Files Created or Updated
+
+- `docs/PROJECT_OVERVIEW.md`
+- `docs/ROADMAP.md`
+- `docs/STORAGE_STRATEGY.md`
+- `docs/DATABASE_DESIGN.md`
+- `docs/API_DESIGN.md`
+- `docs/ROLE_PERMISSION.md`
+- `docs/ENVIRONMENT_VARIABLES.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DEPLOYMENT.md`
+- `docs/CHANGELOG.md`
+- `prompts/05_phase_6_admin_dashboard.md`
+- `prompts/06_phase_7_media_processing.md`
+- `prompts/07_phase_8_hardening.md`
+- `prompts/08_phase_9_scale_features.md`
+- `prompts/09_final_release_qa.md`
+- `sieu_prompt_agent_web_anh_cuoi.md`
+
+### Tests and Checks
+
+- Documentation-only planning update. No code verification was required.
+
+## 2026-06-15 - Early CI/CD Docker VPS Foundation
+
+### Completed
+
+- Added `docs/guides/` as the documentation folder for operational and usage guides.
+- Added `.github/workflows/deploy-docker-vps.yml` so CI/CD can run before the remaining feature phases and deploy progress to a VPS.
+- Added `docker-compose.prod.yml` for production container startup through pulled registry images.
+- Added `docker/production.env.example` as the VPS `.env.production` template.
+- Added a Vietnamese CI/CD guide for GitHub Actions building API/Web Docker images, pushing to Docker Hub or GHCR, deploying through VPS pull, and restarting containers with Docker Compose.
+- Moved CI/CD to a priority phase before Phase 6 in the roadmap and prompt order so remote progress previews can start early.
+- Linked the guide from README and deployment documentation.
+
+### Files Created or Updated
+
+- `.github/workflows/deploy-docker-vps.yml`
+- `docker-compose.prod.yml`
+- `docker/production.env.example`
+- `docs/guides/README.md`
+- `docs/guides/CI_CD_DOCKER_VPS.md`
+- `docs/ROADMAP.md`
+- `docs/DEPLOYMENT.md`
+- `docs/PROJECT_OVERVIEW.md`
+- `README.md`
+- `prompts/README.md`
+- `prompts/10_phase_10_cicd_docker_vps.md`
+- `docs/CHANGELOG.md`
+- `docs/DEVELOPMENT_LOG.md`
+
+### Tests and Checks
+
+- `git diff --check`: pass after documentation/workflow updates.
+
+## 2026-06-15 - Host, Database, and Media Storage Migration Guide
+
+### Completed
+
+- Added a Vietnamese guide with accents for reconfiguring the system when moving VPS/host, SQL Server database, and image/video storage.
+- Covered SQL Server backup/restore, local storage volume copy, Cloudflare R2/S3-compatible reconfiguration, `.env.production`, CI/CD secrets, smoke tests, DNS/reverse proxy updates, rollback, and common errors.
+- Linked the guide from the guide index and deployment documentation.
+
+### Files Created or Updated
+
+- `docs/guides/HUONG_DAN_DI_DOI_HOST_DATABASE_STORAGE.md`
+- `docs/guides/README.md`
+- `docs/DEPLOYMENT.md`
+- `docs/CHANGELOG.md`
+- `docs/DEVELOPMENT_LOG.md`
+
+### Tests and Checks
+
+- `pnpm.cmd exec prettier --check docs/guides/HUONG_DAN_DI_DOI_HOST_DATABASE_STORAGE.md docs/guides/README.md docs/DEPLOYMENT.md`: pass
+- `git diff --check`: pass

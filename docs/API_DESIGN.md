@@ -50,6 +50,15 @@ Implemented in Phase 2: register, login, logout, refresh, capabilities, CSRF tok
 
 Local development note: forgot password and register responses may include development-only reset/verification tokens while SMTP delivery is not wired. Production must deliver these tokens by email and must not return them in API payloads.
 
+Planned system parameter behavior: registration and login endpoints must check admin-managed runtime settings before performing mutations. When registration is disabled, `POST /api/v1/auth/register` returns a clear disabled-flow error. When login is disabled, authenticated entry points should be blocked and public/read-only browsing can remain available according to the configured mode.
+
+### User Profile and Handles
+
+- `GET /api/v1/users/handle-check?handle=...`
+- `PATCH /api/v1/users/me/handle`
+
+Planned: user handles are globally unique, user-chosen identifiers similar to TikTok IDs. Public album/site routes should include the handle so duplicate album names across different users remain unambiguous.
+
 ### Tenants and Public Sites
 
 - `GET /api/v1/tenants`
@@ -63,8 +72,12 @@ Local development note: forgot password and register responses may include devel
 - `GET /api/v1/public/sites/:slug`
 - `GET /api/v1/public/sites/:slug/albums`
 - `GET /api/v1/public/sites/:slug/albums/:albumId/media`
+- `GET /api/v1/public/users/:userHandle/sites/:siteSlug`
+- `GET /api/v1/public/users/:userHandle/sites/:siteSlug/albums/:albumSlugOrId`
 
 Implemented in Phase 3: tenant CRUD, owner membership creation, slug availability checks, settings and visibility updates, audit log writes for tenant mutations, and public site reads with private/password gates. Authenticated tenant endpoints only return tenants where the user is a member. Public site reads return full content for public sites, gated content for private/password-protected sites until a valid password is supplied, and 404 for missing or inactive sites.
+
+Planned public URL direction: keep existing `/:siteSlug` routes during migration, then introduce canonical handle-based routes such as `/@{userHandle}/{siteSlug}/albums/{albumSlugOrShortId}`.
 
 ### Albums and Media
 
@@ -112,3 +125,23 @@ Implemented in Phase 5: shared theme presets, tenant-scoped create/update/previe
 - `GET /api/v1/admin/audit-logs`
 - `GET /api/v1/admin/system-settings`
 - `PATCH /api/v1/admin/system-settings`
+- `GET /api/v1/admin/feature-flags`
+- `PATCH /api/v1/admin/feature-flags`
+- `GET /api/v1/admin/entitlements`
+- `POST /api/v1/admin/entitlements`
+- `DELETE /api/v1/admin/entitlements/:entitlementId`
+
+Planned system settings examples: disable registration, disable login and keep public browsing read-only, disable uploads/downloads/public galleries, disable payment checkout, tune upload limits, and set maintenance banners. All writes must be audited.
+
+### Plans, Subscriptions, and Payments
+
+- `GET /api/v1/plans`
+- `GET /api/v1/subscription/me`
+- `POST /api/v1/payments/momo/checkout`
+- `POST /api/v1/payments/momo/webhook`
+- `GET /api/v1/admin/plans`
+- `POST /api/v1/admin/plans`
+- `PATCH /api/v1/admin/plans/:planId`
+- `GET /api/v1/admin/payments`
+
+Planned: MoMo is the first payment provider behind a provider adapter. Subscriptions and admin-granted entitlements can unlock advanced features and increase media storage quota.

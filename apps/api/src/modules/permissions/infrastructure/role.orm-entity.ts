@@ -17,12 +17,12 @@ export class RoleOrmEntity {
   @Column({ length: 120 })
   name!: string;
 
-  @Column({ length: 500, nullable: true, type: 'nvarchar' })
+  @Column({ length: 500, nullable: true, type: 'varchar' })
   description!: string | null;
 
-  @CreateDateColumn({ type: 'datetime2' })
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'datetime2' })
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 }

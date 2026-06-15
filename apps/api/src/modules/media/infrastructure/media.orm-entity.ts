@@ -12,10 +12,10 @@ export class MediaOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'uniqueidentifier' })
+  @Column({ type: 'uuid' })
   tenantId!: string;
 
-  @Column({ type: 'uniqueidentifier' })
+  @Column({ type: 'uuid' })
   albumId!: string;
 
   @Column({ length: 40 })
@@ -48,42 +48,42 @@ export class MediaOrmEntity {
   @Column({ length: 1000 })
   storageKey!: string;
 
-  @Column({ length: 1000, nullable: true, type: 'nvarchar' })
+  @Column({ length: 1000, nullable: true, type: 'varchar' })
   publicUrl!: string | null;
 
-  @Column({ length: 1000, nullable: true, type: 'nvarchar' })
+  @Column({ length: 1000, nullable: true, type: 'varchar' })
   thumbnailUrl!: string | null;
 
-  @Column({ length: 1000, nullable: true, type: 'nvarchar' })
+  @Column({ length: 1000, nullable: true, type: 'varchar' })
   optimizedUrl!: string | null;
 
-  @Column({ length: 200, nullable: true, type: 'nvarchar' })
+  @Column({ length: 200, nullable: true, type: 'varchar' })
   blurHash!: string | null;
 
-  @Column({ length: 200, nullable: true, type: 'nvarchar' })
+  @Column({ length: 200, nullable: true, type: 'varchar' })
   title!: string | null;
 
-  @Column({ nullable: true, type: 'nvarchar' })
+  @Column({ nullable: true, type: 'text' })
   description!: string | null;
 
-  @Column({ nullable: true, type: 'datetime2' })
+  @Column({ nullable: true, type: 'timestamptz' })
   takenAt!: Date | null;
 
   @Column({ type: 'int' })
   sortOrder!: number;
 
-  @Column({ nullable: true, type: 'nvarchar' })
+  @Column({ nullable: true, type: 'text' })
   metadataJson!: string | null;
 
   @Column({ length: 40 })
   processingStatus!: string;
 
-  @CreateDateColumn({ type: 'datetime2' })
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'datetime2' })
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 
-  @DeleteDateColumn({ nullable: true, type: 'datetime2' })
+  @DeleteDateColumn({ nullable: true, type: 'timestamptz' })
   deletedAt!: Date | null;
 }

@@ -5,18 +5,18 @@ export class EmailVerificationTokenOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'uniqueidentifier' })
+  @Column({ type: 'uuid' })
   userId!: string;
 
   @Column({ length: 500 })
   tokenHash!: string;
 
-  @Column({ type: 'datetime2' })
+  @Column({ type: 'timestamptz' })
   expiresAt!: Date;
 
-  @Column({ nullable: true, type: 'datetime2' })
+  @Column({ nullable: true, type: 'timestamptz' })
   usedAt!: Date | null;
 
-  @CreateDateColumn({ type: 'datetime2' })
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 }

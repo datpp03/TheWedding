@@ -104,10 +104,10 @@ export class TypeOrmAuthRepository {
     const rows = toRows<{ code: RoleCode }>(
       await this.users.query(
         `
-        SELECT r.[code]
-        FROM [user_roles] ur
-        INNER JOIN [roles] r ON r.[id] = ur.[roleId]
-        WHERE ur.[userId] = @0
+        SELECT r."code"
+        FROM "user_roles" ur
+        INNER JOIN "roles" r ON r."id" = ur."roleId"
+        WHERE ur."userId" = $1
       `,
         [userId],
       ),
@@ -120,11 +120,11 @@ export class TypeOrmAuthRepository {
     const rows = toRows<{ code: PermissionCode }>(
       await this.users.query(
         `
-        SELECT DISTINCT p.[code]
-        FROM [user_roles] ur
-        INNER JOIN [role_permissions] rp ON rp.[roleId] = ur.[roleId]
-        INNER JOIN [permissions] p ON p.[id] = rp.[permissionId]
-        WHERE ur.[userId] = @0
+        SELECT DISTINCT p."code"
+        FROM "user_roles" ur
+        INNER JOIN "role_permissions" rp ON rp."roleId" = ur."roleId"
+        INNER JOIN "permissions" p ON p."id" = rp."permissionId"
+        WHERE ur."userId" = $1
       `,
         [userId],
       ),
@@ -137,9 +137,9 @@ export class TypeOrmAuthRepository {
     const rows = toRows<{ tenantId: string }>(
       await this.users.query(
         `
-        SELECT [tenantId]
-        FROM [tenant_members]
-        WHERE [userId] = @0
+        SELECT "tenantId"
+        FROM "tenant_members"
+        WHERE "userId" = $1
       `,
         [userId],
       ),
@@ -151,14 +151,11 @@ export class TypeOrmAuthRepository {
   async assignUserRole(userId: string): Promise<void> {
     await this.users.query(
       `
-        INSERT INTO [user_roles] ([userId], [roleId])
-        SELECT @0, r.[id]
-        FROM [roles] r
-        WHERE r.[code] = 'USER'
-          AND NOT EXISTS (
-            SELECT 1 FROM [user_roles] ur
-            WHERE ur.[userId] = @0 AND ur.[roleId] = r.[id]
-          )
+        INSERT INTO "user_roles" ("userId", "roleId")
+        SELECT $1, r."id"
+        FROM "roles" r
+        WHERE r."code" = 'USER'
+        ON CONFLICT ("userId", "roleId") DO NOTHING
       `,
       [userId],
     );

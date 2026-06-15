@@ -23,25 +23,25 @@ export class UserOrmEntity {
   @Column({ length: 200 })
   displayName!: string;
 
-  @Column({ length: 1000, nullable: true, type: 'nvarchar' })
+  @Column({ length: 1000, nullable: true, type: 'varchar' })
   avatarUrl!: string | null;
 
   @Column({ length: 40 })
   status!: string;
 
-  @Column({ nullable: true, type: 'datetime2' })
+  @Column({ nullable: true, type: 'timestamptz' })
   emailVerifiedAt!: Date | null;
 
-  @Column({ nullable: true, type: 'datetime2' })
+  @Column({ nullable: true, type: 'timestamptz' })
   lockedUntil!: Date | null;
 
-  @CreateDateColumn({ type: 'datetime2' })
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'datetime2' })
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 
-  @DeleteDateColumn({ nullable: true, type: 'datetime2' })
+  @DeleteDateColumn({ nullable: true, type: 'timestamptz' })
   deletedAt!: Date | null;
 
   @OneToMany(() => UserSessionOrmEntity, (session) => session.user)

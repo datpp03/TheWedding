@@ -4,7 +4,7 @@
 
 - Unit test domain rules and application use cases.
 - Unit test guards, decorators, and security helpers.
-- Integration test repositories with SQL Server-compatible test database.
+- Integration test repositories with PostgreSQL-compatible test database.
 - E2E test auth, tenant access, media upload, and admin permissions.
 
 ## Frontend

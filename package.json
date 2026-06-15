@@ -28,7 +28,6 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "argon2",
-      "msnodesqlv8",
       "sharp",
       "unrs-resolver"
     ]
