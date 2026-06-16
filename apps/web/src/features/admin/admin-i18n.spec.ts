@@ -30,4 +30,17 @@ describe('admin i18n smoke', () => {
       }
     }
   });
+
+  it('keeps Vietnamese dashboard strings accented', () => {
+    const accentedVietnamese =
+      /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
+    for (const key of [
+      'nav.dashboard',
+      'admin.loading',
+      'media.processing.pending',
+      'themes.page.title',
+    ]) {
+      expect(dictionaries.vi[key]).toMatch(accentedVietnamese);
+    }
+  });
 });

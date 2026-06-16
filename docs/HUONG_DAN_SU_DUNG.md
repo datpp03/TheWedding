@@ -10,7 +10,7 @@ Tài liệu này dành cho người kiểm thử và người dùng nội bộ k
 - Dashboard người dùng: `http://localhost:3000/dashboard`
 - Dashboard album: `http://localhost:3000/dashboard/albums`
 - Dashboard media: `http://localhost:3000/dashboard/media`
-- Tuy bien giao dien: `http://localhost:3000/dashboard/themes`
+- Tùy biến giao diện: `http://localhost:3000/dashboard/themes`
 - Cài đặt wedding site: `http://localhost:3000/dashboard/settings`
 - Admin: `http://localhost:3000/admin`
 - Public site: `http://localhost:3000/{siteSlug}`
@@ -168,51 +168,51 @@ Mỗi phase/prompt sau khi thêm chức năng mới cần cập nhật file này
 - Cập nhật giới hạn hiện tại hoặc known limitation nếu có.
 - Chạy format/lint/typecheck/test/build theo prompt trước khi commit.
 
-## Tuy Bien Giao Dien Wedding Site
+## Tùy Biến Giao Diện Wedding Site
 
-1. Dang nhap bang user co quyen vao wedding site.
-2. Mo `http://localhost:3000/dashboard/themes`.
-3. Chon wedding site trong o Wedding site neu tai khoan co nhieu site.
-4. Chon preset trong Preset gallery de xem truoc nhanh. Cac preset hien co gom Neon Romance, Soft Editorial, City Pop, Midnight Film, Garden Glow.
-5. Khu vuc Colors cho phep doi mau chinh, mau phu, nen, surface, mau chu va mau chu phu. Co the dung swatch mau hoac nhap ma hex.
-6. Khu vuc Type and style cho phep doi font tieu de, font noi dung, do bo goc va lop phu anh.
-7. Khu vuc Layout cho phep doi album layout, hero style, media density va animation.
-8. Live preview ben phai cap nhat ngay khi doi preset, mau, layout hoac typography.
-9. Khi thay doi chua luu, dashboard hien trang thai Unsaved changes. Bam Save de luu theme hien tai.
-10. Bam Activate de kich hoat theme cho public site. Neu dang co thay doi chua luu, app se luu truoc khi activate.
-11. Bam Clone de nhan ban theme hien tai thanh ban moi.
-12. Bam Reset de xoa theme cua site va tao lai theme active tu preset hien tai.
-13. De kiem tra public site sau khi activate, dat site visibility thanh public trong Settings roi mo `http://localhost:3000/{siteSlug}`. Public site se ap dung mau, font, bo goc, hero style va media density cua theme active.
+1. Đăng nhập bằng user có quyền vào wedding site.
+2. Mở `http://localhost:3000/dashboard/themes`.
+3. Chọn wedding site trong ô Wedding site nếu tài khoản có nhiều site.
+4. Chọn preset trong Preset gallery để xem trước nhanh. Các preset hiện có gồm Neon Romance, Soft Editorial, City Pop, Midnight Film, Garden Glow.
+5. Khu vực Colors cho phép đổi màu chính, màu phụ, nền, surface, màu chữ và màu chữ phụ. Có thể dùng swatch màu hoặc nhập mã hex.
+6. Khu vực Type and style cho phép đổi font tiêu đề, font nội dung, độ bo góc và lớp phủ ảnh.
+7. Khu vực Layout cho phép đổi album layout, hero style, media density và animation.
+8. Live preview bên phải cập nhật ngay khi đổi preset, màu, layout hoặc typography.
+9. Khi thay đổi chưa lưu, dashboard hiện trạng thái Unsaved changes. Bấm Save để lưu theme hiện tại.
+10. Bấm Activate để kích hoạt theme cho public site. Nếu đang có thay đổi chưa lưu, app sẽ lưu trước khi activate.
+11. Bấm Clone để nhân bản theme hiện tại thành bản mới.
+12. Bấm Reset để xóa theme của site và tạo lại theme active từ preset hiện tại.
+13. Để kiểm tra public site sau khi activate, đặt site visibility thành public trong Settings rồi mở `http://localhost:3000/{siteSlug}`. Public site sẽ áp dụng màu, font, bo góc, hero style và media density của theme active.
 
-## Trang Thai Xu Ly Media Sau Khi Upload
+## Trạng Thái Xử Lý Media Sau Khi Upload
 
-Phase 7 them pipeline xu ly media nen file vua upload khong duoc danh dau san sang ngay lap tuc. Original duoc luu private, backend tao thumbnail va ban optimized de hien thi gallery/lightbox.
+Phase 7 thêm pipeline xử lý media nên file vừa upload không được đánh dấu sẵn sàng ngay lập tức. Original được lưu private, backend tạo thumbnail và bản optimized để hiển thị gallery/lightbox.
 
-Trang thai co the gap:
+Trạng thái có thể gặp:
 
-- `Queued` / `Dang cho`: file da upload xong va dang nam trong hang doi xu ly.
-- `Processing` / `Dang xu ly`: worker dang doc original va tao thumbnail/optimized versions.
-- `Ready` / `San sang`: da co version optimized. Dashboard va public gallery uu tien dung ban optimized nay.
-- `Failed` / `Loi`: xu ly that bai. Media card hien ly do loi neu backend ghi nhan duoc.
+- `Queued` / `Đang chờ`: file đã upload xong và đang nằm trong hàng đợi xử lý.
+- `Processing` / `Đang xử lý`: worker đang đọc original và tạo thumbnail/optimized versions.
+- `Ready` / `Sẵn sàng`: đã có version optimized. Dashboard và public gallery ưu tiên dùng bản optimized này.
+- `Failed` / `Lỗi`: xử lý thất bại. Media card hiện lý do lỗi nếu backend ghi nhận được.
 
-Cach kiem tra trong dashboard:
+Cách kiểm tra trong dashboard:
 
-1. Mo `http://localhost:3000/dashboard/media`.
-2. Upload anh JPEG, PNG hoac WebP.
-3. Sau upload, item se hien badge `Queued` hoac `Processing`.
-4. Doi vai giay. Dashboard tu polling va cap nhat sang `Ready` khi thumbnail/optimized xong.
-5. Neu item `Failed`, doc dong loi duoi ten file va bam `Retry`.
-6. Khi retry thanh cong, item quay lai `Queued` va tiep tuc polling den `Ready`.
+1. Mở `http://localhost:3000/dashboard/media`.
+2. Upload ảnh JPEG, PNG hoặc WebP.
+3. Sau upload, item sẽ hiện badge `Queued` hoặc `Processing`.
+4. Đợi vài giây. Dashboard tự polling và cập nhật sang `Ready` khi thumbnail/optimized xong.
+5. Nếu item `Failed`, đọc dòng lỗi dưới tên file và bấm `Retry`.
+6. Khi retry thành công, item quay lại `Queued` và tiếp tục polling đến `Ready`.
 
-Cach kiem tra thumbnail va optimized media:
+Cách kiểm tra thumbnail và optimized media:
 
-1. Khi item `Ready`, anh trong grid dashboard nen load tu thumbnail/optimized URL thay vi original.
-2. Dat site va album thanh public, sau do mo `http://localhost:3000/{siteSlug}`.
-3. Public gallery chi hien optimized derivative khi da san sang; item dang queued/processing se hien placeholder thay vi doc original private.
-4. Nut `Download original` trong dashboard va nut Download public neu album cho phep download van di qua endpoint permission check rieng, khong dung chung voi optimized display URL.
+1. Khi item `Ready`, ảnh trong grid dashboard nên load từ thumbnail/optimized URL thay vì original.
+2. Đặt site và album thành public, sau đó mở `http://localhost:3000/{siteSlug}`.
+3. Public gallery chỉ hiện optimized derivative khi đã sẵn sàng; item đang queued/processing sẽ hiện placeholder thay vì đọc original private.
+4. Nút `Download original` trong dashboard và nút Download public nếu album cho phép download vẫn đi qua endpoint permission check riêng, không dùng chung với optimized display URL.
 
-Ghi chu van hanh:
+Ghi chú vận hành:
 
-- Local dev khong co `REDIS_URL` van co inline processor de smoke test.
-- Production nen cau hinh Redis qua `REDIS_URL` va `MEDIA_PROCESSING_CONCURRENCY`.
-- Video preview hien tai moi ghi metadata placeholder; can worker co ffmpeg neu muon trich frame preview.
+- Local dev không có `REDIS_URL` vẫn có inline processor để smoke test.
+- Production nên cấu hình Redis qua `REDIS_URL` và `MEDIA_PROCESSING_CONCURRENCY`.
+- Video preview hiện tại mới ghi metadata placeholder; cần worker có ffmpeg nếu muốn trích frame preview.
