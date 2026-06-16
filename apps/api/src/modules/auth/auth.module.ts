@@ -3,6 +3,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuditLogsModule } from '../audit-logs/audit-logs.module';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { SettingsModule } from '../settings/settings.module';
 import { UserOrmEntity } from '../users/infrastructure/user.orm-entity';
 import { AuthService } from './application/auth.service';
 import { AuthTokenService } from './application/auth-token.service';
@@ -18,6 +20,7 @@ import { AuthController } from './presentation/auth.controller';
 @Module({
   imports: [
     AuditLogsModule,
+    SettingsModule,
     JwtModule.register({}),
     TypeOrmModule.forFeature([
       UserOrmEntity,
@@ -36,6 +39,10 @@ import { AuthController } from './presentation/auth.controller';
     {
       provide: APP_GUARD,
       useClass: AccessTokenGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionsGuard,
     },
   ],
   exports: [AuthService, AuthTokenService],

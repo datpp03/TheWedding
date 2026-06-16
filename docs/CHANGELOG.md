@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Phase 6 admin dashboard MVP with stats, users, tenants, media moderation, audit log explorer, settings, feature flags, and system parameters screens.
+- Admin API endpoints protected by `admin.access` plus audit logging for admin mutations.
+- Runtime system parameters for disabling registration, login, uploads, downloads, public gallery, future payment checkout, and maintenance messages.
+- Backend enforcement for disabled registration/login/upload/download/public-gallery flows.
+- Admin i18n keys for Vietnamese, English, and Japanese.
+- Permission guard tests, disabled-flow tests, and admin i18n smoke coverage.
+
 ### Changed
 
 - Reordered the remaining prompt workflow around the active Vercel + Render + Neon deployment path.

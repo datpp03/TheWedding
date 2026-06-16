@@ -1,16 +1,13 @@
 import { AppShell } from '@/components/app-shell';
 import { PageHeader } from '@/components/page-header';
+import { AdminDashboard } from '@/features/admin/admin-dashboard';
+import { t } from '@/lib/i18n/locales';
 
 export default function AdminTenantsPage() {
   return (
     <AppShell section="admin">
-      <PageHeader
-        title="Tenants"
-        description="Monitor wedding sites, custom domains, visibility, and storage use."
-      />
-      <section className="rounded-md border border-neutral-200 bg-white p-4 text-sm text-neutral-600">
-        Tenant administration arrives in Phase 6.
-      </section>
+      <PageHeader title={t('admin.tenants.title')} description={t('admin.tenants.description')} />
+      <AdminDashboard view="tenants" />
     </AppShell>
   );
 }

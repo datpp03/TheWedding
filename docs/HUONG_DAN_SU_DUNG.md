@@ -92,16 +92,64 @@ Nếu reset database local, hãy chạy lại seed để tạo super admin. Vớ
    - dùng Arrow Left/Arrow Right để chuyển media;
    - nút Download chỉ hiện khi album bật Allow downloads.
 
-## Admin Hiện Có
-
-Admin route đã có shell và guard cơ bản. Các màn quản trị sâu như user management, tenant management, media moderation, audit log explorer, system settings và feature flags sẽ được hoàn thiện ở Phase 6.
+## Admin Dashboard
 
 Đăng nhập bằng super admin:
 
 - Email: `admin@example.com`
 - Mật khẩu: `ChangeMe!123456`
 
-Sau đó mở `http://localhost:3000/admin`.
+Sau khi đăng nhập, mở `http://localhost:3000/admin`. Tài khoản phải có permission `admin.access`; user thường sẽ bị từ chối khi gọi API admin.
+
+### Tổng Quan Admin
+
+1. Mở `http://localhost:3000/admin`.
+2. Xem các chỉ số users, tenants, media và audit events.
+3. Nếu bị báo lỗi quyền, kiểm tra seed role/permission và đăng nhập lại bằng super admin.
+
+### Quản Lý Users
+
+1. Mở `http://localhost:3000/admin/users`.
+2. Xem danh sách user, email, trạng thái và ngày tạo.
+3. Lọc nhanh bằng ô Status nếu cần.
+4. Đổi status bằng dropdown trên từng dòng. Thao tác này được ghi audit log.
+5. API cũng hỗ trợ xem detail và cập nhật roles qua `/api/v1/admin/users/:id` và `/api/v1/admin/users/:id/roles`.
+
+### Quản Lý Tenants
+
+1. Mở `http://localhost:3000/admin/tenants`.
+2. Xem site name, slug, visibility và status.
+3. Đổi status `active`, `suspended`, hoặc `archived` bằng dropdown. Thao tác này được ghi audit log.
+
+### Media Moderation
+
+1. Mở `http://localhost:3000/admin/media`.
+2. Xem file, MIME type, processing status và ngày tạo.
+3. Đổi moderation/processing status thành `pending`, `ready`, `processing`, `failed`, hoặc `rejected`.
+4. Nếu system parameter `disableUploads` đang bật, upload mới sẽ bị backend chặn.
+5. Nếu `disableDownloads` đang bật, download sẽ bị backend chặn.
+
+### Audit Logs
+
+1. Mở `http://localhost:3000/admin/audit-logs`.
+2. Xem action, entity, actor và thời gian.
+3. API hỗ trợ filter theo action, entityType, tenantId, search, pagination và sort.
+
+### Settings, Feature Flags Và System Parameters
+
+1. Mở `http://localhost:3000/admin/settings`.
+2. Xem system settings và feature flags hiện có.
+3. Trong khu System Parameters, bật/tắt các toggle:
+   - disable new user registration;
+   - disable login globally;
+   - disable upload;
+   - disable download;
+   - disable public gallery;
+   - disable payment checkout.
+4. Nhập maintenance message để hiện lý do cho các flow bị tắt.
+5. Mỗi lần lưu system parameters sẽ invalidate cache và ghi audit log.
+6. Khi `disableNewUserRegistration` bật, API register trả lời flow đang bị tạm tắt.
+7. Khi `disableLogin` bật, API login bị chặn, còn public/read-only browsing có thể tiếp tục nếu gallery không bị tắt.
 
 ## Lưu Ý Storage Local
 

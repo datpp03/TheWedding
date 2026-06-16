@@ -1,6 +1,8 @@
 import Link from 'next/link';
+import type { Route } from 'next';
 import type { ReactNode } from 'react';
 import { AuthStatus } from '@/features/auth/auth-status';
+import { t } from '@/lib/i18n/locales';
 import { dashboardNavItems } from '@/lib/navigation';
 
 export function AppShell({
@@ -25,10 +27,10 @@ export function AppShell({
           {navItems.map((item) => (
             <Link
               key={item.href}
-              href={item.href}
+              href={item.href as Route}
               className="rounded-md px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
             >
-              {item.label}
+              {t(item.labelKey)}
             </Link>
           ))}
         </nav>

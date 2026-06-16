@@ -15,6 +15,7 @@ import {
   AUDIT_LOG_REPOSITORY,
   type AuditLogRepository,
 } from '../../audit-logs/domain/audit-log.repository';
+import { SystemParametersService } from '../../settings/application/system-parameters.service';
 import { STORAGE_SERVICE, type StorageService } from '../../storage/domain/storage.service';
 import { TenantOrmEntity } from '../../tenants/infrastructure/tenant.orm-entity';
 import { MediaOrmEntity } from '../infrastructure/media.orm-entity';
@@ -61,6 +62,7 @@ export class MediaService {
     private readonly storage: StorageService,
     @Inject(AUDIT_LOG_REPOSITORY)
     private readonly auditLogs: AuditLogRepository,
+    private readonly systemParameters: SystemParametersService,
   ) {}
 
   async list(tenantId: string, albumId: string, context: MediaContext) {
@@ -79,6 +81,7 @@ export class MediaService {
     file: MemoryUpload | undefined,
     context: MediaContext,
   ) {
+    await this.systemParameters.assertUploadEnabled();
     this.assertTenantAccess(tenantId, context);
     const album = await this.findOwnedAlbum(tenantId, albumId);
     const validated = validateUpload(file);
@@ -191,6 +194,7 @@ export class MediaService {
   }
 
   async getDownload(tenantId: string, mediaId: string, context?: MediaContext) {
+    await this.systemParameters.assertDownloadEnabled();
     const media = await this.findMediaWithAlbum(tenantId, mediaId);
     if (context) {
       this.assertTenantAccess(tenantId, context);
@@ -229,6 +233,7 @@ export class MediaService {
   }
 
   async listPublicBySite(slug: string) {
+    await this.systemParameters.assertPublicGalleryEnabled();
     const tenant = await this.tenants.findOne({
       where: { slug, visibility: TENANT_VISIBILITY.PUBLIC },
     });

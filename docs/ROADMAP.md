@@ -97,12 +97,14 @@ Status: optional later path if the project moves from Vercel/Render to self-host
 
 ## Phase 6: Admin Dashboard
 
-- User, tenant, media, audit log, settings, feature flags, reports.
-- Add a runtime System Parameters screen for admins to manage feature gates without redeploying:
-  - disable new user registration.
-  - disable login globally and allow public/read-only browsing only.
-  - toggle upload, download, public gallery, payment, and other feature availability.
-  - audit every setting change and expose clear user-facing messages for disabled flows.
+Status: completed for MVP admin operations.
+
+- Completed: admin stats, users list/detail/status/roles, tenants list/detail/status, media moderation, audit logs, system settings, feature flags, and system parameters API.
+- Completed: `admin.access` permission guard enforcement and audit log writes for admin mutations.
+- Completed: runtime system parameter controls for disabling new registration, login, upload, download, public gallery, payment checkout placeholder, and maintenance messages.
+- Completed: responsive admin UI pages for stats, users, tenants, media moderation, audit logs, settings, feature flags, and system parameters.
+- Completed: admin i18n keys for Vietnamese, English, and Japanese.
+- Later hardening: richer role editor UX, advanced audit export, admin reports, payment/entitlement admin workflows, and e2e coverage against a running database.
 
 ## Phase 7: Media Processing Advanced
 

@@ -528,3 +528,43 @@
 ### Tests and Checks
 
 - Documentation-only planning update.
+
+## 2026-06-16 - Phase 6 Admin Dashboard MVP
+
+### Completed
+
+- Implemented admin API endpoints for stats, users, tenants, media moderation, audit logs, system settings, feature flags, and system parameters.
+- Registered the permission guard globally and enforced `admin.access` on `/api/v1/admin/*`.
+- Added runtime system parameter validation, cache invalidation, fail-safe defaults, and backend enforcement for registration, login, upload, download, and public gallery disabling.
+- Added admin audit logging for user status/role changes, tenant status changes, media moderation, settings, feature flags, and system parameters.
+- Replaced admin placeholder pages with responsive admin UI screens and mobile card fallbacks.
+- Added admin locale keys for `vi`, `en`, and `ja`.
+- Added tests for permission denial/success, disabled registration/login/upload behavior, and admin i18n coverage.
+
+### Files Created or Updated
+
+- `apps/api/src/modules/admin/**`
+- `apps/api/src/modules/settings/**`
+- `apps/api/src/modules/auth/**`
+- `apps/api/src/modules/media/**`
+- `apps/api/src/common/guards/permissions.guard.spec.ts`
+- `apps/web/src/features/admin/**`
+- `apps/web/src/app/(admin)/admin/**`
+- `apps/web/src/lib/i18n/locales.ts`
+- `docs/API_DESIGN.md`
+- `docs/ROLE_PERMISSION.md`
+- `docs/ROADMAP.md`
+- `docs/CHANGELOG.md`
+- `docs/HUONG_DAN_SU_DUNG.md`
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass
+- `pnpm.cmd --filter @the-wedding/web typecheck`: pass
+- `pnpm.cmd --filter @the-wedding/api test`: pass
+- `pnpm.cmd --filter @the-wedding/web test`: pass
+
+### Technical Risks
+
+- Admin role editing is available through the API; the current MVP UI focuses on status operations and list moderation.
+- Payment checkout disabling is stored as a runtime parameter now and will be enforced when payment checkout endpoints are implemented.

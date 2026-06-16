@@ -12,6 +12,7 @@ import {
   AUDIT_LOG_REPOSITORY,
   type AuditLogRepository,
 } from '../../audit-logs/domain/audit-log.repository';
+import { SystemParametersService } from '../../settings/application/system-parameters.service';
 import { Argon2PasswordHasher } from '../infrastructure/argon2-password-hasher';
 import { TypeOrmAuthRepository } from '../infrastructure/typeorm-auth.repository';
 import type { UserOrmEntity } from '../../users/infrastructure/user.orm-entity';
@@ -31,6 +32,7 @@ export class AuthService {
     private readonly passwordHasher: Argon2PasswordHasher,
     private readonly tokenService: AuthTokenService,
     private readonly config: ConfigService,
+    private readonly systemParameters: SystemParametersService,
     @Optional()
     @Inject(AUDIT_LOG_REPOSITORY)
     private readonly auditLogs?: AuditLogRepository,
@@ -42,6 +44,7 @@ export class AuthService {
     displayName: string;
     context: RequestContext;
   }): Promise<AuthResult> {
+    await this.systemParameters.assertRegistrationEnabled();
     const email = normalizeEmail(input.email);
     const existingUser = await this.authRepository.findUserByEmail(email);
 
@@ -84,6 +87,7 @@ export class AuthService {
     password: string;
     context: RequestContext;
   }): Promise<AuthResult> {
+    await this.systemParameters.assertLoginEnabled();
     const email = normalizeEmail(input.email);
     const user = await this.authRepository.findUserByEmail(email);
 

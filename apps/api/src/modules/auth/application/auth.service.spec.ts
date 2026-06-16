@@ -1,4 +1,8 @@
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  ServiceUnavailableException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { UserOrmEntity } from '../../users/infrastructure/user.orm-entity';
 import type { Argon2PasswordHasher } from '../infrastructure/argon2-password-hasher';
@@ -105,6 +109,22 @@ describe(AuthService.name, () => {
     ).rejects.toBeInstanceOf(ConflictException);
   });
 
+  it('blocks registration when the runtime parameter disables it', async () => {
+    const { service, systemParameters } = createService();
+    systemParameters.assertRegistrationEnabled.mockRejectedValue(
+      new ServiceUnavailableException('Registration disabled'),
+    );
+
+    await expect(
+      service.register({
+        email: 'new@example.com',
+        password: 'ChangeMe!123456',
+        displayName: 'New',
+        context,
+      }),
+    ).rejects.toBeInstanceOf(ServiceUnavailableException);
+  });
+
   it('records failed login without revealing whether the email exists', async () => {
     const { repository, service } = createService();
 
@@ -125,6 +145,21 @@ describe(AuthService.name, () => {
         success: false,
       }),
     );
+  });
+
+  it('blocks login when the runtime parameter disables it', async () => {
+    const { service, systemParameters } = createService();
+    systemParameters.assertLoginEnabled.mockRejectedValue(
+      new ServiceUnavailableException('Login disabled'),
+    );
+
+    await expect(
+      service.login({
+        email: 'user@example.com',
+        password: 'ChangeMe!123456',
+        context,
+      }),
+    ).rejects.toBeInstanceOf(ServiceUnavailableException);
   });
 
   it('rotates a valid refresh token and revokes the family on token reuse', async () => {
@@ -319,14 +354,19 @@ function createService() {
         return defaultValue ?? '30d';
       }),
   };
+  const systemParameters = {
+    assertLoginEnabled: jest.fn<Promise<void>, []>().mockResolvedValue(undefined),
+    assertRegistrationEnabled: jest.fn<Promise<void>, []>().mockResolvedValue(undefined),
+  };
   const service = new AuthService(
     repository as never,
     passwordHasher,
     tokenService as never,
     config as never,
+    systemParameters as never,
   );
 
-  return { passwordHasher, repository, service };
+  return { passwordHasher, repository, service, systemParameters };
 }
 
 function createOneTimeToken(overrides: Partial<OneTimeToken> = {}): OneTimeToken {

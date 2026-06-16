@@ -1,4 +1,8 @@
-import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { TENANT_VISIBILITY } from '@the-wedding/shared';
 import { MediaService, type MemoryUpload } from './media.service';
 
@@ -47,6 +51,11 @@ describe('MediaService', () => {
       }),
     };
     const auditLogs = { append: jest.fn() };
+    const systemParameters = {
+      assertDownloadEnabled: jest.fn().mockResolvedValue(undefined),
+      assertPublicGalleryEnabled: jest.fn().mockResolvedValue(undefined),
+      assertUploadEnabled: jest.fn().mockResolvedValue(undefined),
+    };
 
     return new MediaService(
       (overrides.media ?? media) as never,
@@ -55,6 +64,7 @@ describe('MediaService', () => {
       (overrides.tenants ?? tenants) as never,
       (overrides.storage ?? storage) as never,
       (overrides.auditLogs ?? auditLogs) as never,
+      (overrides.systemParameters ?? systemParameters) as never,
     );
   }
 
@@ -88,5 +98,26 @@ describe('MediaService', () => {
     await expect(
       service.list('tenant-2', 'album-1', { actorUserId: 'user-1', tenantIds: ['tenant-1'] }),
     ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('blocks uploads when the runtime parameter disables them', async () => {
+    const systemParameters = {
+      assertDownloadEnabled: jest.fn().mockResolvedValue(undefined),
+      assertPublicGalleryEnabled: jest.fn().mockResolvedValue(undefined),
+      assertUploadEnabled: jest
+        .fn()
+        .mockRejectedValue(new ServiceUnavailableException('Uploads disabled')),
+    };
+    const service = createService({ systemParameters });
+    const file: MemoryUpload = {
+      buffer: Buffer.from('jpg'),
+      mimetype: 'image/jpeg',
+      originalname: 'photo.jpg',
+      size: 3,
+    };
+
+    await expect(service.upload('tenant-1', 'album-1', file, baseContext)).rejects.toBeInstanceOf(
+      ServiceUnavailableException,
+    );
   });
 });

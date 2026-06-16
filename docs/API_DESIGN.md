@@ -118,20 +118,31 @@ Implemented in Phase 5: shared theme presets, tenant-scoped create/update/previe
 
 ### Admin
 
-- `GET /api/v1/admin/dashboard`
+- `GET /api/v1/admin/stats`
 - `GET /api/v1/admin/users`
+- `GET /api/v1/admin/users/:id`
+- `PATCH /api/v1/admin/users/:id/status`
+- `PATCH /api/v1/admin/users/:id/roles`
 - `GET /api/v1/admin/tenants`
+- `GET /api/v1/admin/tenants/:id`
+- `PATCH /api/v1/admin/tenants/:id/status`
 - `GET /api/v1/admin/media`
+- `PATCH /api/v1/admin/media/:id/moderation`
 - `GET /api/v1/admin/audit-logs`
-- `GET /api/v1/admin/system-settings`
-- `PATCH /api/v1/admin/system-settings`
+- `GET /api/v1/admin/audit-logs/:id`
+- `GET /api/v1/admin/settings`
+- `POST /api/v1/admin/settings`
 - `GET /api/v1/admin/feature-flags`
-- `PATCH /api/v1/admin/feature-flags`
+- `POST /api/v1/admin/feature-flags`
+- `GET /api/v1/admin/system-parameters`
+- `PATCH /api/v1/admin/system-parameters`
 - `GET /api/v1/admin/entitlements`
 - `POST /api/v1/admin/entitlements`
 - `DELETE /api/v1/admin/entitlements/:entitlementId`
 
-Planned system settings examples: disable registration, disable login and keep public browsing read-only, disable uploads/downloads/public galleries, disable payment checkout, tune upload limits, and set maintenance banners. All writes must be audited.
+Implemented in Phase 6: dashboard stats, paginated/filterable/sortable users, tenants, media moderation, audit log explorer, system settings upsert, feature flags upsert, and runtime system parameters. Admin endpoints require authenticated users with `admin.access`; mutation endpoints write audit logs.
+
+System parameters are stored under `runtime.system_parameters`, validated with a schema, cached for short reads, invalidated on update, and fail closed to safe defaults if stored JSON is invalid. Current runtime controls include disabling new registration, disabling login, disabling uploads, disabling downloads, disabling public gallery reads, disabling payment checkout for future payment surfaces, and a maintenance message for disabled flows.
 
 ### Plans, Subscriptions, and Payments
 
