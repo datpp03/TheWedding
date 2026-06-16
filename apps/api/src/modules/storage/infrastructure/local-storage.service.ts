@@ -1,9 +1,14 @@
 import { randomBytes } from 'node:crypto';
-import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { StorageService, UploadOptions, UploadedFile } from '../domain/storage.service';
+import type {
+  PutOptions,
+  StorageService,
+  UploadOptions,
+  UploadedFile,
+} from '../domain/storage.service';
 
 @Injectable()
 export class LocalStorageService implements StorageService {
@@ -15,6 +20,11 @@ export class LocalStorageService implements StorageService {
 
   async upload(file: Buffer, options: UploadOptions): Promise<UploadedFile> {
     const key = this.createStorageKey(options);
+    return this.put(file, { ...options, key });
+  }
+
+  async put(file: Buffer, options: PutOptions): Promise<UploadedFile> {
+    const key = this.normalizeWritableKey(options.key, options);
     const targetPath = this.resolveKey(key);
 
     await mkdir(path.dirname(targetPath), { recursive: true });
@@ -26,6 +36,10 @@ export class LocalStorageService implements StorageService {
       size: file.byteLength,
       url: this.getPublicUrl(key),
     };
+  }
+
+  read(key: string): Promise<Buffer> {
+    return readFile(this.resolveKey(key));
   }
 
   async delete(key: string): Promise<void> {
@@ -67,5 +81,14 @@ export class LocalStorageService implements StorageService {
         `${randomName}.${extension}`,
       )
       .replace(/\\/g, '/');
+  }
+
+  private normalizeWritableKey(key: string, options: UploadOptions) {
+    const normalizedKey = key.replace(/\\/g, '/');
+    const expectedPrefix = `tenants/${options.tenantId}/media/${options.mediaId}/`;
+    if (!normalizedKey.startsWith(expectedPrefix)) {
+      throw new Error('Storage key does not belong to the media item');
+    }
+    return normalizedKey;
   }
 }

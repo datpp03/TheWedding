@@ -21,7 +21,12 @@ export type MediaItem = {
   originalFileName: string;
   mimeType: string;
   sizeBytes: number;
-  publicUrl: string;
+  publicUrl: string | null;
+  optimizedUrl: string | null;
+  thumbnailUrl: string | null;
+  processingStatus: 'pending' | 'processing' | 'ready' | 'failed';
+  processingFailureReason: string | null;
+  processingAttempts: number;
   title: string | null;
   description: string | null;
   sortOrder: number;
@@ -112,7 +117,14 @@ export function deleteMedia(tenantId: string, mediaIds: string[]) {
   });
 }
 
-export function mediaSrc(url: string) {
+export function retryMediaProcessing(tenantId: string, mediaId: string) {
+  return apiClient<MediaItem>(`/tenants/${tenantId}/media/${mediaId}/retry-processing`, {
+    method: 'POST',
+  });
+}
+
+export function mediaSrc(url: string | null) {
+  if (!url) return '';
   if (/^https?:\/\//.test(url)) return url;
   return `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}${url}`;
 }

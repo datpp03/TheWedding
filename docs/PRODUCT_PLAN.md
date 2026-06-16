@@ -1,0 +1,314 @@
+# Product Plan
+
+This is the living product plan for The Wedding. It connects business direction, user workflows, UI/UX standards, feature planning, and the execution method future agents must follow before writing code.
+
+## 1. Product Vision
+
+The Wedding is a multi-tenant SaaS platform for wedding photo and video websites. Couples can create a dedicated public or private wedding site, manage albums, customize visual themes, control access, and share polished memories with guests.
+
+[NEW] The platform uses one shared technical foundation while giving each customer an independent website space, interface, settings, media library, and public sharing experience.
+
+## 2. Users And Segments
+
+- Couples/site owners: create wedding sites, upload albums, customize themes, manage privacy, and share links.
+- Guests: view albums, watch videos, download when allowed, and send wishes or reactions where enabled.
+- Admin/support users: manage users, tenants, plans, storage, media moderation, audit logs, settings, feature gates, and entitlements.
+- [NEW] Studios and photographers: manage multiple clients, create client albums, share review links, deliver online albums, and present professional studio branding.
+
+## 3. Business Model
+
+### B2C SaaS Plans [NEW]
+
+Primary revenue comes from paid wedding website packages for couples.
+
+Plan tiers should be designed around:
+
+- Storage quota.
+- Number of photos and videos.
+- Maximum file size and video duration.
+- Available themes and premium layouts.
+- Privacy and security controls.
+- Custom domain support.
+- Advanced sharing and analytics.
+
+### B2B Studio Subscriptions [NEW]
+
+Secondary revenue comes from monthly or yearly subscriptions for studios and photographers.
+
+B2B plans should support:
+
+- Client management.
+- Multiple client wedding sites/albums.
+- Studio branding.
+- Review and delivery links.
+- Higher storage quotas.
+- Team/member access in later phases.
+- Professional dashboard analytics.
+
+### Value-Added Services [NEW]
+
+Future add-ons can increase average revenue per account:
+
+- Extra storage.
+- Custom domain.
+- Premium theme packs.
+- Advanced album privacy/security.
+- Watermarking.
+- Online photo/video editing tools.
+- AI classification, search, highlight selection, and image quality optimization.
+
+## 4. Product Workflows
+
+### Couple Workflow
+
+1. Register or sign in.
+2. Create a wedding site.
+3. Choose a plan or continue with the available free/basic option.
+4. Select a theme preset.
+5. Upload photos and videos.
+6. Customize colors, typography, album layout, copy, and privacy.
+7. Publish the site.
+8. Share the link with guests.
+9. Review views, downloads, wishes, and upgrade prompts when relevant.
+
+### Guest Workflow
+
+1. Open a shared link.
+2. Pass privacy/password gates when required.
+3. Browse albums, gallery, and lightbox.
+4. Watch videos and download when allowed.
+5. Send wishes or reactions where enabled.
+
+### Studio/Photographer Workflow [NEW]
+
+1. Subscribe to a B2B plan.
+2. Create or import a client profile.
+3. Create a wedding site or album for that client.
+4. Upload edited deliverables or preview selections.
+5. Apply a studio-approved theme/branding preset.
+6. Share a review or delivery link.
+7. Track client status, quota usage, and delivery progress.
+
+### Admin Workflow [NEW]
+
+1. Manage users, tenants, plans, subscriptions, and entitlements.
+2. Set system-wide feature flags and runtime parameters.
+3. Configure global theme defaults and primary brand colors.
+4. Moderate media and inspect audit logs.
+5. Monitor storage, usage, payments, and operational health.
+6. Configure seasonal/contextual experiences and automated greetings when those modules exist.
+
+## 5. UI/UX Execution Workflow
+
+Every future UI task must pass this design gate before implementation.
+
+### Step 1: Emotional Screen Analysis [NEW]
+
+For each screen, define:
+
+- The primary emotion: romantic, premium, warm, playful, calm, editorial, or operational.
+- The first thing the user must notice.
+- The primary action and secondary action.
+- The audience context: couple, guest, studio, admin, or support.
+- The risk if the screen feels confusing, cold, too busy, or too plain.
+
+### Step 2: Design Proposal [NEW]
+
+Before coding UI, write a concise proposal covering:
+
+- Layout structure.
+- Color palette and accent color.
+- Typography direction.
+- Section spacing.
+- Component hierarchy.
+- Animation/transition behavior.
+- Hover, focus, active, disabled, loading, empty, error, and success states.
+- Responsive behavior for mobile, tablet, and desktop.
+
+### Step 3: Design Signoff Before Code [NEW]
+
+Only implement after the screen direction is clear. For future agents, "signoff" can be a documented checklist in the task summary if the user is not actively reviewing a mockup.
+
+The signoff checklist must confirm:
+
+- Primary visual hierarchy is clear.
+- Text fits at target widths.
+- The design has a real accent color and does not rely only on white/gray.
+- Mobile and desktop layouts are explicitly planned.
+- Interactive states are defined.
+- i18n/l10n text length risk is considered for Vietnamese, English, and Japanese.
+
+## 6. UI Requirements
+
+### Color [NEW]
+
+- Do not ship a flat white/gray-only experience.
+- Every major page needs an intentional accent color for actions, active states, links, or meaningful highlights.
+- Theme surfaces must support different color/font moods based on album style and customer context.
+- Admin surfaces should stay efficient and scannable, but still include controlled brand accents.
+
+### Layout And Spacing [NEW]
+
+- Every section needs breathing room.
+- Media-first public pages should let photos and videos lead.
+- Dashboard/admin pages should prioritize scanning, repeated work, and clear action placement.
+- Avoid cramped controls, accidental horizontal scroll, and unstable layout shift.
+
+### Card Components [NEW]
+
+Cards must show clear visual hierarchy:
+
+- Image or thumbnail.
+- Title.
+- Subtitle or short description.
+- Metadata where useful.
+- Primary action.
+
+Cards should not be flat blocks with equal-weight content. Album cards, plan cards, client cards, and media cards must be easy to scan quickly.
+
+### Responsiveness [NEW]
+
+- Support mobile, tablet, and desktop.
+- Verify common widths: 320px, 360px, 390px, 414px, 768px, 1024px, and desktop.
+- Keep tap targets usable on touch devices.
+- Prevent text overflow, overlap, or image controls covering important content.
+
+## 7. Feature Plan
+
+### Core Platform
+
+- Auth, session, CSRF, password reset, and email verification.
+- Tenant/site management.
+- Album and media management.
+- Public gallery and lightbox.
+- Theme customization.
+- Admin dashboard.
+- Runtime system parameters and feature flags.
+
+### Personal Custom Theme [NEW]
+
+Each album/site should support custom colors or theme presets. Future expansion can support album-level overrides in addition to tenant-level active themes.
+
+Implementation notes:
+
+- Keep theme validation in shared code.
+- Store user customizations as structured theme config.
+- Provide preview before activation.
+- Gate premium themes by plan/entitlement.
+
+### Admin Theme Control [NEW]
+
+Admin should have controls for global brand colors, default theme presets, premium theme availability, and system-wide theme rules.
+
+Implementation notes:
+
+- Use admin-only settings with audit logs.
+- Keep tenant/user themes independent from global defaults.
+- Expose safe fallback behavior if global settings are missing or invalid.
+
+### Dynamic Contextual Theme [NEW]
+
+The system may adjust tone and effects based on:
+
+- Day/night.
+- Weather.
+- Season.
+- Holidays such as Tet, Mid-Autumn Festival, Christmas, or Valentine.
+- Special events such as World Cup.
+- User location when permission is granted.
+
+Implementation notes:
+
+- Start as an opt-in feature flag.
+- Provide a user-level disable switch.
+- Never require location permission for core gallery viewing.
+- Use deterministic fallback based on date/time if weather/location is unavailable.
+- Keep effects subtle and reduced-motion compatible.
+
+### Automated Greetings [NEW]
+
+The system can trigger greetings for birthdays, wedding anniversaries, Valentine, Tet, proposal anniversaries, or custom dates.
+
+Implementation notes:
+
+- Store greeting rules separately from static album content.
+- Allow preview, enable/disable, and schedule validation.
+- Use locale keys for greeting templates.
+- Audit admin-created global greeting rules.
+
+### Studio/B2B Workspaces [NEW]
+
+Future B2B expansion should support studio profiles, client management, multi-album delivery, branding, team access, and usage reporting.
+
+Implementation notes:
+
+- Model studio accounts without breaking the couple-first tenant model.
+- Keep client albums tenant-scoped.
+- Make branding configurable but bounded by safe theme validation.
+
+## 8. Detailed Execution Playbook
+
+Future implementation should follow this sequence for efficient delivery.
+
+### 1. Intake And Scope [NEW]
+
+- Read `docs/PRODUCT_PLAN.md`, `docs/ROADMAP.md`, `docs/UI_UX_DESIGN.md`, and the relevant module README.
+- Identify the target segment: couple, guest, studio, admin, or platform operations.
+- Decide whether the feature is MVP, premium, B2B, add-on, or future placeholder.
+- Define feature flag, plan gate, entitlement gate, or admin setting if applicable.
+- Write 3-5 user stories and acceptance criteria before implementation.
+
+### 2. UX Gate [NEW]
+
+- Run the emotional screen analysis.
+- Draft the layout/color/spacing/state proposal.
+- Confirm responsive behavior and i18n text risk.
+- Only then create or modify UI components.
+
+### 3. Technical Design [NEW]
+
+- Define domain boundaries and ownership.
+- Decide database tables/columns/migrations.
+- Define API endpoints and DTO validation.
+- Define permissions, tenant isolation, audit logs, and privacy/security constraints.
+- Define i18n keys for every visible string.
+- Define analytics/usage events where meaningful.
+
+### 4. Implementation Slices [NEW]
+
+Build in small vertical slices:
+
+1. Shared types/constants/validation.
+2. Database migration and repository methods.
+3. Application service/use case.
+4. Controller/API contract.
+5. Frontend API client.
+6. UI state and responsive layout.
+7. Tests.
+8. Docs and user guide updates.
+
+### 5. Verification [NEW]
+
+Each feature must check:
+
+- Format/lint/typecheck.
+- Unit tests for domain/use case logic.
+- Permission and tenant-isolation tests when data is scoped.
+- UI smoke test for loading/empty/error/success states.
+- Responsive QA for target widths.
+- i18n/l10n coverage for `vi`, `en`, and `ja`.
+- Docs updated: roadmap, changelog, development log, user guide if behavior changes.
+
+### 6. Rollout [NEW]
+
+- Ship behind feature flags for risky or premium modules.
+- Prefer admin-controlled enablement for contextual theme, automated greetings, payments, and AI features.
+- Document safe defaults and rollback steps.
+- Record known limitations if the feature is a placeholder or partially rolled out.
+
+## 9. Roadmap Mapping
+
+- Phase 7: media processing, optimized images, media versions, and editor foundations.
+- Phase 8: security, reliability, responsive QA, i18n/l10n hardening, and UI polish.
+- Phase 9: SaaS plans, payments, entitlements, storage/CDN, custom domain, analytics, user handles, AI foundations, and premium feature gates.
+- [NEW] Post-MVP Growth: B2B studio workspaces, contextual themes, automated greetings, advanced online editing, premium theme marketplace, and deeper AI utilities.

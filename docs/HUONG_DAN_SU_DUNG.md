@@ -183,3 +183,36 @@ Mỗi phase/prompt sau khi thêm chức năng mới cần cập nhật file này
 11. Bam Clone de nhan ban theme hien tai thanh ban moi.
 12. Bam Reset de xoa theme cua site va tao lai theme active tu preset hien tai.
 13. De kiem tra public site sau khi activate, dat site visibility thanh public trong Settings roi mo `http://localhost:3000/{siteSlug}`. Public site se ap dung mau, font, bo goc, hero style va media density cua theme active.
+
+## Trang Thai Xu Ly Media Sau Khi Upload
+
+Phase 7 them pipeline xu ly media nen file vua upload khong duoc danh dau san sang ngay lap tuc. Original duoc luu private, backend tao thumbnail va ban optimized de hien thi gallery/lightbox.
+
+Trang thai co the gap:
+
+- `Queued` / `Dang cho`: file da upload xong va dang nam trong hang doi xu ly.
+- `Processing` / `Dang xu ly`: worker dang doc original va tao thumbnail/optimized versions.
+- `Ready` / `San sang`: da co version optimized. Dashboard va public gallery uu tien dung ban optimized nay.
+- `Failed` / `Loi`: xu ly that bai. Media card hien ly do loi neu backend ghi nhan duoc.
+
+Cach kiem tra trong dashboard:
+
+1. Mo `http://localhost:3000/dashboard/media`.
+2. Upload anh JPEG, PNG hoac WebP.
+3. Sau upload, item se hien badge `Queued` hoac `Processing`.
+4. Doi vai giay. Dashboard tu polling va cap nhat sang `Ready` khi thumbnail/optimized xong.
+5. Neu item `Failed`, doc dong loi duoi ten file va bam `Retry`.
+6. Khi retry thanh cong, item quay lai `Queued` va tiep tuc polling den `Ready`.
+
+Cach kiem tra thumbnail va optimized media:
+
+1. Khi item `Ready`, anh trong grid dashboard nen load tu thumbnail/optimized URL thay vi original.
+2. Dat site va album thanh public, sau do mo `http://localhost:3000/{siteSlug}`.
+3. Public gallery chi hien optimized derivative khi da san sang; item dang queued/processing se hien placeholder thay vi doc original private.
+4. Nut `Download original` trong dashboard va nut Download public neu album cho phep download van di qua endpoint permission check rieng, khong dung chung voi optimized display URL.
+
+Ghi chu van hanh:
+
+- Local dev khong co `REDIS_URL` van co inline processor de smoke test.
+- Production nen cau hinh Redis qua `REDIS_URL` va `MEDIA_PROCESSING_CONCURRENCY`.
+- Video preview hien tai moi ghi metadata placeholder; can worker co ffmpeg neu muon trich frame preview.

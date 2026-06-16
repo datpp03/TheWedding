@@ -2,6 +2,7 @@
 
 import type { WeddingTheme } from '@the-wedding/shared';
 import { useEffect, useMemo, useState } from 'react';
+import { t } from '@/lib/i18n/locales';
 import { mediaSrc, type PublicGallery as PublicGalleryData, type MediaItem } from './media-api';
 
 export function PublicGallery({
@@ -103,19 +104,21 @@ export function PublicGallery({
                   }}
                   onClick={() => setActive(item)}
                 >
-                  {item.type === 'image' ? (
+                  {item.type === 'image' && item.publicUrl ? (
                     <img
                       className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                       src={mediaSrc(item.publicUrl)}
                       alt={item.title ?? item.originalFileName}
                     />
-                  ) : (
+                  ) : item.type === 'video' && item.publicUrl ? (
                     <video
                       className="h-full w-full object-cover"
                       src={mediaSrc(item.publicUrl)}
                       muted
                       playsInline
                     />
+                  ) : (
+                    <ProcessingTile status={item.processingStatus} />
                   )}
                 </button>
               ))}
@@ -142,14 +145,14 @@ export function PublicGallery({
             className="m-auto grid max-h-full max-w-5xl gap-3"
             onClick={(event) => event.stopPropagation()}
           >
-            {active.type === 'image' ? (
+            {active.type === 'image' && active.publicUrl ? (
               <img
                 className="max-h-[78vh] max-w-full object-contain"
                 style={{ borderRadius: radius }}
                 src={mediaSrc(active.publicUrl)}
                 alt={active.title ?? active.originalFileName}
               />
-            ) : (
+            ) : active.type === 'video' && active.publicUrl ? (
               <video
                 className="max-h-[78vh] max-w-full"
                 style={{ borderRadius: radius }}
@@ -157,6 +160,15 @@ export function PublicGallery({
                 controls
                 autoPlay
               />
+            ) : (
+              <div
+                className="grid min-h-64 place-items-center px-8 py-12 text-center"
+                style={surfaceStyle}
+              >
+                <span className="text-sm font-semibold">
+                  {t(`media.processing.${active.processingStatus}`)}
+                </span>
+              </div>
             )}
             <div
               className="flex flex-wrap items-center justify-between gap-2 p-3 shadow-sm"
@@ -186,5 +198,15 @@ export function PublicGallery({
         </div>
       ) : null}
     </section>
+  );
+}
+
+function ProcessingTile({ status }: { status: MediaItem['processingStatus'] }) {
+  return (
+    <div className="grid h-full w-full place-items-center bg-amber-50 p-4 text-center">
+      <span className="text-xs font-semibold uppercase text-amber-800">
+        {t(`media.processing.${status}`)}
+      </span>
+    </div>
   );
 }

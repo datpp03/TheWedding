@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Entity('media_versions')
+@Unique('UQ_media_versions_media_type', ['mediaId', 'versionType'])
 export class MediaVersionOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

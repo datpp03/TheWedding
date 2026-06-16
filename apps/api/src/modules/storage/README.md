@@ -19,6 +19,16 @@ tenants/{tenantId}/media/{mediaId}/original/{random}.{ext}
 
 The adapter rejects path traversal attempts when resolving keys. Media APIs expose checked file endpoints instead of raw storage keys so album visibility and download permissions remain enforceable.
 
+Phase 7 adds derivative writes through the same boundary:
+
+```txt
+tenants/{tenantId}/media/{mediaId}/versions/thumb_360.webp
+tenants/{tenantId}/media/{mediaId}/versions/gallery_1280.webp
+tenants/{tenantId}/media/{mediaId}/versions/lightbox_2048.webp
+```
+
+Original files remain private. Normal gallery display should use optimized derivative URLs when available, while original downloads continue through permission-checked API endpoints.
+
 ## Production Direction
 
 Use S3-compatible object storage with private buckets, randomized storage keys, and signed URLs for protected media.

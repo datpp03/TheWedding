@@ -40,7 +40,15 @@ The repo includes `.github/workflows/deploy-docker-vps.yml`, `docker-compose.pro
 - `api`: NestJS application.
 - `web`: Next.js application.
 - `postgres`: PostgreSQL for local development.
-- `redis`: queue/session-support service for future media processing.
+- `redis`: BullMQ queue backend for media processing jobs.
+
+## Media Processing Deployment
+
+- Set `REDIS_URL` to enable BullMQ-backed media processing workers.
+- Set `MEDIA_PROCESSING_CONCURRENCY` to tune worker throughput; start with `2` on small instances.
+- If `REDIS_URL` is omitted in local development, the API uses an inline async processor so uploads can still move from queued to ready for smoke testing.
+- Production should run Redis and keep original media private. Only optimized derivatives should be exposed to normal gallery/lightbox display.
+- Video preview extraction is metadata-only until the production worker image includes ffmpeg or another approved media extraction backend.
 
 ## Production Notes
 

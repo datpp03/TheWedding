@@ -57,6 +57,7 @@ Do not commit real payment credentials.
 ## Queue and Mail
 
 - `REDIS_URL`: BullMQ/Redis connection.
+- `MEDIA_PROCESSING_CONCURRENCY`: number of BullMQ media jobs a worker handles concurrently. Default: `2`.
 - `MAIL_PROVIDER`: mail provider key.
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`: SMTP settings.
 

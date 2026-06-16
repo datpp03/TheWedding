@@ -93,6 +93,7 @@ Planned public URL direction: keep existing `/:siteSlug` routes during migration
 - `PATCH /api/v1/tenants/:tenantId/media/reorder/:albumId`
 - `PATCH /api/v1/tenants/:tenantId/media/:mediaId`
 - `PATCH /api/v1/tenants/:tenantId/media/:mediaId/move`
+- `POST /api/v1/tenants/:tenantId/media/:mediaId/retry-processing`
 - `DELETE /api/v1/tenants/:tenantId/media`
 - `GET /api/v1/tenants/:tenantId/media/:mediaId/file`
 - `GET /api/v1/tenants/:tenantId/media/:mediaId/download`
@@ -101,6 +102,8 @@ Planned public URL direction: keep existing `/:siteSlug` routes during migration
 - `GET /api/v1/public/tenants/:tenantId/media/:mediaId/download`
 
 Implemented in Phase 4: tenant-scoped album CRUD, album reorder, cover selection, visibility, download controls, single and bulk upload through API multipart form data, media metadata update, media reorder, move, batch delete, authenticated media file serving, public gallery reads, lightbox media file serving, and download permission checks. Uploads validate MIME type, file extension, file size, tenant membership, and album ownership before storage writes. API responses do not expose raw storage keys.
+
+Implemented in Phase 7: uploads create private original media, return `processingStatus=pending`, and enqueue media processing. Media DTOs include `optimizedUrl`, `thumbnailUrl`, `processingFailureReason`, and `processingAttempts`. Image processing creates thumbnail, gallery, and lightbox derivatives; normal display prefers optimized URLs while original downloads stay behind permission-checked download endpoints. Failed processing can be retried with `POST /api/v1/tenants/:tenantId/media/:mediaId/retry-processing`.
 
 ### Themes
 
@@ -115,6 +118,30 @@ Implemented in Phase 4: tenant-scoped album CRUD, album reorder, cover selection
 - `POST /api/v1/tenants/:tenantId/themes/reset?presetId=...`
 
 Implemented in Phase 5: shared theme presets, tenant-scoped create/update/preview, activate, clone, reset, active theme bootstrap, and audit log writes for create/update/activate/clone/reset. All tenant theme mutations verify tenant membership through the tenants application service. Public site reads include `activeTheme` when one exists; otherwise the web client falls back to the default preset.
+
+Planned theme expansion [NEW]:
+
+- `GET /api/v1/tenants/:tenantId/albums/:albumId/theme`
+- `PATCH /api/v1/tenants/:tenantId/albums/:albumId/theme`
+- `GET /api/v1/admin/theme-settings`
+- `PATCH /api/v1/admin/theme-settings`
+- `GET /api/v1/contextual-theme/preview`
+- `POST /api/v1/admin/contextual-theme-rules`
+- `PATCH /api/v1/admin/contextual-theme-rules/:ruleId`
+
+Album-level custom themes, global admin theme defaults, premium theme gates, and contextual theme rules should remain optional and feature-flagged until verified. Location/weather-based context must degrade safely when permission or provider data is unavailable.
+
+### Automated Greetings [NEW]
+
+- `GET /api/v1/tenants/:tenantId/greeting-rules`
+- `POST /api/v1/tenants/:tenantId/greeting-rules`
+- `PATCH /api/v1/tenants/:tenantId/greeting-rules/:ruleId`
+- `DELETE /api/v1/tenants/:tenantId/greeting-rules/:ruleId`
+- `GET /api/v1/public/sites/:slug/greetings/active`
+- `GET /api/v1/admin/greeting-rules`
+- `POST /api/v1/admin/greeting-rules`
+
+Planned: greetings can trigger for birthdays, wedding anniversaries, holidays, proposal anniversaries, and custom dates. Greeting templates must use i18n/l10n keys and must support preview, enable/disable, and audit logging for admin-managed global rules.
 
 ### Admin
 
@@ -155,4 +182,18 @@ System parameters are stored under `runtime.system_parameters`, validated with a
 - `PATCH /api/v1/admin/plans/:planId`
 - `GET /api/v1/admin/payments`
 
-Planned: MoMo is the first payment provider behind a provider adapter. Subscriptions and admin-granted entitlements can unlock advanced features and increase media storage quota.
+Planned: MoMo is the first payment provider behind a provider adapter. Subscriptions and admin-granted entitlements can unlock advanced features and increase media storage quota. [NEW] Plans should support B2C couple packages, B2B studio subscriptions, add-ons such as extra storage/custom domains/premium themes, and future value-added services such as AI and online editing.
+
+### Studio/B2B [NEW]
+
+- `GET /api/v1/studio/profile`
+- `PATCH /api/v1/studio/profile`
+- `GET /api/v1/studio/clients`
+- `POST /api/v1/studio/clients`
+- `GET /api/v1/studio/clients/:clientId`
+- `PATCH /api/v1/studio/clients/:clientId`
+- `POST /api/v1/studio/clients/:clientId/sites`
+- `GET /api/v1/studio/clients/:clientId/albums`
+- `POST /api/v1/studio/clients/:clientId/delivery-links`
+
+Planned: studio APIs manage client delivery workflows while preserving tenant isolation and explicit ownership checks. Studio branding and higher quota behavior should be plan/entitlement-gated.

@@ -138,19 +138,21 @@ export default async function PublicSitePage({ params, searchParams }: PageProps
                 className="aspect-[4/3] overflow-hidden border border-white/70 shadow-sm"
                 style={{ background: theme.colors.surface, borderRadius: radius }}
               >
-                {item.type === 'image' ? (
+                {item.type === 'image' && item.publicUrl ? (
                   <img
                     className="h-full w-full object-cover"
                     src={absoluteMediaUrl(item.publicUrl)}
                     alt=""
                   />
-                ) : (
+                ) : item.type === 'video' && item.publicUrl ? (
                   <video
                     className="h-full w-full object-cover"
                     src={absoluteMediaUrl(item.publicUrl)}
                     muted
                     playsInline
                   />
+                ) : (
+                  <div className="h-full w-full" style={{ background: theme.colors.secondary }} />
                 )}
               </div>
             ))}

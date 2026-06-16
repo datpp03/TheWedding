@@ -6,6 +6,9 @@ import { SettingsModule } from '../settings/settings.module';
 import { StorageModule } from '../storage/storage.module';
 import { TenantOrmEntity } from '../tenants/infrastructure/tenant.orm-entity';
 import { MediaService } from './application/media.service';
+import { MediaProcessingProcessor } from './application/media-processing.processor';
+import { MEDIA_PROCESSING_SERVICE } from './domain/media-processing-service';
+import { BullMqMediaProcessingService } from './infrastructure/bullmq-media-processing.service';
 import { MediaVersionOrmEntity } from './infrastructure/media-version.orm-entity';
 import { MediaOrmEntity } from './infrastructure/media.orm-entity';
 import { MediaController } from './presentation/media.controller';
@@ -23,7 +26,12 @@ import { MediaController } from './presentation/media.controller';
     ]),
   ],
   controllers: [MediaController],
-  providers: [MediaService],
+  providers: [
+    MediaService,
+    MediaProcessingProcessor,
+    BullMqMediaProcessingService,
+    { provide: MEDIA_PROCESSING_SERVICE, useExisting: BullMqMediaProcessingService },
+  ],
   exports: [MediaService, TypeOrmModule],
 })
 export class MediaModule {}

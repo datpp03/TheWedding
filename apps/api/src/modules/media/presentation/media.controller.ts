@@ -102,6 +102,16 @@ export class MediaController {
     return this.media.move(tenantId, mediaId, body.albumId, createContext(user, request));
   }
 
+  @Post('tenants/:tenantId/media/:mediaId/retry-processing')
+  retryProcessing(
+    @Param('tenantId') tenantId: string,
+    @Param('mediaId') mediaId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Req() request: Request,
+  ) {
+    return this.media.retryProcessing(tenantId, mediaId, createContext(user, request));
+  }
+
   @Delete('tenants/:tenantId/media')
   batchDelete(
     @Param('tenantId') tenantId: string,

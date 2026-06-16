@@ -23,6 +23,25 @@ PostgreSQL is the primary database. TypeORM is used for migrations and infrastru
 - `payments`, `payment_events`: provider-agnostic payment records and webhook/event history, starting with MoMo.
 - `entitlements`: admin-granted or subscription-granted feature unlocks and quota overrides for users or tenants.
 
+## Planned SaaS, Studio, And Automation Tables [NEW]
+
+The following tables are planned for future phases and should be added only when the corresponding feature slice is implemented:
+
+- `studio_profiles`: studio/photographer business profile, branding settings, subscription link, and owner user.
+- `studio_clients`: client records owned by a studio profile, optionally linked to tenant/site records.
+- `studio_client_albums`: delivery/review relationship between studio clients and tenant albums when a studio manages multiple projects.
+- `theme_system_settings`: admin-managed global theme defaults, primary brand colors, premium theme availability, and safe fallback config.
+- `contextual_theme_rules`: day/night, weather, season, holiday, festival, event, and location-aware theme rules.
+- `greeting_rules`: birthday, wedding anniversary, holiday, proposal anniversary, and custom greeting schedules.
+- `greeting_events`: generated greeting occurrences, delivery status, and audit/debug metadata.
+
+Design constraints:
+
+- Keep couple-owned tenants and studio-managed clients isolated by explicit membership/ownership checks.
+- Store contextual theme and greeting config as structured JSON validated by application schemas.
+- Keep location/weather usage opt-in and never required for public gallery reads.
+- Use feature flags or system parameters for contextual themes, automated greetings, and B2B studio rollout.
+
 ## Conventions
 
 - UUID primary keys using PostgreSQL `uuid`.
@@ -43,7 +62,16 @@ Initial migration is located in `apps/api/src/database/migrations/1710000000000-
 - `media.storageProvider` and `media.storageKey` store backend-generated provider metadata only. User filenames are preserved in `media.originalFileName` for display/download names and are not trusted for paths.
 - Local development writes originals under keys shaped like `tenants/{tenantId}/media/{mediaId}/original/{random}.{ext}` through the storage adapter.
 - Public API media DTOs expose API file URLs, not raw object keys, so tenant, album visibility, and download permissions can be checked before bytes are served.
-- `media_versions` currently records the original version. Thumbnail, optimized image, and video preview variants remain planned for Phase 7 processing.
+- `media_versions` records the original version plus generated derivatives.
+
+## Phase 7 Media Processing Notes
+
+- `media.processingStatus` moves through `pending`, `processing`, `ready`, and `failed`.
+- `media.processingFailureReason` stores the latest failure summary for diagnosis and retry UI.
+- `media.processingAttempts` increments when processing starts so operations can monitor repeated failures.
+- `media_versions` has a unique `mediaId + versionType` constraint so retries update existing derivative rows instead of creating duplicates.
+- Image version types currently include `thumbnail`, `gallery`, and `lightbox`; `video_preview` is metadata-only until a production worker adds frame extraction.
+- `storage_usage` is recalculated after processing completes and includes derivative bytes, preparing the model for Phase 9 plan/storage enforcement.
 
 ## Planned System Parameters, Plans, and Public Paths
 
@@ -52,6 +80,8 @@ Initial migration is located in `apps/api/src/database/migrations/1710000000000-
 - `plans` define default storage quotas, max file sizes, and advanced features. `subscriptions` link users or tenants to active plans. `entitlements` allow admins to manually unlock features or quota for any user/tenant without requiring payment.
 - Payment data should use a provider-agnostic model with `provider`, `providerTransactionId`, `amount`, `currency`, `status`, and raw webhook/event metadata. MoMo is the first provider; more providers should fit the same table/service interface.
 - Canonical public album URLs should include the user handle, for example `/@{userHandle}/{siteSlug}/albums/{albumSlugOrShortId}`, so two users can have albums with the same display name without URL ambiguity.
+- [NEW] B2C/B2B plans should distinguish couple packages, studio subscriptions, add-ons, and manually granted entitlements without hardcoding plan behavior into controllers.
+- [NEW] Admin theme controls, contextual theme rules, and automated greeting rules must write audit logs and have safe defaults when malformed or disabled.
 
 ## Seeds
 

@@ -78,6 +78,12 @@ export class MediaOrmEntity {
   @Column({ length: 40 })
   processingStatus!: string;
 
+  @Column({ nullable: true, type: 'text' })
+  processingFailureReason!: string | null;
+
+  @Column({ type: 'int', default: 0 })
+  processingAttempts!: number;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 

@@ -32,6 +32,14 @@ corepack prepare pnpm@10.12.1 --activate
 - In local HTTP development, secure cookies may need environment-specific config.
 - In production, cookies must be Secure and SameSite-protected.
 
+## Media Processing Issues
+
+- Uploaded media stays queued: confirm the API is running, `REDIS_URL` points to a reachable Redis instance in production, and the BullMQ worker logs do not show connection errors.
+- Media fails processing: open the owner media dashboard or admin media dashboard and inspect `processingFailureReason`. Use retry after fixing the root cause.
+- No thumbnail or optimized image appears: confirm the original exists in storage, Sharp is installed, and the derivative keys under `tenants/{tenantId}/media/{mediaId}/versions/` were written.
+- Public gallery does not show a just-uploaded item: this is expected while status is queued or processing. Public galleries only use optimized derivatives by default so original files stay private.
+- Video preview is metadata-only in this phase. Add ffmpeg to the worker image before expecting extracted preview frames.
+
 ## CI/CD Docker VPS Issues
 
 See `docs/guides/CI_CD_DOCKER_VPS.md` for the full setup.

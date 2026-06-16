@@ -14,6 +14,11 @@ const adminKeys = [
   'admin.systemParameters.disablePublicGallery',
   'admin.systemParameters.disablePayment',
   'admin.empty.audit',
+  'media.processing.pending',
+  'media.processing.processing',
+  'media.processing.ready',
+  'media.processing.failed',
+  'media.actions.retry',
 ];
 
 describe('admin i18n smoke', () => {

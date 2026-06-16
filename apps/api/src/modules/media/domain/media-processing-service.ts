@@ -5,10 +5,10 @@ export type MediaProcessingJob = {
   tenantId: string;
   storageKey: string;
   mimeType: string;
+  type: string;
 };
 
 export interface MediaProcessingService {
-  enqueueThumbnail(job: MediaProcessingJob): Promise<void>;
-  enqueueOptimization(job: MediaProcessingJob): Promise<void>;
-  enqueueVideoPreview(job: MediaProcessingJob): Promise<void>;
+  enqueue(job: MediaProcessingJob): Promise<void>;
+  retry(mediaId: string): Promise<void>;
 }

@@ -18,6 +18,10 @@ import {
 import { SystemParametersService } from '../../settings/application/system-parameters.service';
 import { STORAGE_SERVICE, type StorageService } from '../../storage/domain/storage.service';
 import { TenantOrmEntity } from '../../tenants/infrastructure/tenant.orm-entity';
+import {
+  MEDIA_PROCESSING_SERVICE,
+  type MediaProcessingService,
+} from '../domain/media-processing-service';
 import { MediaOrmEntity } from '../infrastructure/media.orm-entity';
 import { MediaVersionOrmEntity } from '../infrastructure/media-version.orm-entity';
 import type { UpdateMediaDto } from '../presentation/media.dto';
@@ -63,6 +67,8 @@ export class MediaService {
     @Inject(AUDIT_LOG_REPOSITORY)
     private readonly auditLogs: AuditLogRepository,
     private readonly systemParameters: SystemParametersService,
+    @Inject(MEDIA_PROCESSING_SERVICE)
+    private readonly mediaProcessing: MediaProcessingService,
   ) {}
 
   async list(tenantId: string, albumId: string, context: MediaContext) {
@@ -83,7 +89,7 @@ export class MediaService {
   ) {
     await this.systemParameters.assertUploadEnabled();
     this.assertTenantAccess(tenantId, context);
-    const album = await this.findOwnedAlbum(tenantId, albumId);
+    await this.findOwnedAlbum(tenantId, albumId);
     const validated = validateUpload(file);
     const mediaId = randomUUID();
     const sortOrder = await this.media.count({ where: { albumId, tenantId } });
@@ -92,7 +98,7 @@ export class MediaService {
       extension: validated.extension,
       mediaId,
       tenantId,
-      visibility: album.visibility === TENANT_VISIBILITY.PUBLIC ? 'public' : 'private',
+      visibility: 'private',
     });
     const media = await this.media.save(
       this.media.create({
@@ -100,7 +106,9 @@ export class MediaService {
         id: mediaId,
         mimeType: validated.file.mimetype,
         originalFileName: sanitizeDisplayName(validated.file.originalname),
-        processingStatus: MEDIA_PROCESSING_STATUS.READY,
+        processingAttempts: 0,
+        processingFailureReason: null,
+        processingStatus: MEDIA_PROCESSING_STATUS.PENDING,
         publicUrl: null,
         sizeBytes: String(uploaded.size),
         sortOrder,
@@ -114,14 +122,25 @@ export class MediaService {
     await this.mediaVersions.save(
       this.mediaVersions.create({
         mediaId,
+        metadataJson: JSON.stringify({
+          sizeBytes: uploaded.size,
+          usageBillable: true,
+        }),
         storageKey: uploaded.key,
-        url: uploaded.url,
+        url: null,
         versionType: 'original',
       }),
     );
     await this.audit(context, tenantId, 'media.uploaded', media.id, {
       albumId,
       mimeType: media.mimeType,
+    });
+    await this.mediaProcessing.enqueue({
+      mediaId,
+      mimeType: media.mimeType,
+      storageKey: media.storageKey,
+      tenantId,
+      type: media.type,
     });
     return toMediaDto(media);
   }
@@ -224,12 +243,32 @@ export class MediaService {
     } else if (media.album.visibility !== TENANT_VISIBILITY.PUBLIC) {
       throw new ForbiddenException('Media is private');
     }
+    const displayVersion = await this.mediaVersions.findOne({
+      where: { mediaId, versionType: 'gallery' },
+    });
+    if (!context && !displayVersion) {
+      throw new ForbiddenException('Media is not ready for public display');
+    }
 
     return {
       fileName: media.originalFileName,
-      mimeType: media.mimeType,
-      storageKey: media.storageKey,
+      mimeType: displayVersion?.versionType === 'gallery' ? 'image/webp' : media.mimeType,
+      storageKey: displayVersion?.storageKey ?? media.storageKey,
     };
+  }
+
+  async retryProcessing(tenantId: string, mediaId: string, context: MediaContext) {
+    this.assertTenantAccess(tenantId, context);
+    const media = await this.findOwnedMedia(tenantId, mediaId);
+    await this.mediaProcessing.retry(media.id);
+    await this.audit(context, tenantId, 'media.processing_retried', media.id, {
+      previousStatus: media.processingStatus,
+    });
+    return toMediaDto({
+      ...media,
+      processingFailureReason: null,
+      processingStatus: MEDIA_PROCESSING_STATUS.PENDING,
+    });
   }
 
   async listPublicBySite(slug: string) {
@@ -253,11 +292,7 @@ export class MediaService {
       albumDtos.push({
         ...album,
         allowDownload: Boolean(album.allowDownload),
-        coverUrl: media.find((item) => item.id === album.coverMediaId)
-          ? publicFileUrl(tenant.id, album.coverMediaId ?? '')
-          : media[0]
-            ? publicFileUrl(tenant.id, media[0].id)
-            : null,
+        coverUrl: resolvePublicCoverUrl(media, album.coverMediaId),
         media: media.map((item) => toMediaDto(item, true)),
         mediaCount: media.length,
       });
@@ -351,6 +386,9 @@ function cleanNullable(value: string | null | undefined) {
 }
 
 function toMediaDto(media: MediaOrmEntity, isPublic = false) {
+  const optimizedUrl = media.optimizedUrl ?? null;
+  const ownerDisplayUrl =
+    optimizedUrl ?? `/api/v1/tenants/${media.tenantId}/media/${media.id}/file`;
   return {
     albumId: media.albumId,
     createdAt: media.createdAt,
@@ -359,11 +397,12 @@ function toMediaDto(media: MediaOrmEntity, isPublic = false) {
     height: media.height,
     id: media.id,
     mimeType: media.mimeType,
+    optimizedUrl,
     originalFileName: media.originalFileName,
+    processingAttempts: media.processingAttempts,
+    processingFailureReason: media.processingFailureReason,
     processingStatus: media.processingStatus,
-    publicUrl: isPublic
-      ? publicFileUrl(media.tenantId, media.id)
-      : `/api/v1/tenants/${media.tenantId}/media/${media.id}/file`,
+    publicUrl: isPublic ? optimizedUrl : ownerDisplayUrl,
     sizeBytes: Number(media.sizeBytes),
     sortOrder: media.sortOrder,
     takenAt: media.takenAt,
@@ -376,6 +415,9 @@ function toMediaDto(media: MediaOrmEntity, isPublic = false) {
   };
 }
 
-function publicFileUrl(tenantId: string, mediaId: string) {
-  return `/api/v1/public/tenants/${tenantId}/media/${mediaId}/file`;
+function resolvePublicCoverUrl(media: MediaOrmEntity[], coverMediaId: string | null) {
+  const selected = coverMediaId
+    ? media.find((item) => item.id === coverMediaId)
+    : media.find((item) => item.optimizedUrl);
+  return selected?.optimizedUrl ?? null;
 }

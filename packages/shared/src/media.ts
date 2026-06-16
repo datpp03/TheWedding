@@ -17,8 +17,11 @@ export type MediaProcessingStatus =
 
 export const MEDIA_VERSION_TYPE = {
   ORIGINAL: 'original',
+  GALLERY: 'gallery',
+  LIGHTBOX: 'lightbox',
   OPTIMIZED: 'optimized',
   THUMBNAIL: 'thumbnail',
+  VIDEO_PREVIEW: 'video_preview',
   EDITED: 'edited',
 } as const;
 

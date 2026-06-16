@@ -196,7 +196,7 @@ function MediaPanel() {
             cells: [
               media.originalFileName,
               media.mimeType,
-              media.processingStatus,
+              t(`media.processing.${media.processingStatus}`),
               formatDate(media.createdAt),
             ],
             action: (

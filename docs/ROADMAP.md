@@ -7,6 +7,16 @@ Status: completed as documentation baseline.
 - Analyze product requirements.
 - Define MVP.
 - Design architecture, database, API, security model, and delivery workflow.
+- [NEW] Maintain the living product/business/UI execution plan in `docs/PRODUCT_PLAN.md`.
+
+## Product And UI Execution Gate [NEW]
+
+Status: active for every future phase.
+
+- Before implementing a product-facing feature, map it to the business model, target user workflow, feature gate/plan gate, and acceptance criteria in `docs/PRODUCT_PLAN.md`.
+- Before implementing UI, complete emotional screen analysis, layout/color/spacing/state proposal, and design signoff notes.
+- Every UI surface must follow `docs/UI_UX_DESIGN.md`: clear accent color, responsive spacing, card hierarchy, complete interaction states, and i18n/l10n text checks for Vietnamese, English, and Japanese.
+- Premium, B2B, contextual, greeting, payment, AI, and storage-heavy features should ship behind feature flags or admin-controlled enablement until verified.
 
 ## Phase 1: Project Setup
 
@@ -74,6 +84,7 @@ Status: completed for MVP theme customization.
 - Completed: public site applies active theme colors, layout density, radius, and typography.
 - Completed: i18n/l10n foundation for new theme UI in `vi`, `en`, and `ja`.
 - Later hardening: locale picker/persistence across the whole app, visual regression screenshots in CI, richer public site section theming, and theme CSS sandboxing.
+- [NEW] Future expansion: album-level custom theme overrides, premium theme gates, admin global theme defaults, contextual theme rules, and automated greeting visuals.
 
 ## Deployment Track: Vercel + Render + Neon
 
@@ -105,12 +116,21 @@ Status: completed for MVP admin operations.
 - Completed: responsive admin UI pages for stats, users, tenants, media moderation, audit logs, settings, feature flags, and system parameters.
 - Completed: admin i18n keys for Vietnamese, English, and Japanese.
 - Later hardening: richer role editor UX, advanced audit export, admin reports, payment/entitlement admin workflows, and e2e coverage against a running database.
+- [NEW] Later admin expansion: global brand/theme controls, premium theme availability, studio account oversight, contextual event/theme configuration, and automated greeting rule management.
 
 ## Phase 7: Media Processing Advanced
 
-- Queue, thumbnails, optimization, video preview, media versions, editor placeholders.
-- Add retryable media processing jobs, responsive image/video variants, storage usage accounting, and idempotent worker behavior.
-- Target image flow: user uploads the original, backend validates and resizes/compresses it, storage keeps the private original plus optimized versions, and the frontend displays the compressed/optimized asset by default.
+Status: completed for MVP image processing and retry monitoring.
+
+- Completed: BullMQ/Redis-backed `MediaProcessingService` with local inline fallback when Redis is not configured.
+- Completed: upload flow now stores private originals, marks media queued, enqueues processing, and returns processing status to the UI.
+- Completed: Sharp image processing for thumbnail, gallery, and lightbox WebP derivatives with backend-generated storage keys.
+- Completed: idempotent `media_versions` upsert through unique `mediaId + versionType`, retry/failure reason tracking, and storage usage recalculation after processing.
+- Completed: owner media grid shows queued, processing, ready, and failed/retry states with polling; public gallery prefers optimized derivatives and uses placeholders while processing.
+- Completed: media processing copy is available in Vietnamese, English, and Japanese locale keys.
+- Completed: admin media dashboard can inspect processing status.
+- Current limitation: video preview is metadata-only until a production worker image includes ffmpeg or another media extraction backend.
+- Later expansion: online editing hooks, AI quality optimization, malware scanning, R2/CDN publication, and paid quota enforcement remain planned for Phase 8/9.
 
 ## Phase 8: Enterprise Hardening
 
@@ -118,6 +138,7 @@ Status: completed for MVP admin operations.
 - Add formal cross-device UI QA, layout-shift checks, and interaction performance checks for critical frontend flows.
 - Audit UI strings for i18n/l10n coverage and verify Vietnamese, English, and Japanese layouts do not overflow.
 - Harden system parameter behavior with cache invalidation, fail-safe defaults, permission checks, audit logs, and tests for registration/login/read-only mode toggles.
+- [NEW] Add UI/UX gate enforcement to QA: every changed screen must document first-look hierarchy, accent color, spacing, card hierarchy, responsive behavior, and all loading/empty/error/success states.
 
 ## Phase 9: Scale Future
 
@@ -129,3 +150,18 @@ Status: completed for MVP admin operations.
 - Add a payment provider adapter with MoMo as the first real provider; keep the interface ready for more providers later.
 - Let admins manually unlock or revoke premium rights, storage quota boosts, and feature entitlements for any user or tenant.
 - Add unique user public handles similar to TikTok IDs and make canonical public album URLs include the handle, for example `/@{userHandle}/{siteSlug}/albums/{albumSlugOrShortId}`.
+- [NEW] Formalize B2C SaaS packages by storage, media count, video support, premium themes, custom domains, privacy/security, and analytics.
+- [NEW] Add B2B studio subscription foundations: studio profile, client list, client album delivery workflow, studio branding, and higher storage quotas.
+- [NEW] Add value-added service gates for extra storage, custom domain, premium themes, watermark, online editing, AI classification/search/quality optimization, and advanced security.
+- [NEW] Add admin controls for global theme defaults and premium theme availability if not completed earlier.
+- [NEW] Add contextual theme and automated greeting foundations behind feature flags, with opt-out controls and safe fallbacks when location/weather data is unavailable.
+
+## Post-MVP Growth Track [NEW]
+
+Status: planned after the core SaaS foundation is stable.
+
+- Rich B2B studio workspace: team members, client pipeline, approval/review flow, delivery status, and professional reporting.
+- Dynamic contextual themes: day/night, weather, season, holiday, festival, and event-aware presentation with reduced-motion support.
+- Automated greetings: birthdays, wedding anniversaries, Valentine, Tet, proposal anniversaries, and custom celebration rules.
+- Premium theme marketplace and seasonal theme packs.
+- Online photo/video editing, AI highlight selection, AI search, and image quality optimization.

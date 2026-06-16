@@ -1,5 +1,110 @@
 # Development Log
 
+## 2026-06-16 - Phase 7 Media Processing Advanced
+
+### Design Gate
+
+- Target screen: owner media dashboard and public gallery media tiles.
+- Intended emotion: calm and operational for owners, warm and unobtrusive for guests.
+- First visible status cue: a compact processing badge on each media card plus a soft amber placeholder when no optimized asset is ready.
+- Accent color: amber for queued/processing, emerald for ready, rose for failed/retry.
+- Spacing: existing dashboard grid spacing is preserved; badges stay compact so file names, checkbox, and actions do not overflow on mobile cards.
+- Async states: queued, processing, ready, failed, retry queued, upload queue states, empty media state, and public-gallery placeholder state.
+- Responsive/i18n signoff: labels use locale keys for `vi`, `en`, and `ja`; badge text wraps through compact containers and cards keep stable aspect ratios.
+
+### Completed
+
+- Added BullMQ/Redis media processing service with inline async local fallback when `REDIS_URL` is empty.
+- Added Sharp-based image processing for thumbnail, gallery, and lightbox WebP derivatives.
+- Kept original media private by default and generated backend-controlled derivative storage keys.
+- Added idempotent media version upserts using a unique `mediaId + versionType` constraint.
+- Added processing attempts, failure reason tracking, retry endpoint, and storage usage recalculation after processing.
+- Updated owner media dashboard with processing badges, placeholders, retry action, optimized thumbnail display, and polling while jobs are active.
+- Updated public gallery and public site hero to prefer optimized derivative URLs and avoid loading private originals while processing.
+- Added media processing locale keys for Vietnamese, English, and Japanese.
+- Added processor and upload queue tests.
+
+### Files Created or Updated
+
+- `packages/shared/src/media.ts`
+- `apps/api/src/modules/media/**`
+- `apps/api/src/modules/storage/**`
+- `apps/api/src/database/migrations/1710000007000-MediaProcessingPipeline.ts`
+- `apps/api/src/config/env.validation.ts`
+- `apps/web/src/features/media/**`
+- `apps/web/src/lib/i18n/locales.ts`
+- `docs/ARCHITECTURE.md`
+- `docs/DEPLOYMENT.md`
+- `docs/ENVIRONMENT_VARIABLES.md`
+- `docs/TROUBLESHOOTING.md`
+- `docs/ROADMAP.md`
+- `docs/CHANGELOG.md`
+- `docs/HUONG_DAN_SU_DUNG.md`
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/shared build`: pass
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass
+- `pnpm.cmd --filter @the-wedding/web typecheck`: pass
+- `pnpm.cmd --filter @the-wedding/shared typecheck`: pass
+- `pnpm.cmd --filter @the-wedding/api test`: pass
+- `pnpm.cmd --filter @the-wedding/web test`: pass
+- `pnpm.cmd --filter @the-wedding/api lint`: pass
+- `pnpm.cmd --filter @the-wedding/web lint`: pass
+
+### Technical Risks
+
+- Video preview is metadata-only until the production worker image includes ffmpeg or another approved extraction backend.
+- Local inline processing is for development convenience; production should configure Redis and a worker process.
+- Phase 9 still needs paid quota enforcement, R2/CDN delivery, signed URLs, and direct upload sessions.
+
+## 2026-06-16 - SaaS Product Plan And Prompt Execution Update
+
+### Completed
+
+- Added a living product plan that integrates the new SaaS business model, B2C packages, B2B studio subscriptions, value-added services, workflows, UI/UX execution process, theme automation, automated greetings, and future execution playbook.
+- Linked the product plan into project overview, roadmap, UI/UX design direction, architecture, API planning, database planning, and testing strategy.
+- Updated remaining prompts so future agents must read the product plan, follow the UI design gate, and map features to business model, workflow, gates, tests, and docs.
+- Updated the root super prompt with the new business direction, UI/UX workflow, custom/admin/contextual theme requirements, automated greetings, B2B studio direction, and roadmap additions.
+
+### Files Created or Updated
+
+- `docs/PRODUCT_PLAN.md`
+- `docs/PROJECT_OVERVIEW.md`
+- `docs/ROADMAP.md`
+- `docs/UI_UX_DESIGN.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DATABASE_DESIGN.md`
+- `docs/API_DESIGN.md`
+- `docs/TESTING_STRATEGY.md`
+- `docs/CHANGELOG.md`
+- `docs/DEVELOPMENT_LOG.md`
+- `README.md`
+- `prompts/README.md`
+- `prompts/06_phase_7_media_processing.md`
+- `prompts/07_phase_8_hardening.md`
+- `prompts/08_phase_9_scale_features.md`
+- `prompts/09_final_release_qa.md`
+- `prompts/10_phase_10_cicd_docker_vps.md`
+- `sieu_prompt_agent_web_anh_cuoi.md`
+
+### Current Capability
+
+- The project now has a single detailed product execution source for SaaS business direction, workflows, UI requirements, feature planning, and future implementation steps.
+- Future prompt runs are instructed to follow the product plan and UI design gate before coding.
+
+### Missing
+
+- This is a documentation and prompt update only. B2B studio, dynamic contextual theme, automated greetings, add-ons, premium gates, and AI utilities remain planned unless a future phase implements them.
+
+### Tests and Checks
+
+- Documentation-only update. Run `git diff --check` and a markdown formatting check if available.
+
+### Technical Risks
+
+- Future phases must avoid implementing contextual weather/location features without opt-in, safe fallback, reduced-motion support, and privacy review.
+
 ## 2026-06-12 - Phase 0 and Phase 1 Foundation
 
 ### Completed

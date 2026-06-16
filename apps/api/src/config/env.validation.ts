@@ -24,6 +24,7 @@ const envSchema = z.object({
   S3_ACCESS_KEY: z.string().optional().default(''),
   S3_SECRET_KEY: z.string().optional().default(''),
   REDIS_URL: z.string().optional().default(''),
+  MEDIA_PROCESSING_CONCURRENCY: z.coerce.number().int().positive().default(2),
   MAIL_PROVIDER: z.string().default('smtp'),
   SMTP_HOST: z.string().optional().default('localhost'),
   SMTP_PORT: z.coerce.number().int().positive().default(1025),

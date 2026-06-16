@@ -3,7 +3,7 @@ import {
   ForbiddenException,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { TENANT_VISIBILITY } from '@the-wedding/shared';
+import { MEDIA_PROCESSING_STATUS, TENANT_VISIBILITY } from '@the-wedding/shared';
 import { MediaService, type MemoryUpload } from './media.service';
 
 describe('MediaService', () => {
@@ -24,6 +24,7 @@ describe('MediaService', () => {
     };
     const media = {
       count: jest.fn().mockResolvedValue(0),
+      create: jest.fn((input: Record<string, unknown>) => ({ ...input })),
       findOne: jest.fn().mockResolvedValue({
         albumId: 'album-1',
         id: 'media-1',
@@ -56,8 +57,12 @@ describe('MediaService', () => {
       assertPublicGalleryEnabled: jest.fn().mockResolvedValue(undefined),
       assertUploadEnabled: jest.fn().mockResolvedValue(undefined),
     };
+    const mediaProcessing = {
+      enqueue: jest.fn().mockResolvedValue(undefined),
+      retry: jest.fn().mockResolvedValue(undefined),
+    };
 
-    return new MediaService(
+    const service = new MediaService(
       (overrides.media ?? media) as never,
       (overrides.mediaVersions ?? mediaVersions) as never,
       (overrides.albums ?? albums) as never,
@@ -65,12 +70,14 @@ describe('MediaService', () => {
       (overrides.storage ?? storage) as never,
       (overrides.auditLogs ?? auditLogs) as never,
       (overrides.systemParameters ?? systemParameters) as never,
+      (overrides.mediaProcessing ?? mediaProcessing) as never,
     );
+    return { media, mediaProcessing, service };
   }
 
   it('rejects unsupported uploads before writing storage', async () => {
     const storage = { upload: jest.fn() };
-    const service = createService({ storage });
+    const { service } = createService({ storage });
     const file: MemoryUpload = {
       buffer: Buffer.from('bad'),
       mimetype: 'application/pdf',
@@ -85,7 +92,7 @@ describe('MediaService', () => {
   });
 
   it('denies public downloads when album downloads are disabled', async () => {
-    const service = createService();
+    const { service } = createService();
 
     await expect(service.getDownload('tenant-1', 'media-1')).rejects.toBeInstanceOf(
       ForbiddenException,
@@ -93,7 +100,7 @@ describe('MediaService', () => {
   });
 
   it('denies cross-tenant media listing', async () => {
-    const service = createService();
+    const { service } = createService();
 
     await expect(
       service.list('tenant-2', 'album-1', { actorUserId: 'user-1', tenantIds: ['tenant-1'] }),
@@ -108,7 +115,7 @@ describe('MediaService', () => {
         .fn()
         .mockRejectedValue(new ServiceUnavailableException('Uploads disabled')),
     };
-    const service = createService({ systemParameters });
+    const { service } = createService({ systemParameters });
     const file: MemoryUpload = {
       buffer: Buffer.from('jpg'),
       mimetype: 'image/jpeg',
@@ -118,6 +125,27 @@ describe('MediaService', () => {
 
     await expect(service.upload('tenant-1', 'album-1', file, baseContext)).rejects.toBeInstanceOf(
       ServiceUnavailableException,
+    );
+  });
+
+  it('queues uploaded images for processing before returning the media row', async () => {
+    const { mediaProcessing, service } = createService();
+    const file: MemoryUpload = {
+      buffer: Buffer.from('jpg'),
+      mimetype: 'image/jpeg',
+      originalname: 'photo.jpg',
+      size: 3,
+    };
+
+    const uploaded = await service.upload('tenant-1', 'album-1', file, baseContext);
+
+    expect(uploaded.processingStatus).toBe(MEDIA_PROCESSING_STATUS.PENDING);
+    expect(mediaProcessing.enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mediaId: uploaded.id,
+        mimeType: 'image/jpeg',
+        tenantId: 'tenant-1',
+      }),
     );
   });
 });

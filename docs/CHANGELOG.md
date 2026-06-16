@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Phase 7 media processing pipeline with BullMQ/Redis integration, local inline fallback, Sharp image derivatives, media version upserts, retry/failure tracking, and storage usage recalculation.
+- Owner media dashboard processing badges for queued, processing, ready, failed, and retry states with polling for active jobs.
+- Public gallery optimized-derivative display with processing placeholders so original media remains private by default.
+- Media processing i18n/l10n keys for Vietnamese, English, and Japanese.
+- [NEW] Living product plan covering SaaS business model, B2C packages, B2B studio subscriptions, value-added services, workflows, UI/UX execution gates, theme automation, automated greetings, and future execution playbook.
+- [NEW] Product/UI execution requirements in roadmap, UI/UX docs, testing strategy, API/database planning, and remaining implementation prompts.
 - Phase 6 admin dashboard MVP with stats, users, tenants, media moderation, audit log explorer, settings, feature flags, and system parameters screens.
 - Admin API endpoints protected by `admin.access` plus audit logging for admin mutations.
 - Runtime system parameters for disabling registration, login, uploads, downloads, public gallery, future payment checkout, and maintenance messages.
@@ -15,6 +21,9 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- Uploads now return queued media instead of marking originals ready immediately; normal display prefers optimized images when processing completes.
+- Media storage accounting now includes generated derivatives in preparation for Phase 9 plan/storage enforcement.
+- [NEW] Expanded future scale prompts to include B2C SaaS plans, B2B studio workflows, add-ons, admin theme control, dynamic contextual themes, automated greetings, and UI design-gate verification.
 - Reordered the remaining prompt workflow around the active Vercel + Render + Neon deployment path.
 - Marked Docker VPS CI/CD as an optional later deployment track instead of the next required phase.
 - Deferred Cloudflare R2 activation to Phase 9 until the S3/R2 adapter, signed URLs/upload sessions, tests, docs, and smoke tests are complete.
