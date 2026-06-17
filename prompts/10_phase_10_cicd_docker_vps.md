@@ -6,6 +6,8 @@ IMPORTANT PROMPT LIFECYCLE: Chi xoa file prompt nay sau khi hoan thanh tat ca mu
 
 Ban dang lam trong repo `D:\AJT\TheWedding`. Hay lam CI/CD Docker VPS truoc cac phase con lai de co the xem tien do du an tu xa tren host/VPS.
 
+Truoc khi lam, doc `docs/PRODUCT_PLAN.md`, `docs/DEPLOYMENT.md`, va `docs/guides/CI_CD_DOCKER_VPS.md` de dam bao deployment docs khong mau thuan voi product/roadmap hien tai. [NEW]
+
 ## Muc Tieu
 
 Them CI/CD production pipeline theo flow:

@@ -14,6 +14,7 @@ Kiem tra toan bo du an truoc khi xem nhu MVP release-ready.
 
 - Doc lai:
   - `README.md`
+  - `docs/PRODUCT_PLAN.md` [NEW]
   - `docs/PROJECT_OVERVIEW.md`
   - `docs/ROADMAP.md`
   - `docs/API_DESIGN.md`
@@ -27,6 +28,11 @@ Kiem tra toan bo du an truoc khi xem nhu MVP release-ready.
   - locale files co du `vi`, `en`, `ja`.
   - fallback/missing-key behavior ro rang.
   - date/number/status/action labels hien thi dung trong ba ngon ngu.
+- Kiem tra product/business plan [NEW]:
+  - B2C SaaS packages, B2B studio subscriptions, add-ons/value-added services, and admin entitlement direction are either implemented or clearly documented as planned.
+  - Custom Theme ca nhan, Admin Theme Control, Dynamic Contextual Theme, and Automated Greetings are either implemented, safely gated, or clearly documented as deferred.
+  - Every implemented premium/future feature has feature flag, plan gate, entitlement gate, system parameter, or admin-only boundary where appropriate.
+  - `docs/PRODUCT_PLAN.md` matches the actual roadmap and implementation status.
 - Kiem tra codebase:
   - dead code.
   - TODO nguy hiem.
@@ -49,14 +55,24 @@ Kiem tra toan bo du an truoc khi xem nhu MVP release-ready.
   - verify media storage path/provider behavior.
   - verify optimized/compressed image display behavior where media processing is implemented.
   - public gallery/lightbox.
+  - public home is the first website screen and shows only public featured albums if implemented.
+  - unlisted albums are reachable only by direct link and do not appear in home/search/timeline if implemented.
+  - private albums are visible only to owner or authorized admin/support if implemented.
+  - wish/reaction actions require login and return to the same album after login if implemented.
+  - Google/Facebook OAuth returnTo validation and open-redirect rejection if implemented.
+  - authenticated advanced album search does not leak private/unlisted albums if implemented.
   - user handle based public album route if implemented.
   - theme customization.
   - admin dashboard.
   - system parameter toggles for registration/login/read-only mode if implemented.
   - subscription/payment/entitlement/storage quota flows if implemented.
+  - B2B studio/client workflow if implemented. [NEW]
+  - custom theme expansion, admin theme control, contextual theme opt-out/fallback, and automated greetings if implemented. [NEW]
+  - plan/add-on cards and premium-gated UI states if implemented. [NEW]
   - CI/CD Docker VPS workflow, registry images, VPS pull/restart, and remote URL smoke test if configured.
   - switch/check locales Vietnamese, English, Japanese.
   - mobile widths: 320, 360, 390, 414, 768, 1024, desktop.
+  - UI design gate evidence for changed screens: emotion, first-look hierarchy, accent color, spacing, card hierarchy, states, and responsive behavior. [NEW]
 - Update docs:
   - release notes.
   - known limitations.
@@ -74,5 +90,8 @@ Kiem tra toan bo du an truoc khi xem nhu MVP release-ready.
 - User-facing text is managed by i18n/l10n keys with Vietnamese, English, and Japanese coverage.
 - MVP status and remaining roadmap are clear.
 - Remaining roadmap clearly states whether Cloudflare R2 setup, MoMo payment, premium entitlements, and handle-based album URLs are implemented or still planned.
+- Remaining roadmap clearly states whether public home, featured albums, album wishes/reactions, Google/Facebook OAuth, return-to-album login, advanced album search, and privacy-level migration are implemented or still planned.
+- [NEW] Remaining roadmap clearly states whether B2B studio subscriptions, add-ons/value-added services, admin theme control, contextual themes, automated greetings, premium theme gates, online editing, and AI utilities are implemented or still planned.
 - If Cloudflare R2 is still planned, production env docs must explicitly say to keep `STORAGE_PROVIDER=local` and not enable R2 subscription/credentials yet.
+- [NEW] UI QA confirms no new white/gray-only major surfaces, no text overflow, and clear card hierarchy on implemented plan/studio/theme/greeting surfaces.
 - Commit va push len `origin/main`.

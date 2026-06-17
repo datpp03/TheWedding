@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Req, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Public } from '../../../common/decorators/public.decorator';
@@ -54,6 +55,7 @@ export class AuthController {
 
   @Public()
   @Post('register')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   async register(
     @Body() body: RegisterDto,
     @Req() request: Request,
@@ -76,6 +78,7 @@ export class AuthController {
 
   @Public()
   @Post('forgot-password')
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
   forgotPassword(@Body() body: ForgotPasswordDto, @Req() request: Request) {
     return this.authService.forgotPassword({
       email: body.email,
@@ -85,6 +88,7 @@ export class AuthController {
 
   @Public()
   @Post('reset-password')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   async resetPassword(@Body() body: ResetPasswordDto, @Req() request: Request) {
     await this.authService.resetPassword({
       token: body.token,
@@ -106,6 +110,7 @@ export class AuthController {
 
   @Public()
   @Post('login')
+  @Throttle({ default: { limit: 8, ttl: 60_000 } })
   async login(
     @Body() body: LoginDto,
     @Req() request: Request,
@@ -126,6 +131,7 @@ export class AuthController {
 
   @Public()
   @Post('refresh')
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
   async refresh(
     @Body() body: RefreshDto,
     @Req() request: Request,

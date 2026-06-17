@@ -7,6 +7,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MEDIA_PROCESSING_STATUS, MEDIA_TYPE, TENANT_VISIBILITY } from '@the-wedding/shared';
 import { In, Repository } from 'typeorm';
@@ -69,6 +70,7 @@ export class MediaService {
     private readonly systemParameters: SystemParametersService,
     @Inject(MEDIA_PROCESSING_SERVICE)
     private readonly mediaProcessing: MediaProcessingService,
+    private readonly config: ConfigService,
   ) {}
 
   async list(tenantId: string, albumId: string, context: MediaContext) {
@@ -91,6 +93,7 @@ export class MediaService {
     this.assertTenantAccess(tenantId, context);
     await this.findOwnedAlbum(tenantId, albumId);
     const validated = validateUpload(file);
+    await this.assertTenantQuota(tenantId, validated.file.size);
     const mediaId = randomUUID();
     const sortOrder = await this.media.count({ where: { albumId, tenantId } });
     const uploaded = await this.storage.upload(validated.file.buffer, {
@@ -329,6 +332,20 @@ export class MediaService {
   private assertTenantAccess(tenantId: string, context: MediaContext) {
     if (!context.tenantIds.includes(tenantId)) {
       throw new ForbiddenException('Tenant access denied');
+    }
+  }
+
+  private async assertTenantQuota(tenantId: string, incomingBytes: number) {
+    const quotaBytes = this.config.get<number>('TENANT_STORAGE_QUOTA_BYTES', 1024 * 1024 * 1024);
+    const used = await this.media
+      .createQueryBuilder('media')
+      .select('COALESCE(SUM(media.sizeBytes::bigint), 0)', 'usedBytes')
+      .where('media.tenantId = :tenantId', { tenantId })
+      .getRawOne<{ usedBytes: string | number | null }>();
+    const usedBytes = Number(used?.usedBytes ?? 0);
+
+    if (usedBytes + incomingBytes > quotaBytes) {
+      throw new ForbiddenException('Tenant storage quota exceeded');
     }
   }
 

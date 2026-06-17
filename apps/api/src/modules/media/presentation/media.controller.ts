@@ -14,6 +14,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Public } from '../../../common/decorators/public.decorator';
@@ -46,7 +47,8 @@ export class MediaController {
   }
 
   @Post('tenants/:tenantId/media/upload')
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 150 * 1024 * 1024 } }))
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: getUploadCeilingBytes() } }))
   upload(
     @Param('tenantId') tenantId: string,
     @Body() body: UploadMediaDto,
@@ -58,7 +60,8 @@ export class MediaController {
   }
 
   @Post('tenants/:tenantId/media/bulk-upload')
-  @UseInterceptors(FilesInterceptor('files', 25, { limits: { fileSize: 150 * 1024 * 1024 } }))
+  @Throttle({ default: { limit: 8, ttl: 60_000 } })
+  @UseInterceptors(FilesInterceptor('files', 25, { limits: { fileSize: getUploadCeilingBytes() } }))
   bulkUpload(
     @Param('tenantId') tenantId: string,
     @Body() body: UploadMediaDto,
@@ -196,4 +199,8 @@ function createContext(user: AuthenticatedUser, request: Request) {
     tenantIds: user.tenantIds,
     userAgent: request.headers['user-agent'],
   };
+}
+
+function getUploadCeilingBytes() {
+  return 150 * 1024 * 1024;
 }

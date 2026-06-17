@@ -15,6 +15,15 @@
 - Public auth mutations such as login, register, forgot password, reset password, verify email, refresh, and logout are explicitly public. The frontend still sends CSRF headers for mutations where available.
 - Password reset and email verification tokens use `tokenId.secret`; only the secret hash is stored in PostgreSQL.
 - Development/local responses can expose reset or verification tokens because SMTP delivery is not wired yet. Production must not expose these tokens in responses.
+- Phase 8 adds MFA-ready user fields (`mfaEnabledAt`, `mfaMethod`, `mfaSecretEncrypted`) so TOTP enrollment can be implemented without another identity-table redesign. No MFA challenge is enabled until the OTP enrollment/verification flow ships.
+
+## OAuth Login [NEW]
+
+- Google and Facebook login should reuse the existing session, cookie, CSRF, and audit model instead of creating a parallel auth path.
+- OAuth account linking must require verified provider identity rules and should avoid silently merging accounts unless the email is verified and the flow is explicitly safe.
+- OAuth callback handling may preserve a `returnTo` path for album wish/reaction flows, but only when it is a relative same-origin path or an explicitly allowlisted app URL.
+- Reject external or malformed `returnTo` values to prevent open redirect vulnerabilities.
+- Do not expose provider access tokens, refresh tokens, authorization codes, or provider secrets in frontend URLs, API responses, logs, or audit metadata.
 
 ## Implemented Auth Endpoints
 
@@ -35,6 +44,9 @@
 
 - `auth.register`
 - `auth.login`
+- `auth.oauth_login_started` [planned]
+- `auth.oauth_login_completed` [planned]
+- `auth.oauth_login_failed` [planned]
 - `auth.refresh`
 - `auth.logout`
 - `auth.password_reset_requested`
@@ -57,20 +69,38 @@
 - Public routes return only public data and signed/downloadable URLs only when allowed.
 - Admin actions are always audited.
 
+## Album Privacy And Interaction Security [NEW]
+
+- Album visibility must be explicit: `public`, `unlisted`, or `private`.
+- Public home, featured, search, and timeline queries may return only public albums.
+- Unlisted albums must require a direct link and must not be returned by public discovery queries.
+- Private albums require owner membership or an authorized admin/support context.
+- Wish and reaction mutations require an authenticated user.
+- If an anonymous user starts a wish/reaction action, the frontend should send them to login with a validated `returnTo` path and restore the album context after successful login.
+- Wishes and reactions should have rate limits, spam controls, and clear per-user duplicate rules.
+- Reaction symbols must be validated keys from the album/theme configuration, not arbitrary user-submitted markup.
+
 ## Web and API Security
 
 - Helmet and secure headers.
 - Strict CORS whitelist.
 - Rate limits for login, password reset, upload, and admin endpoints.
+- Global throttling is enabled for API traffic, with tighter route-level limits on auth, upload, bulk upload, and admin endpoints.
 - DTO validation and output sanitization.
 - No password, token, or secret logging.
-- Correlation/request ID for every request.
+- No OAuth authorization code, provider token, cookie, OTP, raw reset token, or sensitive request header logging.
+- Audit metadata is redacted before persistence for password, token, cookie, OTP/MFA, OAuth authorization code, provider secret, and raw sensitive header fields.
+- Correlation/request ID is attached to every request through `x-correlation-id` and returned in successful response metadata and error response metadata.
 - Dependency audit in CI.
 
 ## Upload Security
 
 - Validate real MIME type, extension, and size.
+- Enforce per-media-type upload size limits: 15 MB for images and 150 MB for videos in the current API upload flow.
+- Reject suspicious MIME/extension mismatches before writing to storage.
+- Enforce `TENANT_STORAGE_QUOTA_BYTES` before API-managed uploads write bytes to storage.
 - Randomize storage keys.
 - Prevent path traversal.
 - Keep original media private unless explicitly public.
+- Signed URL TTL remains planned for Phase 9 when the S3-compatible/R2 adapter and signed URL endpoints are implemented. Target default TTL is 900 seconds for protected media.
 - Add malware scanning integration when available.

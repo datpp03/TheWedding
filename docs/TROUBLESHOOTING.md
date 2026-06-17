@@ -31,6 +31,9 @@ corepack prepare pnpm@10.12.1 --activate
 
 - In local HTTP development, secure cookies may need environment-specific config.
 - In production, cookies must be Secure and SameSite-protected.
+- If a mutation fails with `Invalid CSRF token`, request `GET /api/v1/auth/csrf`, keep the returned cookie, and send the same value in the `x-csrf-token` header.
+- If a response includes `x-correlation-id`, copy that value into bug reports so API logs and client reports can be matched.
+- If login/register/reset returns HTTP 429, wait for the route-level rate-limit window to reset before retrying.
 
 ## Media Processing Issues
 
@@ -39,6 +42,8 @@ corepack prepare pnpm@10.12.1 --activate
 - No thumbnail or optimized image appears: confirm the original exists in storage, Sharp is installed, and the derivative keys under `tenants/{tenantId}/media/{mediaId}/versions/` were written.
 - Public gallery does not show a just-uploaded item: this is expected while status is queued or processing. Public galleries only use optimized derivatives by default so original files stay private.
 - Video preview is metadata-only in this phase. Add ffmpeg to the worker image before expecting extracted preview frames.
+- Upload fails with "File extension does not match MIME type": rename/export the file with the correct extension for its MIME type before retrying.
+- Upload fails with "Tenant storage quota exceeded": delete unused media, increase `TENANT_STORAGE_QUOTA_BYTES` for the environment, or wait for Phase 9 plan/entitlement quota controls.
 
 ## CI/CD Docker VPS Issues
 

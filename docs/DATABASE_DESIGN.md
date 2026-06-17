@@ -6,13 +6,19 @@ PostgreSQL is the primary database. TypeORM is used for migrations and infrastru
 
 ## Core Tables
 
-- `users`: account identity, profile, status, verification state, and unique public handle.
+- `users`: account identity, profile, status, verification state, MFA-ready enrollment fields, and unique public handle.
+- `oauth_accounts`: external login identities such as Google or Facebook, linked to a user through verified provider identity rules.
 - `user_sessions`: refresh token hashes, device metadata, revocation status.
 - `user_login_histories`: login result, IP, user agent, failure reason.
 - `password_reset_tokens`, `email_verification_tokens`: one-time hashed tokens.
 - `roles`, `permissions`, `user_roles`, `role_permissions`: RBAC and permission model.
 - `tenants`, `tenant_members`: wedding sites and membership.
 - `albums`: tenant album metadata, visibility, layout, cover, and user-facing slug.
+- `album_wishes`: authenticated user wishes/comments attached to an album, with moderation/status fields if public display requires review.
+- `album_reactions`: authenticated user reactions attached to an album and a validated album/theme symbol key.
+- `album_reaction_symbols`: optional album-level allowed symbol set when the default theme symbols are overridden.
+- `album_featured_entries`: curated or computed featured album entries for daily/weekly public discovery.
+- `album_search_metadata`: normalized optional metadata for discovery filters such as age range, region, time window, venue/location, and theme, added only when the feature slice defines safe source fields.
 - `media`: photo/video metadata, provider name, backend-generated storage keys, processing state, and user-facing original filename.
 - `media_versions`: original, optimized, thumbnail, edited variants, each tied to provider storage keys.
 - `themes`: tenant theme presets and customizations.
@@ -51,6 +57,9 @@ Design constraints:
 - Index every high-volume tenant lookup by `tenantId`, `albumId`, `createdAt`, and status fields.
 - Keep `users.publicHandle` globally unique and mutable only through a validated profile/settings flow.
 - Keep album slugs unique within the owning tenant or append a short stable album id when duplicate names would collide.
+- Store album visibility with explicit values: `public`, `unlisted`, and `private`.
+- Index public discovery by album visibility, featured window, created/published dates, region/time/theme fields when implemented, and moderation/status fields.
+- Ensure private and unlisted album rows cannot be returned by search/listing queries unless the repository method explicitly verifies owner/admin access or direct-link access.
 
 ## Migration
 
@@ -73,6 +82,12 @@ Initial migration is located in `apps/api/src/database/migrations/1710000000000-
 - Image version types currently include `thumbnail`, `gallery`, and `lightbox`; `video_preview` is metadata-only until a production worker adds frame extraction.
 - `storage_usage` is recalculated after processing completes and includes derivative bytes, preparing the model for Phase 9 plan/storage enforcement.
 
+## Phase 8 Security Hardening Notes
+
+- `users.mfaEnabledAt`, `users.mfaMethod`, and `users.mfaSecretEncrypted` provide MFA-ready storage for a future TOTP enrollment and challenge flow. MFA secrets must be encrypted before persistence and must not be logged or included in audit metadata.
+- Uploads enforce tenant quota checks before writing to storage by comparing existing media bytes with `TENANT_STORAGE_QUOTA_BYTES`.
+- Audit metadata is redacted before it is saved so passwords, tokens, cookies, OTP/MFA values, OAuth authorization codes, provider secrets, and raw sensitive headers are not retained in `audit_logs.metadataJson`.
+
 ## Planned System Parameters, Plans, and Public Paths
 
 - `system_settings` should store global switches such as registration disabled, login disabled/read-only mode, upload disabled, download disabled, public gallery disabled, payment disabled, and maintenance banner copy. These settings need validation schemas, cache invalidation, admin-only writes, and audit logs.
@@ -82,6 +97,17 @@ Initial migration is located in `apps/api/src/database/migrations/1710000000000-
 - Canonical public album URLs should include the user handle, for example `/@{userHandle}/{siteSlug}/albums/{albumSlugOrShortId}`, so two users can have albums with the same display name without URL ambiguity.
 - [NEW] B2C/B2B plans should distinguish couple packages, studio subscriptions, add-ons, and manually granted entitlements without hardcoding plan behavior into controllers.
 - [NEW] Admin theme controls, contextual theme rules, and automated greeting rules must write audit logs and have safe defaults when malformed or disabled.
+
+## Planned Public Album, OAuth, And Interaction Tables [NEW]
+
+- `oauth_accounts` should store provider name, provider subject/id, linked user id, verified email snapshot when available, timestamps, and status. Do not store access tokens or refresh tokens unless a later feature explicitly needs offline provider access and has encrypted storage plus rotation.
+- `album_wishes` should store album id, tenant id, user id, safe display name snapshot, message body, moderation status, created/updated timestamps, and soft delete fields.
+- `album_reactions` should store album id, tenant id, user id, symbol key, created/updated timestamps, and uniqueness constraints based on the confirmed product rule.
+- `album_reaction_symbols` should store allowed symbol keys per album/theme, using validated keys and safe icon metadata rather than arbitrary HTML.
+- `album_featured_entries` should support daily/weekly windows, source (`algorithm`, `admin`, `owner_opt_in`), score/order, and audit-friendly metadata without exposing private signals.
+- `album_search_metadata` should be optional and owner-controlled where privacy-sensitive. Search should not infer or expose age, region, venue, or event dates without a documented source and consent rule.
+
+Audit log metadata for these features must not store passwords, raw tokens, cookies, OTP codes, OAuth authorization codes, provider secrets, or raw sensitive request headers.
 
 ## Seeds
 

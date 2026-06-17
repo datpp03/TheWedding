@@ -18,6 +18,11 @@ const envSchema = z.object({
   CORS_ORIGINS: z.string().min(1),
   STORAGE_PROVIDER: z.enum(['local', 's3', 'azure', 'r2']).default('local'),
   LOCAL_STORAGE_PATH: z.string().default('./storage'),
+  TENANT_STORAGE_QUOTA_BYTES: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(1024 * 1024 * 1024),
   S3_ENDPOINT: z.string().optional().default(''),
   S3_REGION: z.string().optional().default(''),
   S3_BUCKET: z.string().optional().default(''),

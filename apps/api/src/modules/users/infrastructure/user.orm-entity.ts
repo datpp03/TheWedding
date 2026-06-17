@@ -35,6 +35,15 @@ export class UserOrmEntity {
   @Column({ nullable: true, type: 'timestamptz' })
   lockedUntil!: Date | null;
 
+  @Column({ nullable: true, type: 'timestamptz' })
+  mfaEnabledAt!: Date | null;
+
+  @Column({ length: 40, nullable: true, type: 'varchar' })
+  mfaMethod!: string | null;
+
+  @Column({ nullable: true, type: 'text' })
+  mfaSecretEncrypted!: string | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 

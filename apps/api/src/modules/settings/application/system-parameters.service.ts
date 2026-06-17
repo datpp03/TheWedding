@@ -120,6 +120,15 @@ export class SystemParametersService {
       );
     }
   }
+
+  async assertPaymentCheckoutEnabled() {
+    const parameters = await this.getParameters();
+    if (parameters.disablePaymentCheckout) {
+      throw new ServiceUnavailableException(
+        parameters.maintenanceMessage || 'Payment checkout is temporarily disabled',
+      );
+    }
+  }
 }
 
 function parseParameters(valueJson: string | null | undefined): SystemParameters {

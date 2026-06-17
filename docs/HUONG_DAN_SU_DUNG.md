@@ -216,3 +216,23 @@ Ghi chú vận hành:
 - Local dev không có `REDIS_URL` vẫn có inline processor để smoke test.
 - Production nên cấu hình Redis qua `REDIS_URL` và `MEDIA_PROCESSING_CONCURRENCY`.
 - Video preview hiện tại mới ghi metadata placeholder; cần worker có ffmpeg nếu muốn trích frame preview.
+
+## Phase 8: Bao Mat, Rate Limit Va Backup/Restore
+
+Nhung thay doi Phase 8 chu yeu nam o backend, nhung nguoi kiem thu can biet cac hanh vi sau:
+
+1. API tra header `x-correlation-id` cho moi request. Khi bao loi, hay gui kem gia tri nay de doi chieu log.
+2. Cac endpoint dang nhap, dang ky, quen mat khau, refresh token, upload va admin co rate limit. Neu gap HTTP 429, cho het cua so gioi han roi thu lai.
+3. Upload kiem tra MIME type, duoi file, kich thuoc theo loai media, va quota tenant truoc khi ghi file.
+4. Quota mac dinh cau hinh bang `TENANT_STORAGE_QUOTA_BYTES`. Local mac dinh la `1073741824` bytes.
+5. Neu upload bao "File extension does not match MIME type", hay export/doi file dung dinh dang that truoc khi thu lai.
+6. Neu upload bao "Tenant storage quota exceeded", hay xoa bot media hoac tang `TENANT_STORAGE_QUOTA_BYTES` trong moi truong test.
+7. MFA hien moi co nen schema/model de trien khai TOTP sau nay; chua co man enrollment hoac buoc nhap OTP khi dang nhap.
+8. Audit log tu redaction cac truong nhay cam nhu password, token, cookie, OTP/MFA, OAuth code, provider secret va header nhay cam.
+
+Checklist backup/restore truoc release:
+
+- Backup PostgreSQL/Neon bang `pg_dump --format=custom --no-owner --no-acl "$DATABASE_URL" > backup.dump`.
+- Backup thu muc media local theo `LOCAL_STORAGE_PATH` cung thoi diem voi database.
+- Restore thu vao staging bang `pg_restore`, sau do khoi phuc media archive.
+- Smoke test sau restore: dang nhap, dashboard tenant, danh sach media, upload, public gallery, download co kiem quyen, va audit logs.

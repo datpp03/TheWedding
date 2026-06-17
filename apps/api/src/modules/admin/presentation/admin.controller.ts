@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, Req } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { Permissions } from '../../../common/decorators/permissions.decorator';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
@@ -19,6 +20,7 @@ import {
 
 @Controller('admin')
 @Permissions(PERMISSIONS.ADMIN_ACCESS)
+@Throttle({ default: { limit: 60, ttl: 60_000 } })
 export class AdminController {
   constructor(private readonly admin: AdminService) {}
 

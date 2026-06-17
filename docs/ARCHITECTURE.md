@@ -31,6 +31,7 @@ Controllers must not contain business logic or direct database access.
 ## Frontend Areas
 
 - `(public)/[siteSlug]`: current public wedding site, albums, gallery, lightbox.
+- `(public)`: planned public home entry with featured public albums for today/week and secondary auth navigation.
 - `(public)/[@userHandle]/[siteSlug]`: planned canonical public path so user-selected handles personalize album URLs and prevent duplicate album-name ambiguity across users.
 - `(auth)`: login, register, forgot/reset password.
 - `(dashboard)`: owner workflows for sites, albums, media, themes, settings.
@@ -44,7 +45,9 @@ Controllers must not contain business logic or direct database access.
 - Queue: BullMQ/Redis powers Phase 7 media processing. `REDIS_URL` enables the real queue/worker path; local development without Redis falls back to an inline async processor through the same `MediaProcessingService` interface.
 - Mail: provider interface for verification and password reset flows.
 - Payments: provider adapter planned with MoMo first, keeping checkout/webhook logic outside subscription domain rules.
+- OAuth: Google and Facebook login should extend the existing auth/session boundary with provider adapters and validated return paths.
 - Runtime settings: admin-managed system parameters and feature flags should be read through an application service with caching, invalidation, permission checks, and audit logging.
+- [NEW] Album discovery/social: public home, featured albums, wishes, reactions, and advanced search should sit behind album/media application services so privacy and tenant ownership checks are shared rather than duplicated in controllers.
 - [NEW] Context providers: weather, location, holiday calendar, and event calendars must stay behind adapters so contextual themes can fall back safely when external data is unavailable.
 - [NEW] Greeting automation: scheduled/event-triggered greetings should use a rules service separated from static tenant content, with audit logs for admin-managed rules and i18n/l10n templates for visible text.
 - [NEW] Studio/B2B: studio profiles, clients, and delivery workflows should extend the tenant model through explicit ownership/membership relationships instead of bypassing tenant isolation.

@@ -12,22 +12,28 @@ All notable changes to this project will be documented in this file.
 - Media processing i18n/l10n keys for Vietnamese, English, and Japanese.
 - [NEW] Living product plan covering SaaS business model, B2C packages, B2B studio subscriptions, value-added services, workflows, UI/UX execution gates, theme automation, automated greetings, and future execution playbook.
 - [NEW] Product/UI execution requirements in roadmap, UI/UX docs, testing strategy, API/database planning, and remaining implementation prompts.
+- [NEW] Public album and social expansion plan covering public home, featured albums by day/week, album privacy levels, wishes, reactions, Google/Facebook OAuth, return-to-album login, advanced album search, and audit redaction.
+- [NEW] Prompt `07a_public_album_social_expansion.md` for the next scoped product-facing expansion before hardening.
 - Phase 6 admin dashboard MVP with stats, users, tenants, media moderation, audit log explorer, settings, feature flags, and system parameters screens.
 - Admin API endpoints protected by `admin.access` plus audit logging for admin mutations.
 - Runtime system parameters for disabling registration, login, uploads, downloads, public gallery, future payment checkout, and maintenance messages.
 - Backend enforcement for disabled registration/login/upload/download/public-gallery flows.
 - Admin i18n keys for Vietnamese, English, and Japanese.
 - Permission guard tests, disabled-flow tests, and admin i18n smoke coverage.
+- Phase 8 backend hardening with MFA-ready user fields, request correlation IDs, global and route-level throttling, audit metadata redaction, tenant upload quota checks, and backup/restore documentation.
+- Security tests for invalid CSRF, audit redaction, MIME/extension mismatch, tenant quota denial, runtime parameter fail-safe defaults/cache invalidation, payment-disabled assertion, cross-tenant denial, and refresh token reuse.
 
 ### Changed
 
 - Uploads now return queued media instead of marking originals ready immediately; normal display prefers optimized images when processing completes.
 - Media storage accounting now includes generated derivatives in preparation for Phase 9 plan/storage enforcement.
 - [NEW] Expanded future scale prompts to include B2C SaaS plans, B2B studio workflows, add-ons, admin theme control, dynamic contextual themes, automated greetings, and UI design-gate verification.
+- [NEW] Updated prompt order so public album/social/OAuth/search/audit work is separated from the broader Phase 9 scale prompt.
 - Reordered the remaining prompt workflow around the active Vercel + Render + Neon deployment path.
 - Marked Docker VPS CI/CD as an optional later deployment track instead of the next required phase.
 - Deferred Cloudflare R2 activation to Phase 9 until the S3/R2 adapter, signed URLs/upload sessions, tests, docs, and smoke tests are complete.
 - Clarified that production should keep `STORAGE_PROVIDER=local` before R2 is implemented and verified.
+- Added `TENANT_STORAGE_QUOTA_BYTES` as the default per-tenant upload ceiling before Phase 9 plan/entitlement quota expansion.
 
 ## 0.1.0 - 2026-06-12
 

@@ -132,13 +132,67 @@ Status: completed for MVP image processing and retry monitoring.
 - Current limitation: video preview is metadata-only until a production worker image includes ffmpeg or another media extraction backend.
 - Later expansion: online editing hooks, AI quality optimization, malware scanning, R2/CDN publication, and paid quota enforcement remain planned for Phase 8/9.
 
+## Public Album And Social Expansion Track [NEW]
+
+Status: planned as the next product-facing expansion before or alongside hardening. This track must not be implemented as one giant change; split it into small, verified slices and keep docs/tests updated after each slice.
+
+### Expansion Phase 1: Security And Extensible Structure [NEW]
+
+- Clarify album privacy levels: `public`, `unlisted`, and `private`.
+- Ensure public discovery reads only `public` albums.
+- Ensure `unlisted` albums are accessible only by direct link and are excluded from home, search, and timeline listings.
+- Ensure `private` albums are visible only to the owner or explicitly authorized admin/support contexts.
+- Add domain/API/database planning for wishes, reactions, featured albums, OAuth identities, search filters, and audit events.
+- Keep sensitive values out of logs and audit metadata: passwords, tokens, cookies, OTP codes, provider secrets, and raw OAuth codes.
+
+### Expansion Phase 2: Public Home And Featured Albums [NEW]
+
+- Make the first web page a public home page, not the login page.
+- Show public albums featured today and this week.
+- Define deterministic ranking or admin curation rules for featured albums.
+- Add empty/loading/error states and responsive album cards for public discovery.
+- Keep login/register available as secondary navigation actions.
+
+### Expansion Phase 3: Album Wishes And Reactions [NEW]
+
+- Allow authenticated users to send wishes to an album.
+- Allow authenticated users to react to an album with a theme-defined symbol, such as heart, star, cherry blossom, leaf, fish, or another validated album-specific icon.
+- Redirect unauthenticated users to login when they press wish/reaction actions.
+- Return users to the exact album after successful login.
+- Add rate limits, duplicate rules, moderation/audit hooks, and i18n/l10n copy.
+
+### Expansion Phase 4: Google/Facebook OAuth And Return-To-Album [NEW]
+
+- Add Google and Facebook login through the existing auth/session model.
+- Preserve and validate a safe `returnTo` path for album interactions.
+- Prevent open redirects by allowing only relative same-origin paths or explicit allowlisted app URLs.
+- Link OAuth identities to users safely; do not expose provider tokens in API responses, logs, or audit metadata.
+
+### Expansion Phase 5: Advanced Album Search [NEW]
+
+- After login, allow users to search albums by approved criteria such as age range, region, time, venue/location, and theme.
+- Do not reveal private albums or unlisted albums through search.
+- Document which metadata fields are owner-provided, inferred, optional, or pending confirmation.
+- Add pagination, sorting, and safe query limits.
+
+### Expansion Phase 6: Audit Log And Activity Administration [NEW]
+
+- Record security/admin-relevant events for OAuth login, failed interaction attempts, wish/reaction moderation, featured album curation, privacy changes, and search abuse signals.
+- Use audit logs for security, statistics, and administration without recording sensitive data.
+- Add admin filtering for the new event types where useful.
+- Document retention and redaction rules before exposing export/reporting.
+
 ## Phase 8: Enterprise Hardening
 
+- Status: partially completed for backend security foundations and documentation.
+- Completed: MFA-ready user model fields and migration, global/request-specific rate limiting, request correlation IDs, audit metadata redaction, tenant upload quota checks, stricter upload abuse tests, invalid CSRF tests, runtime system parameter fail-safe/cache invalidation tests, and backup/restore documentation.
+- Remaining: production monitoring dashboard, malware scanning integration, full browser responsive screenshot matrix, and OAuth/wish/reaction checks after those modules are implemented.
 - MFA, feature flags, monitoring, backup, security audit, performance optimization.
 - Add formal cross-device UI QA, layout-shift checks, and interaction performance checks for critical frontend flows.
 - Audit UI strings for i18n/l10n coverage and verify Vietnamese, English, and Japanese layouts do not overflow.
 - Harden system parameter behavior with cache invalidation, fail-safe defaults, permission checks, audit logs, and tests for registration/login/read-only mode toggles.
 - [NEW] Add UI/UX gate enforcement to QA: every changed screen must document first-look hierarchy, accent color, spacing, card hierarchy, responsive behavior, and all loading/empty/error/success states.
+- [NEW] Include OAuth redirect, album privacy, public discovery, wish/reaction authorization, and audit redaction checks once the expansion track is implemented.
 
 ## Phase 9: Scale Future
 
@@ -150,6 +204,7 @@ Status: completed for MVP image processing and retry monitoring.
 - Add a payment provider adapter with MoMo as the first real provider; keep the interface ready for more providers later.
 - Let admins manually unlock or revoke premium rights, storage quota boosts, and feature entitlements for any user or tenant.
 - Add unique user public handles similar to TikTok IDs and make canonical public album URLs include the handle, for example `/@{userHandle}/{siteSlug}/albums/{albumSlugOrShortId}`.
+- Add advanced album discovery/search foundations only after privacy rules and authenticated search boundaries are defined.
 - [NEW] Formalize B2C SaaS packages by storage, media count, video support, premium themes, custom domains, privacy/security, and analytics.
 - [NEW] Add B2B studio subscription foundations: studio profile, client list, client album delivery workflow, studio branding, and higher storage quotas.
 - [NEW] Add value-added service gates for extra storage, custom domain, premium themes, watermark, online editing, AI classification/search/quality optimization, and advanced security.

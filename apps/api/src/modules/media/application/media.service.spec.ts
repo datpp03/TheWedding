@@ -25,6 +25,11 @@ describe('MediaService', () => {
     const media = {
       count: jest.fn().mockResolvedValue(0),
       create: jest.fn((input: Record<string, unknown>) => ({ ...input })),
+      createQueryBuilder: jest.fn().mockReturnValue({
+        getRawOne: jest.fn().mockResolvedValue({ usedBytes: '0' }),
+        select: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+      }),
       findOne: jest.fn().mockResolvedValue({
         albumId: 'album-1',
         id: 'media-1',
@@ -61,6 +66,9 @@ describe('MediaService', () => {
       enqueue: jest.fn().mockResolvedValue(undefined),
       retry: jest.fn().mockResolvedValue(undefined),
     };
+    const config = {
+      get: jest.fn((_key: string, defaultValue?: number) => defaultValue ?? 1024 * 1024 * 1024),
+    };
 
     const service = new MediaService(
       (overrides.media ?? media) as never,
@@ -71,8 +79,9 @@ describe('MediaService', () => {
       (overrides.auditLogs ?? auditLogs) as never,
       (overrides.systemParameters ?? systemParameters) as never,
       (overrides.mediaProcessing ?? mediaProcessing) as never,
+      (overrides.config ?? config) as never,
     );
-    return { media, mediaProcessing, service };
+    return { media, mediaProcessing, service, storage };
   }
 
   it('rejects unsupported uploads before writing storage', async () => {
@@ -87,6 +96,57 @@ describe('MediaService', () => {
 
     await expect(service.upload('tenant-1', 'album-1', file, baseContext)).rejects.toBeInstanceOf(
       BadRequestException,
+    );
+    expect(storage.upload).not.toHaveBeenCalled();
+  });
+
+  it('rejects suspicious MIME and extension mismatches before writing storage', async () => {
+    const { service, storage } = createService();
+    const file: MemoryUpload = {
+      buffer: Buffer.from('jpg'),
+      mimetype: 'image/jpeg',
+      originalname: 'photo.png',
+      size: 3,
+    };
+
+    await expect(service.upload('tenant-1', 'album-1', file, baseContext)).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+    expect(storage.upload).not.toHaveBeenCalled();
+  });
+
+  it('rejects uploads that exceed the tenant storage quota before writing storage', async () => {
+    const media = {
+      count: jest.fn().mockResolvedValue(0),
+      create: jest.fn((input: Record<string, unknown>) => ({ ...input })),
+      createQueryBuilder: jest.fn().mockReturnValue({
+        getRawOne: jest.fn().mockResolvedValue({ usedBytes: '95' }),
+        select: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+      }),
+      findOne: jest.fn().mockResolvedValue({
+        allowDownload: false,
+        albumId: 'album-1',
+        id: 'media-1',
+        mimeType: 'image/jpeg',
+        originalFileName: 'photo.jpg',
+        storageKey: 'tenants/tenant-1/media/media-1/original/random.jpg',
+        tenantId: 'tenant-1',
+        visibility: TENANT_VISIBILITY.PRIVATE,
+      }),
+      save: jest.fn((entity) => Promise.resolve(entity)),
+    };
+    const config = { get: jest.fn().mockReturnValue(100) };
+    const { service, storage } = createService({ config, media });
+    const file: MemoryUpload = {
+      buffer: Buffer.from('jpgjpg'),
+      mimetype: 'image/jpeg',
+      originalname: 'photo.jpg',
+      size: 6,
+    };
+
+    await expect(service.upload('tenant-1', 'album-1', file, baseContext)).rejects.toBeInstanceOf(
+      ForbiddenException,
     );
     expect(storage.upload).not.toHaveBeenCalled();
   });

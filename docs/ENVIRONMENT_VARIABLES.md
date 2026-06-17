@@ -35,6 +35,7 @@ The default local setup uses Docker Compose service `postgres`, database `the_we
 
 - `STORAGE_PROVIDER`: `local`, `s3`, `azure`, or `r2`.
 - `LOCAL_STORAGE_PATH`: local development storage path. With the default `./storage`, files are stored relative to the API process working directory; when running API from `apps/api`, this resolves to `apps/api/storage`.
+- `TENANT_STORAGE_QUOTA_BYTES`: default tenant storage ceiling enforced before API-managed uploads write to storage. Default: `1073741824` bytes.
 - `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`: S3-compatible storage. For Cloudflare R2, use the R2 S3 API endpoint and R2 access credentials.
 - `STORAGE_PUBLIC_BASE_URL`: optional public/CDN base URL for optimized media derivatives.
 - `STORAGE_SIGNED_URL_TTL_SECONDS`: signed URL lifetime for protected media.

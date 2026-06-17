@@ -6,6 +6,8 @@ IMPORTANT PROMPT LIFECYCLE: Chi xoa file prompt nay sau khi hoan thanh tat ca mu
 
 Ban dang lam trong repo `D:\AJT\TheWedding`. Hay bat dau Phase 8.
 
+Truoc khi lam, doc `docs/PRODUCT_PLAN.md`, `docs/UI_UX_DESIGN.md`, `docs/TESTING_STRATEGY.md`, va security/storage docs lien quan. [NEW]
+
 ## Muc Tieu
 
 Hardening security, reliability, monitoring, backup, QA va frontend polish truoc khi release.
@@ -26,6 +28,10 @@ Storage hardening phai theo `docs/STORAGE_STRATEGY.md`.
 - Security headers review.
 - CSRF review and tests.
 - Refresh token reuse e2e tests.
+- OAuth returnTo/open-redirect review if Google/Facebook login has been implemented.
+- Album privacy review for public/unlisted/private access boundaries.
+- Wish/reaction auth review: anonymous users must be redirected to login and returned to the same album after successful login.
+- Audit redaction review for password, token, cookie, OTP, OAuth authorization code, provider secret, and raw sensitive header fields.
 - Backup/restore documentation for SQL Server and app-managed media storage.
 - Feature flag hardening.
 - System parameter hardening:
@@ -46,6 +52,10 @@ Storage hardening phai theo `docs/STORAGE_STRATEGY.md`.
 - Add reduced-motion compatibility where animations exist.
 - Add polished empty/loading/error/success states across key pages.
 - Review Gen Z visual direction consistency.
+- [NEW] Enforce the UI execution gate from `docs/PRODUCT_PLAN.md`: each changed screen needs emotional intent, first-look hierarchy, accent color, spacing, component hierarchy, and complete interaction states.
+- [NEW] Reject white/gray-only UI surfaces. Add purposeful accent color usage while keeping dashboard/admin screens scannable.
+- [NEW] Verify album/media/plan/client/admin cards have clear hierarchy: image/thumbnail, title, subtitle, metadata if useful, and primary action.
+- [NEW] Add reduced-motion and opt-out considerations for future contextual theme/greeting effects even if those features are still disabled.
 
 ## Testing Tasks
 
@@ -54,6 +64,9 @@ Storage hardening phai theo `docs/STORAGE_STRATEGY.md`.
   - invalid CSRF.
   - expired token.
   - refresh reuse.
+  - OAuth returnTo open-redirect rejection if OAuth exists.
+  - public/unlisted/private album privacy boundaries if public discovery exists.
+  - wish/reaction requires login and returns to album after login if social interactions exist.
   - unauthorized download.
   - cross-tenant denial.
 - Add responsive screenshot/browser checks where available.
@@ -70,5 +83,6 @@ Storage hardening phai theo `docs/STORAGE_STRATEGY.md`.
 - Security-critical flows have automated tests.
 - UI is stable across target screen sizes.
 - Vietnamese, English, and Japanese locales pass critical UX smoke checks without layout overflow.
+- [NEW] UI QA explicitly checks accent color, section spacing, card hierarchy, and all loading/empty/error/success states on changed screens.
 - Release risk list is documented.
 - Commit va push len `origin/main`.

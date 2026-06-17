@@ -19,6 +19,14 @@ Hãy làm việc như một AI coding agent chuyên nghiệp. Không code vội.
 
 Xây dựng một nền tảng web xem ảnh cưới/video cưới dạng multi-tenant.
 
+[NEW] Định hướng kinh doanh: đây là hệ thống SaaS cho website ảnh cưới, dùng chung một nền tảng kỹ thuật nhưng mỗi khách hàng có không gian website, giao diện, media, cấu hình và trải nghiệm chia sẻ độc lập.
+
+[NEW] Nguồn thu chính là các gói dịch vụ tạo website cưới cho cô dâu/chú rể, phân cấp theo dung lượng, số lượng ảnh/video, theme, tên miền riêng, bảo mật và tính năng nâng cao.
+
+[NEW] Nguồn thu phụ/B2B là gói thuê bao cho studio/nhiếp ảnh gia để quản lý nhiều khách hàng, tạo album trực tuyến chuyên nghiệp, chia sẻ review/delivery link và gắn branding studio.
+
+[NEW] Dịch vụ mở rộng gồm mua thêm dung lượng, tên miền riêng, giao diện cao cấp, bảo mật nâng cao, watermark, chỉnh sửa ảnh/video online, AI phân loại/tìm kiếm/tối ưu chất lượng ảnh và các add-on giá trị gia tăng khác.
+
 Mỗi user/cặp đôi có thể có một trang web riêng để hiển thị album ảnh/video cưới theo phong cách cá nhân. User có thể tùy chỉnh:
 
 - Màu sắc giao diện
@@ -58,6 +66,19 @@ Hệ thống cần có:
 - Sẵn sàng mở rộng cho thanh toán, gói dịch vụ, Cloudflare R2, CDN, watermark, AI tagging, chỉnh sửa ảnh/video nâng cao
 - Thanh toán ưu tiên MoMo trước, nhưng kiến trúc phải hỗ trợ thêm provider sau này
 - Public album URL phải có user handle/id cá nhân hóa giống TikTok để nhiều user có album trùng tên vẫn không xung đột đường dẫn
+- [NEW] Trang đầu tiên khi vào website là trang chủ public hiển thị album công khai nổi bật trong ngày và trong tuần, không phải trang đăng nhập.
+- [NEW] Album có 3 mức riêng tư rõ ràng: công khai, chỉ người có link, riêng tư.
+- [NEW] User phải đăng nhập mới được gửi lời chúc hoặc yêu thích/tặng biểu tượng cho album.
+- [NEW] Biểu tượng yêu thích/reaction không cố định toàn hệ thống; mỗi album/theme có thể dùng tim, sao, hoa anh đào, lá cây, cá hoặc biểu tượng khác đã được validate.
+- [NEW] Nếu user chưa đăng nhập mà bấm gửi lời chúc hoặc reaction, hệ thống chuyển sang đăng nhập và sau khi đăng nhập thành công quay lại đúng album trước đó.
+- [NEW] Hỗ trợ đăng nhập Google và Facebook trên nền auth/session hiện có.
+- [NEW] Sau khi đăng nhập, user có thể tìm kiếm album theo tiêu chí được phép như độ tuổi, khu vực, thời gian, địa điểm và chủ đề.
+- [NEW] Audit log/truy vết hoạt động phục vụ bảo mật, thống kê và quản trị, nhưng không ghi mật khẩu, token, cookie, OTP, OAuth code hoặc provider secret.
+- [NEW] Custom Theme cá nhân: mỗi album/site cho phép tùy chỉnh màu sắc hoặc chọn theme có sẵn; premium theme phải có plan/entitlement gate.
+- [NEW] Admin Theme Control: admin có bảng điều khiển cấu hình màu chủ đạo, theme mặc định, theme cao cấp và fallback theme toàn hệ thống.
+- [NEW] Dynamic Contextual Theme: hệ thống có thể tự đổi tông màu/hiệu ứng theo ngày đêm, thời tiết, mùa, lễ hội, sự kiện và vị trí nếu người dùng cho phép; luôn có opt-out và reduced-motion.
+- [NEW] Automated Greetings: tự động kích hoạt lời chúc sinh nhật, kỷ niệm ngày cưới, Valentine, Tết, ngày cầu hôn hoặc custom date bằng template i18n/l10n.
+- [NEW] Studio/B2B workspace: studio/nhiếp ảnh gia có thể quản lý client, album delivery, branding, quota và subscription riêng.
 
 ---
 
@@ -191,6 +212,9 @@ Phải có:
 - Change password
 - Verify email
 - Resend verify email
+- Google OAuth login
+- Facebook OAuth login
+- Return-to-album sau đăng nhập cho các action cần auth như lời chúc/reaction
 - Login history
 - Session management
 - Revoke session
@@ -212,6 +236,8 @@ Bảo mật auth:
 - CSRF protection nếu dùng cookie-based auth
 - CORS whitelist rõ ràng
 - Không expose token qua URL
+- Không log OAuth authorization code/provider token/provider secret
+- Chặn open redirect trong `returnTo`, chỉ cho relative same-origin path hoặc allowlist rõ ràng
 - Không log password/token
 - Không trả lỗi quá chi tiết ở login
 - Rate limit endpoint nhạy cảm
@@ -282,9 +308,11 @@ Album gồm:
 - description
 - coverMediaId
 - visibility
+- privacy/visibility gồm public, unlisted/link-only, private
 - sortOrder
 - layoutType
 - themeOverride json
+- reactionSymbols json hoặc cấu hình symbol theo theme/album
 - allowDownload
 - createdAt
 - updatedAt
@@ -297,6 +325,13 @@ Chức năng:
 - Sắp xếp album
 - Set cover
 - Public/private album
+- Album công khai có thể xuất hiện trên trang chủ/search/timeline.
+- Album chỉ người có link không xuất hiện công khai, chỉ ai có link mới xem được.
+- Album riêng tư chỉ chủ album hoặc admin/support được phép xem.
+- Gửi lời chúc cho album, yêu cầu đăng nhập.
+- Yêu thích/tặng biểu tượng cho album, yêu cầu đăng nhập.
+- Cấu hình biểu tượng reaction theo album/theme, không hardcode một icon duy nhất.
+- Redirect sang login khi user chưa đăng nhập bấm wish/reaction và quay lại đúng album sau khi login thành công.
 - Password protected album nếu cần
 - Batch update metadata
 
@@ -423,6 +458,10 @@ Chức năng:
 - Reset theme
 - Clone theme
 - Theme marketplace trong tương lai
+- [NEW] Album-level theme override nếu cần cho từng album riêng.
+- [NEW] Admin global theme control cho màu chủ đạo, theme mặc định, premium theme availability và fallback.
+- [NEW] Contextual theme resolver theo ngày/đêm, mùa, lễ hội, thời tiết, sự kiện và vị trí opt-in.
+- [NEW] Automated greeting visuals gắn với birthday, wedding anniversary, Valentine, Tết, proposal anniversary hoặc custom dates.
 
 Cần có theme presets:
 
@@ -453,6 +492,8 @@ Admin có toàn quyền quản lý:
 - Plans/subscriptions
 - Payment/MoMo transactions
 - Manual entitlement unlock/revoke cho user/tenant
+- [NEW] Global theme settings, premium theme availability, contextual theme rules và automated greeting rules
+- [NEW] Studio/B2B accounts, studio subscriptions, client albums và delivery/reporting status
 
 Admin dashboard cần có:
 
@@ -554,6 +595,19 @@ Bắt buộc có:
 - payments
 - payment_events
 - entitlements
+- [NEW] oauth_accounts
+- [NEW] album_wishes
+- [NEW] album_reactions
+- [NEW] album_reaction_symbols
+- [NEW] album_featured_entries
+- [NEW] album_search_metadata
+- [NEW] studio_profiles
+- [NEW] studio_clients
+- [NEW] studio_client_albums
+- [NEW] theme_system_settings
+- [NEW] contextual_theme_rules
+- [NEW] greeting_rules
+- [NEW] greeting_events
 
 Yêu cầu database:
 
@@ -617,6 +671,13 @@ Cấu trúc đề xuất:
 
 UI yêu cầu:
 
+- [NEW] Trước khi code UI, agent phải thực hiện quy trình 3 bước:
+  1. Phân tích cảm xúc màn hình và xác định yếu tố người dùng cần thấy đầu tiên.
+  2. Đề xuất layout, màu sắc, spacing, typography, animation và các trạng thái hover/focus/loading/empty/error/success.
+  3. Chốt hướng thiết kế rõ ràng rồi mới chuyển sang code; nếu không có mockup riêng thì ghi checklist signoff trong summary hoặc docs.
+- [NEW] Không được làm giao diện chỉ trắng/xám đơn điệu; mỗi màn hình chính phải có điểm nhấn màu có chủ đích.
+- [NEW] Mỗi section phải có khoảng thở hợp lý, tránh nhồi nội dung.
+- [NEW] Card component phải có hierarchy rõ ràng: image/thumbnail, title, subtitle, metadata nếu cần và action chính.
 - Responsive desktop/mobile
 - Trang public đẹp, nhẹ, tối ưu ảnh
 - Gallery layout: grid, masonry, carousel, story, timeline
@@ -666,6 +727,10 @@ POST   /api/v1/auth/forgot-password
 POST   /api/v1/auth/reset-password
 POST   /api/v1/auth/verify-email
 GET    /api/v1/auth/me
+GET    /api/v1/auth/oauth/google
+GET    /api/v1/auth/oauth/google/callback
+GET    /api/v1/auth/oauth/facebook
+GET    /api/v1/auth/oauth/facebook/callback
 
 GET    /api/v1/tenants
 POST   /api/v1/tenants
@@ -676,6 +741,9 @@ DELETE /api/v1/tenants/:id
 GET    /api/v1/public/sites/:slug
 GET    /api/v1/public/sites/:slug/albums
 GET    /api/v1/public/sites/:slug/albums/:albumId/media
+GET    /api/v1/public/home
+GET    /api/v1/public/albums/featured?window=today|week
+GET    /api/v1/albums/search
 
 GET    /api/v1/albums
 POST   /api/v1/albums
@@ -692,6 +760,10 @@ POST   /api/v1/media/reorder
 POST   /api/v1/media/batch-update
 POST   /api/v1/media/batch-delete
 GET    /api/v1/media/:id/download
+POST   /api/v1/albums/:id/wishes
+GET    /api/v1/public/albums/:id/wishes
+POST   /api/v1/albums/:id/reactions
+GET    /api/v1/public/albums/:id/reactions
 
 GET    /api/v1/themes
 POST   /api/v1/themes
@@ -773,6 +845,9 @@ Error response chuẩn:
 - Có TenantAccessGuard
 - Admin access phải audit
 - Public site chỉ trả dữ liệu được public
+- Public home/search/timeline chỉ trả album public; không leak album chỉ người có link hoặc riêng tư
+- Wish/reaction yêu cầu đăng nhập; anonymous action phải redirect login an toàn và quay lại đúng album
+- OAuth Google/Facebook phải chống open redirect và không log provider token/code/secret
 - Private site yêu cầu auth hoặc password
 - Download media phải kiểm tra quyền
 
@@ -1088,6 +1163,15 @@ Thực hiện trước các phase còn lại để có thể deploy lên host/VP
 - Basic editor
 - Storage usage limit
 
+### Phase 8A: Public Album Discovery & Social Interaction
+
+- Bảo mật và cấu trúc mở rộng cho album privacy public/unlisted/private
+- Trang chủ public với album nổi bật trong ngày/tuần
+- Lời chúc album và reaction theo biểu tượng tùy theme/album, yêu cầu đăng nhập
+- Google/Facebook OAuth và redirect quay lại đúng album sau đăng nhập
+- Tìm kiếm album nâng cao sau đăng nhập theo độ tuổi, khu vực, thời gian, địa điểm, chủ đề
+- Audit log/truy vết hoạt động cho OAuth, privacy change, featured curation, wish/reaction moderation và search abuse, không ghi dữ liệu nhạy cảm
+
 ### Phase 8: Enterprise Hardening
 
 - MFA
@@ -1102,6 +1186,9 @@ Thực hiện trước các phase còn lại để có thể deploy lên host/VP
 
 - Payment/subscription với MoMo là provider đầu tiên
 - Plan, premium feature, storage quota upgrades và admin entitlement unlock/revoke
+- [NEW] B2C SaaS packages theo storage, số lượng ảnh/video, premium theme, custom domain, privacy/security, analytics và add-on
+- [NEW] B2B studio subscription foundation cho studio profile, client management, branding, delivery/review link và quota cao hơn
+- [NEW] Value-added services: extra storage, custom domain, premium themes, advanced security, watermark, online editing và AI utilities
 - Custom domain
 - CDN
 - Cloudflare R2 production storage, signed URLs và hướng dẫn đăng ký/cấu hình R2
@@ -1114,6 +1201,7 @@ Thực hiện trước các phase còn lại để có thể deploy lên host/VP
 - Analytics
 - Notification/email campaign
 - User public handle giống TikTok và canonical album URL có userHandle để tránh trùng tên album giữa các user
+- [NEW] Admin Theme Control, Dynamic Contextual Theme và Automated Greetings nếu core SaaS đã ổn định; nếu chưa thì để placeholder rõ ràng sau feature flag/admin setting
 
 ---
 
@@ -1126,25 +1214,29 @@ Khi bắt đầu, không code ngay. Hãy trả lời theo format:
 
 ## 1. Tóm tắt sản phẩm
 
-## 2. Giả định kỹ thuật
+## 2. Business model và phân khúc người dùng [NEW]
 
-## 3. Kiến trúc đề xuất
+## 3. Giả định kỹ thuật
 
-## 4. Danh sách module
+## 4. Kiến trúc đề xuất
 
-## 5. Database schema draft
+## 5. Danh sách module
 
-## 6. API draft
+## 6. Database schema draft
 
-## 7. Security checklist
+## 7. API draft
 
-## 8. GitHub Flow
+## 8. UI/UX execution workflow [NEW]
 
-## 9. Roadmap theo phase
+## 9. Security checklist
 
-## 10. File/folder sẽ tạo
+## 10. GitHub Flow
 
-## 11. Task đầu tiên sẽ thực hiện
+## 11. Roadmap theo phase
+
+## 12. File/folder sẽ tạo
+
+## 13. Task đầu tiên sẽ thực hiện
 ```
 
 Sau đó tạo file docs trước.

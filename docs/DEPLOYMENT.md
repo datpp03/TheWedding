@@ -61,3 +61,20 @@ The repo includes `.github/workflows/deploy-docker-vps.yml`, `docker-compose.pro
 - See `docs/STORAGE_STRATEGY.md` for the storage rollout plan, mobile upload model, CDN direction, and provider boundary.
 - See `docs/guides/CI_CD_DOCKER_VPS.md` before enabling automated production deploys.
 - See `docs/guides/HUONG_DAN_DI_DOI_HOST_DATABASE_STORAGE.md` before moving VPS/host, database, or media storage.
+
+## Backup And Restore
+
+### PostgreSQL / Neon
+
+- Take an on-demand logical backup before releases that include migrations: `pg_dump --format=custom --no-owner --no-acl "$DATABASE_URL" > backup.dump`.
+- Keep at least daily production backups and a 7-day retention window for the MVP stage; increase retention before paid plans launch.
+- Test restore into a staging database with `pg_restore --clean --if-exists --no-owner --no-acl --dbname "$STAGING_DATABASE_URL" backup.dump`.
+- Run migrations against staging after restore, then smoke test auth, tenant dashboard, media listing, upload, public gallery, and admin audit logs.
+- Never restore production data into a developer laptop without a documented privacy reason and redaction plan.
+
+### App-Managed Media Storage
+
+- Local/Render filesystem storage must be backed up with the database because media rows point to backend-generated storage keys.
+- Back up `LOCAL_STORAGE_PATH` as a versioned archive before deployments and before host moves.
+- Restore order: database first, media archive second, then run a smoke check that thumbnails/optimized versions referenced by `media_versions` exist.
+- For future R2/S3 storage, enable bucket versioning or lifecycle-retained object backups, keep originals private, and verify restore with both optimized public display and permission-checked original download.

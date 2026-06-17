@@ -38,6 +38,7 @@ Runtime tools are not currently available in this Codex environment, so dependen
 
 Start with:
 
+- [Product Plan](docs/PRODUCT_PLAN.md)
 - [Project Overview](docs/PROJECT_OVERVIEW.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Database Design](docs/DATABASE_DESIGN.md)

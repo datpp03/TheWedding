@@ -45,6 +45,10 @@ All HTTP endpoints are under `/api/v1`.
 - `GET /api/v1/auth/sessions`
 - `DELETE /api/v1/auth/sessions/:sessionId`
 - `DELETE /api/v1/auth/sessions`
+- `GET /api/v1/auth/oauth/google`
+- `GET /api/v1/auth/oauth/google/callback`
+- `GET /api/v1/auth/oauth/facebook`
+- `GET /api/v1/auth/oauth/facebook/callback`
 
 Implemented in Phase 2: register, login, logout, refresh, capabilities, CSRF token exchange, forgot password, reset password, verify email, me, sessions, revoke one session, revoke all sessions.
 
@@ -52,12 +56,22 @@ Local development note: forgot password and register responses may include devel
 
 Planned system parameter behavior: registration and login endpoints must check admin-managed runtime settings before performing mutations. When registration is disabled, `POST /api/v1/auth/register` returns a clear disabled-flow error. When login is disabled, authenticated entry points should be blocked and public/read-only browsing can remain available according to the configured mode.
 
+Planned OAuth behavior [NEW]: Google and Facebook login should create or link accounts only through verified provider identity rules. OAuth callbacks may accept a validated `returnTo` value so users who attempted an album wish/reaction while anonymous return to the same album after login. `returnTo` must be a relative same-origin path or an explicitly allowlisted app URL. Provider tokens, authorization codes, cookies, and secrets must never be returned in API payloads or audit metadata.
+
 ### User Profile and Handles
 
 - `GET /api/v1/users/handle-check?handle=...`
 - `PATCH /api/v1/users/me/handle`
 
 Planned: user handles are globally unique, user-chosen identifiers similar to TikTok IDs. Public album/site routes should include the handle so duplicate album names across different users remain unambiguous.
+
+### Public Home, Featured Albums, And Search [NEW]
+
+- `GET /api/v1/public/home`
+- `GET /api/v1/public/albums/featured?window=today|week`
+- `GET /api/v1/albums/search?ageMin=...&ageMax=...&region=...&from=...&to=...&venue=...&theme=...`
+
+Planned: the web root should use public home data instead of redirecting to login. Public home and featured endpoints must return only albums with `visibility=public`. Link-only/unlisted albums must not appear in public home, featured lists, public search, or timeline views. Authenticated album search can support age range, region, time, venue/location, and theme once those metadata fields are defined and safe to expose. Private albums are never discoverable outside owner/admin contexts.
 
 ### Tenants and Public Sites
 
@@ -104,6 +118,21 @@ Planned public URL direction: keep existing `/:siteSlug` routes during migration
 Implemented in Phase 4: tenant-scoped album CRUD, album reorder, cover selection, visibility, download controls, single and bulk upload through API multipart form data, media metadata update, media reorder, move, batch delete, authenticated media file serving, public gallery reads, lightbox media file serving, and download permission checks. Uploads validate MIME type, file extension, file size, tenant membership, and album ownership before storage writes. API responses do not expose raw storage keys.
 
 Implemented in Phase 7: uploads create private original media, return `processingStatus=pending`, and enqueue media processing. Media DTOs include `optimizedUrl`, `thumbnailUrl`, `processingFailureReason`, and `processingAttempts`. Image processing creates thumbnail, gallery, and lightbox derivatives; normal display prefers optimized URLs while original downloads stay behind permission-checked download endpoints. Failed processing can be retried with `POST /api/v1/tenants/:tenantId/media/:mediaId/retry-processing`.
+
+Planned album privacy behavior [NEW]: album visibility should be explicit and use `public`, `unlisted`, and `private`. Public albums can be discovered. Unlisted albums require a direct link and are excluded from public listing endpoints. Private albums require owner membership or an authorized admin/support context.
+
+### Album Wishes And Reactions [NEW]
+
+- `GET /api/v1/public/albums/:albumId/wishes`
+- `POST /api/v1/albums/:albumId/wishes`
+- `DELETE /api/v1/albums/:albumId/wishes/:wishId`
+- `GET /api/v1/public/albums/:albumId/reactions`
+- `POST /api/v1/albums/:albumId/reactions`
+- `DELETE /api/v1/albums/:albumId/reactions/:reactionId`
+- `GET /api/v1/tenants/:tenantId/albums/:albumId/reaction-symbols`
+- `PATCH /api/v1/tenants/:tenantId/albums/:albumId/reaction-symbols`
+
+Planned: wish/reaction mutations require an authenticated user. If the frontend starts the action while anonymous, it should redirect to login with a safe `returnTo` path and retry or reopen the action context after login. Reaction symbols are album/theme-configured, not a fixed global list. The API should validate symbol keys, enforce rate limits/duplicate rules, and expose only safe display data on public reads.
 
 ### Themes
 

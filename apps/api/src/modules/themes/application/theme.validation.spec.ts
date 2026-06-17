@@ -1,8 +1,4 @@
-import {
-  createThemeFromPreset,
-  normalizeTheme,
-  validateTheme,
-} from '@the-wedding/shared';
+import { createThemeFromPreset, normalizeTheme, validateTheme } from '@the-wedding/shared';
 
 describe('shared theme validation', () => {
   it('accepts a valid preset theme', () => {

@@ -8,6 +8,8 @@ The Wedding is a multi-tenant SaaS platform for wedding photo and video websites
 
 [NEW] The platform uses one shared technical foundation while giving each customer an independent website space, interface, settings, media library, and public sharing experience.
 
+[NEW] The first website screen should be a public home page, not a login wall. It should highlight public albums featured today and this week, while respecting album privacy and only showing content explicitly marked public.
+
 ## 2. Users And Segments
 
 - Couples/site owners: create wedding sites, upload albums, customize themes, manage privacy, and share links.
@@ -70,14 +72,17 @@ Future add-ons can increase average revenue per account:
 7. Publish the site.
 8. Share the link with guests.
 9. Review views, downloads, wishes, and upgrade prompts when relevant.
+10. Choose the album reaction symbol set when reactions are enabled, such as heart, star, cherry blossom, leaf, fish, or a theme-specific icon.
 
 ### Guest Workflow
 
-1. Open a shared link.
-2. Pass privacy/password gates when required.
-3. Browse albums, gallery, and lightbox.
-4. Watch videos and download when allowed.
-5. Send wishes or reactions where enabled.
+1. Land on the public home page or open a shared album link.
+2. Browse public featured albums from today or this week.
+3. Pass privacy/password gates when required for link-only or protected content.
+4. Browse albums, gallery, and lightbox.
+5. Watch videos and download when allowed.
+6. Sign in before sending wishes or reactions.
+7. Return to the same album after successful login when the action started from an unauthenticated state.
 
 ### Studio/Photographer Workflow [NEW]
 
@@ -184,6 +189,42 @@ Cards should not be flat blocks with equal-weight content. Album cards, plan car
 - Theme customization.
 - Admin dashboard.
 - Runtime system parameters and feature flags.
+
+### Public Album Discovery And Privacy [NEW]
+
+The public website entry should prioritize album discovery before authentication. Public albums can appear on the home page, search results, and public timeline views. Link-only albums are viewable only with the direct link and must not appear in public discovery. Private albums are visible only to the owner or authorized admins/support users.
+
+Implementation notes:
+
+- Add explicit album privacy levels: `public`, `unlisted`, and `private`.
+- Public home page shows featured albums for today and this week, based only on public albums.
+- Featured ranking should be deterministic and auditable, using safe aggregate signals such as recent public activity, owner opt-in, admin curation, or allowed analytics events.
+- Advanced album search is available after login and supports criteria such as age range, region, time, venue/location, and theme when those fields exist and are safe to expose.
+- Search must never reveal private albums or link-only albums without the correct direct link/access path.
+
+### Album Wishes And Reactions [NEW]
+
+Logged-in users can send wishes and react to albums. Anonymous users who press a wish or reaction action should be redirected to login and then returned to the exact album/action context after successful authentication.
+
+Implementation notes:
+
+- Wishes are tied to an album and authenticated user identity.
+- Reactions are tied to an album, user, and a theme-defined symbol key.
+- Reaction symbols are not fixed globally; each album/theme can choose from heart, star, cherry blossom, leaf, fish, or another validated icon/symbol set.
+- Prevent duplicate/spam interactions with rate limits and clear per-user uniqueness rules.
+- Store and expose only safe public display data for wishes and reactions.
+- Write audit/security events for suspicious interaction attempts, moderation actions, and admin changes, without logging passwords, tokens, cookies, OTP codes, or raw provider secrets.
+
+### OAuth Login And Return Flow [NEW]
+
+Google and Facebook login should extend the existing auth model without bypassing session security, CSRF protections, audit logging, or tenant isolation.
+
+Implementation notes:
+
+- OAuth provider identities should link to existing users by verified email only through a safe account-linking flow.
+- Login redirects may preserve a validated `returnTo` path so users return to the album where they started a wish or reaction.
+- `returnTo` must be same-origin or an allowlisted relative path to prevent open redirect vulnerabilities.
+- Tokens, provider secrets, authorization codes, cookies, and OTP-like values must never be logged or stored in audit metadata.
 
 ### Personal Custom Theme [NEW]
 
@@ -309,6 +350,15 @@ Each feature must check:
 ## 9. Roadmap Mapping
 
 - Phase 7: media processing, optimized images, media versions, and editor foundations.
+- [NEW] Public Album Expansion Track: security/scalability foundations, public home and featured albums, wishes/reactions, OAuth login with return-to-album, advanced album search, and audit/admin activity tracing.
 - Phase 8: security, reliability, responsive QA, i18n/l10n hardening, and UI polish.
 - Phase 9: SaaS plans, payments, entitlements, storage/CDN, custom domain, analytics, user handles, AI foundations, and premium feature gates.
 - [NEW] Post-MVP Growth: B2B studio workspaces, contextual themes, automated greetings, advanced online editing, premium theme marketplace, and deeper AI utilities.
+
+## 10. Needs Confirmation [NEW]
+
+- Which source fields should power age, region, venue/location, and time-based album search, and which of those fields require owner opt-in before public or authenticated discovery.
+- Whether featured albums are selected by algorithm, admin curation, owner opt-in, or a hybrid ranking.
+- Whether each user may send one reaction per album, one reaction per symbol, or multiple reactions over time.
+- Whether album wishes need owner moderation before public display.
+- Whether Google/Facebook OAuth should support account linking for existing email/password users in the first implementation slice.

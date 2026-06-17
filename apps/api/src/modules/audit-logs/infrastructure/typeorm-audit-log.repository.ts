@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { redactSensitiveMetadata } from '../../../common/security/audit-redaction';
 import type { AuditLogInput, AuditLogRepository } from '../domain/audit-log.repository';
 import { AuditLogOrmEntity } from './audit-log.orm-entity';
 
@@ -18,7 +19,7 @@ export class TypeOrmAuditLogRepository implements AuditLogRepository {
       action: input.action,
       entityType: input.entityType,
       entityId: input.entityId ?? null,
-      metadataJson: input.metadata ? JSON.stringify(input.metadata) : null,
+      metadataJson: input.metadata ? JSON.stringify(redactSensitiveMetadata(input.metadata)) : null,
       ipAddress: input.ipAddress ?? null,
       userAgent: input.userAgent ?? null,
     });

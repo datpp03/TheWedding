@@ -1,5 +1,89 @@
 # Development Log
 
+## 2026-06-17 - Phase 8 Enterprise Hardening
+
+### Design And QA Gate
+
+- Changed screens: none in this slice. Backend/security hardening and documentation only.
+- UI QA rule remains active for the next UI change: every changed screen must document emotional intent, first-look hierarchy, accent color, spacing, component hierarchy, complete loading/empty/error/success states, reduced-motion behavior, and responsive checks for Vietnamese, English, and Japanese.
+- Accent color and card hierarchy checks remain mandatory for album, media, plan, client, and admin cards when those screens change.
+
+### Completed
+
+- Added MFA-ready user model fields and migration for future TOTP enrollment.
+- Enabled API throttling globally and added tighter route-level limits for auth, upload, bulk upload, and admin endpoints.
+- Added request correlation IDs through `x-correlation-id` and included request IDs in API response metadata.
+- Added audit metadata redaction before persistence for passwords, tokens, cookies, OTP/MFA values, OAuth authorization codes, provider secrets, and raw sensitive headers.
+- Added tenant upload quota enforcement through `TENANT_STORAGE_QUOTA_BYTES` before writing uploaded bytes to storage.
+- Expanded runtime parameter assertions and tests for fail-safe defaults, cache invalidation, registration disabled, login disabled, download disabled, public gallery disabled, and payment checkout disabled.
+- Added backend tests for invalid CSRF, audit redaction, upload MIME/extension mismatch, tenant quota denial, cross-tenant denial, disabled upload, and refresh token reuse.
+- Documented backup/restore for PostgreSQL/Neon and app-managed media storage.
+
+### Files Created or Updated
+
+- `apps/api/src/common/middleware/request-correlation.middleware.ts`
+- `apps/api/src/common/security/audit-redaction.ts`
+- `apps/api/src/database/migrations/1710000008000-Phase8EnterpriseHardening.ts`
+- `apps/api/src/modules/**`
+- `.env.example`
+- `docs/AUTH_SECURITY.md`
+- `docs/DATABASE_DESIGN.md`
+- `docs/DEPLOYMENT.md`
+- `docs/ENVIRONMENT_VARIABLES.md`
+- `docs/ROADMAP.md`
+- `docs/TESTING_STRATEGY.md`
+- `docs/TROUBLESHOOTING.md`
+- `docs/HUONG_DAN_SU_DUNG.md`
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/api test`: pass
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass
+- `pnpm.cmd --filter @the-wedding/api lint`: pass
+
+### Release Risk List
+
+- MFA fields are model-only; no user-facing MFA enrollment or challenge is active yet.
+- Malware scanning is still planned and uploads rely on type/extension/size/quota checks in this slice.
+- `TENANT_STORAGE_QUOTA_BYTES` is a single environment-wide default until Phase 9 plan/entitlement quotas ship.
+- Full browser screenshot QA and visual regression checks still need a running app/browser pass before release.
+- OAuth, wishes, reactions, and public album discovery security checks remain planned until those modules are implemented.
+
+## 2026-06-17 - Prompt And Plan Optimization For Public Album Expansion
+
+### Completed
+
+- Reviewed current root prompt, prompt README, remaining phase prompts, product plan, roadmap, API/database/security/role/testing/UI docs, overview, changelog, and user guide context.
+- Added a scoped Public Album And Social Expansion Track covering public home, featured albums, album privacy, wishes, reactions, Google/Facebook OAuth, redirect back to album after login, authenticated search, and audit redaction.
+- Added new prompt `prompts/07a_public_album_social_expansion.md` so future implementation can be split before hardening and not mixed into the broad Phase 9 scale prompt.
+- Updated existing prompts with guardrails for privacy, login-required interactions, OAuth `returnTo`, and audit redaction.
+- Added "Needs Confirmation" items for ranking, reaction uniqueness, wish moderation, search metadata sources, and OAuth account linking.
+
+### Files Created or Updated
+
+- `prompts/07a_public_album_social_expansion.md`
+- `prompts/README.md`
+- `prompts/07_phase_8_hardening.md`
+- `prompts/08_phase_9_scale_features.md`
+- `prompts/09_final_release_qa.md`
+- `sieu_prompt_agent_web_anh_cuoi.md`
+- `docs/PRODUCT_PLAN.md`
+- `docs/ROADMAP.md`
+- `docs/API_DESIGN.md`
+- `docs/DATABASE_DESIGN.md`
+- `docs/AUTH_SECURITY.md`
+- `docs/ROLE_PERMISSION.md`
+- `docs/ARCHITECTURE.md`
+- `docs/PROJECT_OVERVIEW.md`
+- `docs/TESTING_STRATEGY.md`
+- `docs/UI_UX_DESIGN.md`
+- `docs/CHANGELOG.md`
+- `docs/DEVELOPMENT_LOG.md`
+
+### Tests and Checks
+
+- Documentation/prompt-only update. No application code was changed.
+
 ## 2026-06-16 - Phase 7 Media Processing Advanced
 
 ### Design Gate

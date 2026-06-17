@@ -13,6 +13,9 @@
 - `user.read`, `user.create`, `user.update`, `user.delete`
 - `tenant.read`, `tenant.create`, `tenant.update`, `tenant.delete`
 - `album.manage`
+- `album.featured.manage`
+- `album.wish.moderate`
+- `album.reaction.moderate`
 - `media.read`, `media.upload`, `media.update`, `media.delete`, `media.download`
 - `theme.manage`
 - `admin.access`
@@ -36,3 +39,9 @@ System parameter, feature flag, plan, payment, and entitlement changes are sensi
 - Non-admin users receive permission denial before any admin data is returned.
 - Admin mutations for user status/roles, tenant status, media moderation, system settings, feature flags, and system parameters write audit log entries with actor, entity, IP, user agent, and metadata where available.
 - Runtime system parameters enforce disabled registration/login/upload/download/public-gallery states in the backend, not only in the UI.
+
+## Public Album Interaction Enforcement [NEW]
+
+- Sending album wishes and reactions requires authentication, but does not require an admin permission for normal users.
+- Moderating wishes/reactions, featuring albums, or overriding public discovery metadata requires explicit admin/support permission and audit logging.
+- Public discovery must enforce album privacy before permission shortcuts: `public` can be listed, `unlisted` requires a direct link, and `private` requires owner or authorized admin/support access.
