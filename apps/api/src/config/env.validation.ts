@@ -35,6 +35,10 @@ const envSchema = z.object({
   SMTP_PORT: z.coerce.number().int().positive().default(1025),
   SMTP_USER: z.string().optional().default(''),
   SMTP_PASSWORD: z.string().optional().default(''),
+  GOOGLE_OAUTH_CLIENT_ID: z.string().optional().default(''),
+  GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional().default(''),
+  FACEBOOK_OAUTH_CLIENT_ID: z.string().optional().default(''),
+  FACEBOOK_OAUTH_CLIENT_SECRET: z.string().optional().default(''),
   SUPER_ADMIN_EMAIL: z.string().email(),
   SUPER_ADMIN_PASSWORD: z.string().min(12),
 });

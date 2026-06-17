@@ -84,6 +84,16 @@ Required signoff checks:
 - Mobile QA covers at least 320px, 360px, 390px, 414px, 768px, 1024px, and desktop widths.
 - [NEW] UI work includes a short design signoff note covering emotion, first-look hierarchy, accent color, spacing, states, and responsive behavior.
 
+## Phase 7A Public Album Signoff
+
+- Public home emotion: warm, editorial, and guest-friendly.
+- First-look hierarchy: public featured album sections appear before any login requirement.
+- Accent color: rose for primary discovery actions, teal for safe/privacy cues, amber for social metadata.
+- Card hierarchy: featured cards include thumbnail, title, tenant slug subtitle, description fallback, media/wish/reaction metadata, and primary open action.
+- Interaction states: public home includes empty state; album detail includes login-required social state, pending/success/error social feedback, and empty wishes/media states.
+- Responsive plan: cards use one column on small phones, two on tablet, and three on desktop; text wraps instead of shrinking below readable sizes.
+- Reduced-motion: hover lift is small and non-essential; no blocking contextual animation is introduced.
+
 ## i18n/l10n Foundation
 
 - New theme UI strings use stable keys in `apps/web/src/lib/i18n/locales.ts`.

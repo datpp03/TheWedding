@@ -202,6 +202,14 @@ Implementation notes:
 - Advanced album search is available after login and supports criteria such as age range, region, time, venue/location, and theme when those fields exist and are safe to expose.
 - Search must never reveal private albums or link-only albums without the correct direct link/access path.
 
+Phase 7A implementation status:
+
+- Public web root shows public album discovery instead of a login wall.
+- Featured today/week sections use public albums only and a deterministic algorithmic fallback by recency.
+- `unlisted` albums are direct-link only and excluded from featured/search.
+- `private` albums are excluded from public detail/discovery.
+- Authenticated search exists for approved optional metadata fields, with source/consent questions still tracked below.
+
 ### Album Wishes And Reactions [NEW]
 
 Logged-in users can send wishes and react to albums. Anonymous users who press a wish or reaction action should be redirected to login and then returned to the exact album/action context after successful authentication.
@@ -215,6 +223,14 @@ Implementation notes:
 - Store and expose only safe public display data for wishes and reactions.
 - Write audit/security events for suspicious interaction attempts, moderation actions, and admin changes, without logging passwords, tokens, cookies, OTP codes, or raw provider secrets.
 
+Phase 7A implementation status:
+
+- Authenticated users can send one active wish per album.
+- Authenticated users can react once per allowed symbol per album.
+- Anonymous users who press social actions are redirected to login and returned to the album/action context.
+- Reaction symbols are album-configurable with safe defaults.
+- Owner/admin moderation UI remains a later slice.
+
 ### OAuth Login And Return Flow [NEW]
 
 Google and Facebook login should extend the existing auth model without bypassing session security, CSRF protections, audit logging, or tenant isolation.
@@ -225,6 +241,12 @@ Implementation notes:
 - Login redirects may preserve a validated `returnTo` path so users return to the album where they started a wish or reaction.
 - `returnTo` must be same-origin or an allowlisted relative path to prevent open redirect vulnerabilities.
 - Tokens, provider secrets, authorization codes, cookies, and OTP-like values must never be logged or stored in audit metadata.
+
+Phase 7A implementation status:
+
+- OAuth routes validate and preserve safe `returnTo` state and reject open redirects.
+- Provider start redirects are available when client IDs are configured.
+- Provider callback token exchange and verified-email account linking remain disabled until product rules are confirmed.
 
 ### Personal Custom Theme [NEW]
 

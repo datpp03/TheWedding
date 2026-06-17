@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MEDIA_TYPE, TENANT_VISIBILITY } from '@the-wedding/shared';
+import { ALBUM_VISIBILITY, MEDIA_TYPE } from '@the-wedding/shared';
 import { In, Repository } from 'typeorm';
 import {
   AUDIT_LOG_REPOSITORY,
@@ -54,7 +54,7 @@ export class AlbumsService {
         sortOrder: count,
         tenantId,
         title: input.title.trim(),
-        visibility: input.visibility ?? TENANT_VISIBILITY.PRIVATE,
+        visibility: input.visibility ?? ALBUM_VISIBILITY.PRIVATE,
       }),
     );
     await this.audit(context, tenantId, 'album.created', album.id);
@@ -67,7 +67,13 @@ export class AlbumsService {
     if (input.title !== undefined) album.title = input.title.trim();
     if (input.description !== undefined)
       album.description = cleanNullable(input.description) ?? null;
-    if (input.visibility !== undefined) album.visibility = input.visibility;
+    if (input.visibility !== undefined) {
+      await this.audit(context, tenantId, 'album.privacy_updated', albumId, {
+        from: album.visibility,
+        to: input.visibility,
+      });
+      album.visibility = input.visibility;
+    }
     if (input.allowDownload !== undefined) album.allowDownload = input.allowDownload;
 
     const saved = await this.albums.save(album);

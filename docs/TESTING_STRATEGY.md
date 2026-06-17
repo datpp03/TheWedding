@@ -52,6 +52,7 @@
 - Public featured albums include only public albums.
 - Advanced album search never returns private albums and never returns unlisted albums without direct-link access.
 - Reaction symbol validation uses album/theme-approved keys rather than arbitrary user-submitted markup.
+- Phase 7A automated coverage includes OAuth `returnTo` open-redirect rejection, public/unlisted/private album boundaries, duplicate wish denial, invalid reaction symbol denial, and public featured query constraints.
 
 ## Phase 1 Status
 

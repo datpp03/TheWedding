@@ -45,3 +45,4 @@ System parameter, feature flag, plan, payment, and entitlement changes are sensi
 - Sending album wishes and reactions requires authentication, but does not require an admin permission for normal users.
 - Moderating wishes/reactions, featuring albums, or overriding public discovery metadata requires explicit admin/support permission and audit logging.
 - Public discovery must enforce album privacy before permission shortcuts: `public` can be listed, `unlisted` requires a direct link, and `private` requires owner or authorized admin/support access.
+- Phase 7A exposes owner/member reaction-symbol management through tenant-scoped album access. Dedicated admin moderation/curation UI remains planned; current moderation events are written as audit entries where interaction mutations occur.

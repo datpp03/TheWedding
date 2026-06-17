@@ -1,5 +1,22 @@
 # Hướng Dẫn Sử Dụng App The Wedding
 
+## Phase 7A: Public Home, Album Noi Bat, Loi Chuc Va Reaction
+
+Trang dau vao `http://localhost:3000` hien la public home, khong con tu dong day user vao dashboard.
+
+Checklist kiem thu nhanh:
+
+1. Mo `http://localhost:3000`.
+2. Kiem tra hai khu vuc `Featured today` va `Featured this week`.
+3. Chi album co visibility `public` duoc hien trong hai khu vuc nay.
+4. Album `unlisted` khong hien o home/search, nhung co the xem bang link truc tiep `/albums/{albumId}`.
+5. Album `private` khong xem duoc tren public detail.
+6. Mo mot album public, bam reaction hoac gui wish khi chua dang nhap. App phai dua ve `/login` va sau dang nhap quay lai dung `/albums/{albumId}?intent=...`.
+7. Sau khi dang nhap, moi user chi gui duoc mot wish active cho moi album.
+8. Reaction chi chap nhan symbol key da cau hinh cho album hoac default safe symbols.
+9. OAuth Google/Facebook hien moi bat dau redirect an toan neu co client ID; callback exchange/link account con can xac nhan product rule.
+10. Search album sau dang nhap goi API `/api/v1/albums/search` va khong tra album private/unlisted.
+
 Tài liệu này dành cho người kiểm thử và người dùng nội bộ khi chạy app ở môi trường local. Mỗi khi hoàn thành một chức năng mới, hãy cập nhật file này để phản ánh đúng UI/API hiện tại.
 
 ## Địa Chỉ Local

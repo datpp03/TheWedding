@@ -1,5 +1,64 @@
 # Development Log
 
+## 2026-06-17 - Phase 7A Public Album And Social Expansion
+
+### Design Gate
+
+- Target screens: public home and public album detail.
+- Intended emotion: warm, editorial, and guest-friendly for public browsing; calm and encouraging for album social actions.
+- First-look hierarchy: public featured album cards appear before login/register prompts.
+- Accent colors: rose for primary discovery, teal for privacy/safety cues, amber for social metadata and feedback.
+- Spacing and responsive behavior: single-column mobile, two-column tablet, three-column desktop cards; album detail social panel stacks on mobile and sits beside album intro on desktop.
+- Interaction states: empty featured sections, empty media/wishes, social pending/success/error feedback, login-required redirect, hover/focus states, and non-blocking reduced-motion-friendly hover.
+- i18n/l10n risk: new public UI copy is short and wraps in cards/buttons. Full locale-key extraction for public home/detail remains a follow-up because existing public/auth screens still have hard-coded copy.
+
+### Completed
+
+- Added `ALBUM_VISIBILITY` with `public`, `unlisted`, and `private`.
+- Added database migration and entities for OAuth accounts, featured album entries, album wishes, album reactions, album reaction symbols, and album search metadata.
+- Added public home and featured album endpoints that return only public albums.
+- Added public album detail endpoint that allows public/unlisted direct links and blocks private albums.
+- Added authenticated album search that returns public albums only.
+- Added authenticated wish/reaction endpoints with rate limits, duplicate rules, symbol validation, and audit events.
+- Added owner/member reaction-symbol management endpoints.
+- Added Google/Facebook OAuth start/callback routing with safe `returnTo` validation and open-redirect rejection.
+- Replaced web root dashboard redirect with a public home page and added public album detail/social UI.
+- Added tests for OAuth returnTo validation, album privacy boundaries, featured public query behavior, duplicate wishes, and invalid reaction symbols.
+
+### Files Created or Updated
+
+- `packages/shared/src/tenant.ts`
+- `apps/api/src/database/migrations/1710000009000-PublicAlbumSocialExpansion.ts`
+- `apps/api/src/modules/public-albums/**`
+- `apps/api/src/modules/auth/**`
+- `apps/web/src/app/page.tsx`
+- `apps/web/src/app/(public)/albums/[albumId]/page.tsx`
+- `apps/web/src/features/public-albums/**`
+- `docs/**`
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/api test`: pass
+- `pnpm.cmd --filter @the-wedding/api lint`: pass
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass
+- `pnpm.cmd --filter @the-wedding/web test`: pass
+- `pnpm.cmd --filter @the-wedding/web lint`: pass
+- `pnpm.cmd --filter @the-wedding/web typecheck`: pass
+- `pnpm.cmd format:check`: pass
+- `pnpm.cmd test`: pass
+- `pnpm.cmd typecheck`: pass
+- `pnpm.cmd lint`: pass
+- `pnpm.cmd build`: pass
+- Browser smoke: public home at desktop 1280px and mobile 390px had no horizontal overflow and showed featured sections. Album 404 detail state at mobile 390px had no horizontal overflow. No public album fixture existed in the current DB for a full social-panel browser click-through.
+
+### Needs Confirmation
+
+- Whether featured albums should stay algorithmic, become admin-curated, support owner opt-in, or use a hybrid model.
+- Whether wishes need owner moderation before public display.
+- Whether each user should be limited to one reaction per album or one reaction per symbol per album; current implementation uses one per symbol per album.
+- Which age, region, venue, time, and theme fields are safe source data for search and which require owner opt-in.
+- Whether OAuth should link existing email/password users during the first provider callback exchange.
+
 ## 2026-06-17 - Phase 8 Enterprise Hardening
 
 ### Design And QA Gate

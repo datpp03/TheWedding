@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+  Req,
+  Res,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
@@ -7,6 +18,11 @@ import { Public } from '../../../common/decorators/public.decorator';
 import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
 import { AuthService, REFRESH_TOKEN_COOKIE } from '../application/auth.service';
 import type { RequestContext } from '../application/auth.types';
+import {
+  decodeOAuthState,
+  encodeOAuthState,
+  validateReturnTo,
+} from '../application/oauth-return-to';
 import { clearAuthCookies, setAuthCookies, setCsrfCookie } from './auth-cookie.presenter';
 import {
   ForgotPasswordDto,
@@ -130,6 +146,35 @@ export class AuthController {
   }
 
   @Public()
+  @Get('oauth/:provider')
+  oauthStart(
+    @Param('provider') provider: string,
+    @Query('returnTo') returnTo: string | undefined,
+    @Res() response: Response,
+  ) {
+    const safeReturnTo = validateReturnTo(returnTo, this.config.getOrThrow<string>('APP_URL'));
+    const redirectUrl = this.buildOAuthRedirectUrl(provider, safeReturnTo);
+    return response.redirect(redirectUrl);
+  }
+
+  @Public()
+  @Get('oauth/:provider/callback')
+  oauthCallback(
+    @Param('provider') provider: string,
+    @Query('state') state: string | undefined,
+    @Query('code') code: string | undefined,
+  ) {
+    const decoded = decodeOAuthState(state, this.config.getOrThrow<string>('APP_URL'));
+    if (decoded.provider !== provider || !code) {
+      throw new ServiceUnavailableException('OAuth login could not be completed');
+    }
+
+    throw new ServiceUnavailableException(
+      'OAuth provider credentials are configured, but account linking needs product confirmation before enabling callback exchange',
+    );
+  }
+
+  @Public()
   @Post('refresh')
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   async refresh(
@@ -147,6 +192,41 @@ export class AuthController {
     return {
       user: result.user,
     };
+  }
+
+  private buildOAuthRedirectUrl(provider: string, returnTo: string) {
+    const state = encodeOAuthState({ provider, returnTo });
+    const apiUrl = this.config.getOrThrow<string>('API_URL');
+
+    if (provider === 'google') {
+      const clientId = this.config.get<string>('GOOGLE_OAUTH_CLIENT_ID', '');
+      if (!clientId) {
+        throw new ServiceUnavailableException('Google OAuth is not configured');
+      }
+      const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+      url.searchParams.set('client_id', clientId);
+      url.searchParams.set('redirect_uri', `${apiUrl}/api/v1/auth/oauth/google/callback`);
+      url.searchParams.set('response_type', 'code');
+      url.searchParams.set('scope', 'openid email profile');
+      url.searchParams.set('state', state);
+      return url.toString();
+    }
+
+    if (provider === 'facebook') {
+      const clientId = this.config.get<string>('FACEBOOK_OAUTH_CLIENT_ID', '');
+      if (!clientId) {
+        throw new ServiceUnavailableException('Facebook OAuth is not configured');
+      }
+      const url = new URL('https://www.facebook.com/v19.0/dialog/oauth');
+      url.searchParams.set('client_id', clientId);
+      url.searchParams.set('redirect_uri', `${apiUrl}/api/v1/auth/oauth/facebook/callback`);
+      url.searchParams.set('response_type', 'code');
+      url.searchParams.set('scope', 'email,public_profile');
+      url.searchParams.set('state', state);
+      return url.toString();
+    }
+
+    throw new ServiceUnavailableException('OAuth provider is not supported');
   }
 
   @Public()

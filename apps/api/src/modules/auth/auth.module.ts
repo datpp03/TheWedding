@@ -10,6 +10,7 @@ import { AuthService } from './application/auth.service';
 import { AuthTokenService } from './application/auth-token.service';
 import { Argon2PasswordHasher } from './infrastructure/argon2-password-hasher';
 import { EmailVerificationTokenOrmEntity } from './infrastructure/email-verification-token.orm-entity';
+import { OAuthAccountOrmEntity } from './infrastructure/oauth-account.orm-entity';
 import { PasswordResetTokenOrmEntity } from './infrastructure/password-reset-token.orm-entity';
 import { TypeOrmAuthRepository } from './infrastructure/typeorm-auth.repository';
 import { UserLoginHistoryOrmEntity } from './infrastructure/user-login-history.orm-entity';
@@ -26,6 +27,7 @@ import { AuthController } from './presentation/auth.controller';
       UserOrmEntity,
       UserSessionOrmEntity,
       UserLoginHistoryOrmEntity,
+      OAuthAccountOrmEntity,
       PasswordResetTokenOrmEntity,
       EmailVerificationTokenOrmEntity,
     ]),

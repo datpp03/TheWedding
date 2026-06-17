@@ -7,7 +7,7 @@ export type Album = {
   description: string | null;
   coverMediaId: string | null;
   coverUrl: string | null;
-  visibility: 'public' | 'private' | 'password_protected';
+  visibility: 'public' | 'unlisted' | 'private';
   sortOrder: number;
   allowDownload: boolean;
   mediaCount: number;

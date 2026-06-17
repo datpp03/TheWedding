@@ -109,6 +109,16 @@ Initial migration is located in `apps/api/src/database/migrations/1710000000000-
 
 Audit log metadata for these features must not store passwords, raw tokens, cookies, OTP codes, OAuth authorization codes, provider secrets, or raw sensitive request headers.
 
+## Phase 7A Public Album And Social Notes
+
+- Migration `1710000009000-PublicAlbumSocialExpansion.ts` adds `oauth_accounts`, `album_featured_entries`, `album_wishes`, `album_reactions`, `album_reaction_symbols`, and `album_search_metadata`.
+- `album_wishes` enforces one active wish per user per album.
+- `album_reactions` enforces one active reaction per user, album, and symbol key.
+- `album_reaction_symbols` stores validated symbol keys and display glyph labels per album. If no rows exist, the API falls back to a safe default symbol set.
+- `album_featured_entries` supports future admin/owner curation. Current featured ranking falls back to deterministic algorithmic ordering of public albums by recency.
+- `album_search_metadata` is optional and owner-opt-in-ready. Search currently returns public albums only and does not expose private or unlisted albums.
+- `oauth_accounts` stores provider identity metadata only. Provider access/refresh tokens are not stored in this slice.
+
 ## Seeds
 
 Seed script creates default roles, permissions, and role-permission assignments. Super admin creation reads from `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`.

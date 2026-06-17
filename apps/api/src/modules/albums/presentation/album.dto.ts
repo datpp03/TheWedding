@@ -1,7 +1,7 @@
 import { IsArray, IsBoolean, IsIn, IsOptional, IsString, IsUUID, Length } from 'class-validator';
-import { TENANT_VISIBILITY } from '@the-wedding/shared';
+import { ALBUM_VISIBILITY } from '@the-wedding/shared';
 
-const visibilityValues = Object.values(TENANT_VISIBILITY);
+const visibilityValues = Object.values(ALBUM_VISIBILITY);
 
 export class CreateAlbumDto {
   @IsString()

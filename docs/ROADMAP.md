@@ -134,44 +134,43 @@ Status: completed for MVP image processing and retry monitoring.
 
 ## Public Album And Social Expansion Track [NEW]
 
-Status: planned as the next product-facing expansion before or alongside hardening. This track must not be implemented as one giant change; split it into small, verified slices and keep docs/tests updated after each slice.
+Status: Phase 7A implemented for MVP public discovery, social interactions, OAuth-safe redirect foundation, authenticated search, and audit tracing. Remaining items are noted below.
 
 ### Expansion Phase 1: Security And Extensible Structure [NEW]
 
-- Clarify album privacy levels: `public`, `unlisted`, and `private`.
-- Ensure public discovery reads only `public` albums.
-- Ensure `unlisted` albums are accessible only by direct link and are excluded from home, search, and timeline listings.
-- Ensure `private` albums are visible only to the owner or explicitly authorized admin/support contexts.
-- Add domain/API/database planning for wishes, reactions, featured albums, OAuth identities, search filters, and audit events.
-- Keep sensitive values out of logs and audit metadata: passwords, tokens, cookies, OTP codes, provider secrets, and raw OAuth codes.
+- Completed: album privacy levels are `public`, `unlisted`, and `private`.
+- Completed: public discovery reads only `public` albums.
+- Completed: `unlisted` albums are accessible by direct album link and excluded from home/search listings.
+- Completed: `private` albums are hidden from public detail/discovery and remain owner/admin scoped.
+- Completed: migration/model/API contracts for wishes, reactions, reaction symbols, featured entries, OAuth identities, and search metadata.
+- Completed: sensitive values stay covered by Phase 8 audit redaction.
 
 ### Expansion Phase 2: Public Home And Featured Albums [NEW]
 
-- Make the first web page a public home page, not the login page.
-- Show public albums featured today and this week.
+- Completed: first web page is a public home page, not the login page.
+- Completed: public home shows featured albums for today and week.
 - Define deterministic ranking or admin curation rules for featured albums.
-- Add empty/loading/error states and responsive album cards for public discovery.
-- Keep login/register available as secondary navigation actions.
+- Completed: current deterministic ranking uses algorithmic recency with table support for later admin/owner curation.
+- Completed: responsive featured album cards and empty state.
+- Completed: login/register remain secondary actions.
 
 ### Expansion Phase 3: Album Wishes And Reactions [NEW]
 
-- Allow authenticated users to send wishes to an album.
-- Allow authenticated users to react to an album with a theme-defined symbol, such as heart, star, cherry blossom, leaf, fish, or another validated album-specific icon.
-- Redirect unauthenticated users to login when they press wish/reaction actions.
-- Return users to the exact album after successful login.
-- Add rate limits, duplicate rules, moderation/audit hooks, and i18n/l10n copy.
+- Completed: authenticated users can send one active wish per album.
+- Completed: authenticated users can react once per allowed symbol per album.
+- Completed: unauthenticated users redirect to login and return to the exact album/action context.
+- Completed: rate limits, duplicate rules, and audit hooks. Full owner moderation UI remains planned.
 
 ### Expansion Phase 4: Google/Facebook OAuth And Return-To-Album [NEW]
 
-- Add Google and Facebook login through the existing auth/session model.
-- Preserve and validate a safe `returnTo` path for album interactions.
-- Prevent open redirects by allowing only relative same-origin paths or explicit allowlisted app URLs.
-- Link OAuth identities to users safely; do not expose provider tokens in API responses, logs, or audit metadata.
+- Completed: Google/Facebook OAuth routes validate safe `returnTo` and reject open redirects.
+- Completed: provider start redirects are available when client IDs are configured.
+- Remaining: provider callback exchange/account linking is disabled until verified-email linking rules are confirmed.
 
 ### Expansion Phase 5: Advanced Album Search [NEW]
 
-- After login, allow users to search albums by approved criteria such as age range, region, time, venue/location, and theme.
-- Do not reveal private albums or unlisted albums through search.
+- Completed: after login, users can call authenticated album search by approved optional metadata criteria.
+- Completed: search does not reveal private or unlisted albums.
 - Document which metadata fields are owner-provided, inferred, optional, or pending confirmation.
 - Add pagination, sorting, and safe query limits.
 

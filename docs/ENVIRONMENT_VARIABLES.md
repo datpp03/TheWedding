@@ -62,6 +62,11 @@ Do not commit real payment credentials.
 - `MAIL_PROVIDER`: mail provider key.
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`: SMTP settings.
 
+## OAuth
+
+- `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`: Google OAuth credentials. Client ID enables provider redirect; callback exchange remains disabled until account-linking rules are confirmed.
+- `FACEBOOK_OAUTH_CLIENT_ID`, `FACEBOOK_OAUTH_CLIENT_SECRET`: Facebook OAuth credentials. Client ID enables provider redirect; callback exchange remains disabled until account-linking rules are confirmed.
+
 ## Bootstrap
 
 - `SUPER_ADMIN_EMAIL`: first super admin email.

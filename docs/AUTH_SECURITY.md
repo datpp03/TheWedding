@@ -21,9 +21,10 @@
 
 - Google and Facebook login should reuse the existing session, cookie, CSRF, and audit model instead of creating a parallel auth path.
 - OAuth account linking must require verified provider identity rules and should avoid silently merging accounts unless the email is verified and the flow is explicitly safe.
-- OAuth callback handling may preserve a `returnTo` path for album wish/reaction flows, but only when it is a relative same-origin path or an explicitly allowlisted app URL.
+- OAuth callback handling preserves a `returnTo` path for album wish/reaction flows only when it is a relative same-origin path or an explicitly allowlisted app URL.
 - Reject external or malformed `returnTo` values to prevent open redirect vulnerabilities.
 - Do not expose provider access tokens, refresh tokens, authorization codes, or provider secrets in frontend URLs, API responses, logs, or audit metadata.
+- Phase 7A implements safe OAuth start/callback routing and state validation. Provider callback exchange/account linking remains disabled until verified-email linking rules are confirmed.
 
 ## Implemented Auth Endpoints
 
@@ -77,8 +78,8 @@
 - Private albums require owner membership or an authorized admin/support context.
 - Wish and reaction mutations require an authenticated user.
 - If an anonymous user starts a wish/reaction action, the frontend should send them to login with a validated `returnTo` path and restore the album context after successful login.
-- Wishes and reactions should have rate limits, spam controls, and clear per-user duplicate rules.
-- Reaction symbols must be validated keys from the album/theme configuration, not arbitrary user-submitted markup.
+- Wishes and reactions have route-level rate limits and clear duplicate rules: one active wish per user per album, and one active reaction per user per symbol per album.
+- Reaction symbols must be validated keys from the album/theme configuration or the safe default set, not arbitrary user-submitted markup.
 
 ## Web and API Security
 

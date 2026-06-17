@@ -6,6 +6,14 @@ export const TENANT_VISIBILITY = {
 
 export type TenantVisibility = (typeof TENANT_VISIBILITY)[keyof typeof TENANT_VISIBILITY];
 
+export const ALBUM_VISIBILITY = {
+  PUBLIC: 'public',
+  UNLISTED: 'unlisted',
+  PRIVATE: 'private',
+} as const;
+
+export type AlbumVisibility = (typeof ALBUM_VISIBILITY)[keyof typeof ALBUM_VISIBILITY];
+
 export const TENANT_STATUS = {
   ACTIVE: 'active',
   DISABLED: 'disabled',

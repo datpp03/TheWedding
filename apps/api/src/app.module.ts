@@ -13,6 +13,7 @@ import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MediaModule } from './modules/media/media.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
+import { PublicAlbumsModule } from './modules/public-albums/public-albums.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
@@ -44,6 +45,7 @@ import { UsersModule } from './modules/users/users.module';
     ThemesModule,
     StorageModule,
     PermissionsModule,
+    PublicAlbumsModule,
     AuditLogsModule,
     AdminModule,
     SettingsModule,

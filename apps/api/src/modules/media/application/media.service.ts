@@ -9,7 +9,12 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MEDIA_PROCESSING_STATUS, MEDIA_TYPE, TENANT_VISIBILITY } from '@the-wedding/shared';
+import {
+  ALBUM_VISIBILITY,
+  MEDIA_PROCESSING_STATUS,
+  MEDIA_TYPE,
+  TENANT_VISIBILITY,
+} from '@the-wedding/shared';
 import { In, Repository } from 'typeorm';
 import { AlbumOrmEntity } from '../../albums/infrastructure/album.orm-entity';
 import {
@@ -243,7 +248,7 @@ export class MediaService {
     const media = await this.findMediaWithAlbum(tenantId, mediaId);
     if (context) {
       this.assertTenantAccess(tenantId, context);
-    } else if (media.album.visibility !== TENANT_VISIBILITY.PUBLIC) {
+    } else if (media.album.visibility !== ALBUM_VISIBILITY.PUBLIC) {
       throw new ForbiddenException('Media is private');
     }
     const displayVersion = await this.mediaVersions.findOne({
@@ -284,7 +289,7 @@ export class MediaService {
     }
     const albums = await this.albums.find({
       order: { sortOrder: 'ASC', createdAt: 'ASC' },
-      where: { tenantId: tenant.id, visibility: TENANT_VISIBILITY.PUBLIC },
+      where: { tenantId: tenant.id, visibility: ALBUM_VISIBILITY.PUBLIC },
     });
     const albumDtos = [];
     for (const album of albums) {
@@ -326,7 +331,7 @@ export class MediaService {
   }
 
   private canPublicDownload(album: AlbumOrmEntity) {
-    return album.visibility === TENANT_VISIBILITY.PUBLIC && Boolean(album.allowDownload);
+    return album.visibility === ALBUM_VISIBILITY.PUBLIC && Boolean(album.allowDownload);
   }
 
   private assertTenantAccess(tenantId: string, context: MediaContext) {
