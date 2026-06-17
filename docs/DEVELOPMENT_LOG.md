@@ -1,5 +1,30 @@
 # Development Log
 
+## 2026-06-18 - Remaining Feature Prompt Backlog
+
+### Completed
+
+- Reviewed current remaining prompts and roadmap/product docs for unfinished items across auth, public discovery, i18n, media delivery, admin operations, and Phase 9 scale.
+- Added scoped prompts for SMTP/email production readiness, MFA/TOTP, Google/Facebook OAuth callback exchange and account linking.
+- Added scoped prompts for featured album curation, owner opt-in, wish moderation, search metadata consent, pagination/sort, and social/audit export.
+- Added scoped prompts for app-wide i18n/l10n, locale persistence, accessibility, responsive UI QA, media security/delivery, R2/S3 readiness, monitoring, role editing, reports, and backup/restore operations.
+- Updated the prompt README so future work can run completion slices before the broad Phase 9 scale prompt.
+
+### Files Created or Updated
+
+- `prompts/08a_auth_email_mfa_oauth_completion.md`
+- `prompts/08b_public_discovery_moderation_audit_completion.md`
+- `prompts/08c_i18n_accessibility_ui_qa_completion.md`
+- `prompts/08d_media_security_delivery_completion.md`
+- `prompts/08e_admin_operations_monitoring_reports.md`
+- `prompts/README.md`
+- `docs/CHANGELOG.md`
+- `docs/DEVELOPMENT_LOG.md`
+
+### Tests and Checks
+
+- Documentation/prompt-only update. No application code was changed.
+
 ## 2026-06-17 - Phase 7A Public Album And Social Expansion
 
 ### Design Gate

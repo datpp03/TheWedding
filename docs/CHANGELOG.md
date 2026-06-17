@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - Phase 8 backend hardening with MFA-ready user fields, request correlation IDs, global and route-level throttling, audit metadata redaction, tenant upload quota checks, and backup/restore documentation.
 - Security tests for invalid CSRF, audit redaction, MIME/extension mismatch, tenant quota denial, runtime parameter fail-safe defaults/cache invalidation, payment-disabled assertion, cross-tenant denial, and refresh token reuse.
 - Phase 7A public album expansion with public home, featured public albums, direct-link unlisted album detail, authenticated wishes/reactions, reaction symbol validation, OAuth-safe returnTo routing, authenticated album search, and social/audit tests.
+- Remaining-work prompt set for auth/email/MFA/OAuth, public discovery/moderation/audit, i18n/accessibility UI QA, media security/delivery, and admin operations/monitoring.
 
 ### Changed
 
@@ -31,6 +32,7 @@ All notable changes to this project will be documented in this file.
 - [NEW] Expanded future scale prompts to include B2C SaaS plans, B2B studio workflows, add-ons, admin theme control, dynamic contextual themes, automated greetings, and UI design-gate verification.
 - [NEW] Updated prompt order so public album/social/OAuth/search/audit work is separated from the broader Phase 9 scale prompt.
 - Reordered the remaining prompt workflow around the active Vercel + Render + Neon deployment path.
+- Expanded the recommended prompt order so unfinished cross-phase work can be completed before broad Phase 9 scale features.
 - Marked Docker VPS CI/CD as an optional later deployment track instead of the next required phase.
 - Deferred Cloudflare R2 activation to Phase 9 until the S3/R2 adapter, signed URLs/upload sessions, tests, docs, and smoke tests are complete.
 - Clarified that production should keep `STORAGE_PROVIDER=local` before R2 is implemented and verified.

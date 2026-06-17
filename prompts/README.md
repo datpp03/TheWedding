@@ -34,11 +34,18 @@ Khong code UI moi truoc khi da co design gate: phan tich cam xuc man hinh, de xu
 
 Trang thai hien tai: Phase 6 admin dashboard, Phase 7 media processing, Phase 7A public album/social expansion, va Phase 8 enterprise hardening da hoan thanh. App da co duong deploy free bang Vercel + Render + Neon. VPS/Docker pipeline la tuy chon sau, khong con la buoc chan truoc cac phase tinh nang.
 
-1. `08_phase_9_scale_features.md`: Payment, CDN, Cloudflare R2/S3 adapter, custom domain model, AI, analytics, user handles.
-2. `09_final_release_qa.md`: Full release QA va cleanup.
-3. `10_phase_10_cicd_docker_vps.md`: Tuy chon neu muon chuyen sang VPS/Docker hoac can self-host thay cho Vercel/Render.
+Bo prompt `08A` den `08E` tach cac phan dang do tu nhieu phase truoc de de implement va verify tung lat nho truoc khi vao Phase 9 scale lon:
 
-Cloudflare R2 khong bat truoc khi `08_phase_9_scale_features.md` implement xong adapter S3/R2, signed URL/upload-session flow, docs, tests, va smoke test. Truoc do production tiep tuc de `STORAGE_PROVIDER=local` de tranh cau hinh nua voi.
+1. `08a_auth_email_mfa_oauth_completion.md`: SMTP/email production, login regression, MFA/TOTP, Google/Facebook OAuth callback exchange va account linking.
+2. `08b_public_discovery_moderation_audit_completion.md`: Featured curation, owner opt-in, wish moderation, search metadata consent, pagination/sort, audit filters/export.
+3. `08c_i18n_accessibility_ui_qa_completion.md`: App-wide i18n/l10n, locale selector/persistence, accessibility, responsive screenshot QA.
+4. `08d_media_security_delivery_completion.md`: Malware scanning, video preview extraction, signed URLs, R2/S3 adapter, upload sessions, CDN docs, local-to-object migration.
+5. `08e_admin_operations_monitoring_reports.md`: Monitoring dashboard, health checks, role editor, audit export, operational reports, backup/restore drill.
+6. `08_phase_9_scale_features.md`: Payment/plans, B2C/B2B SaaS, entitlements, custom domains, user handles, analytics, AI, watermark, theme automation, greeting automation. Neu cac phan storage/media da xong trong `08d`, chi verify compatibility va khong implement trung lap.
+7. `09_final_release_qa.md`: Full release QA va cleanup.
+8. `10_phase_10_cicd_docker_vps.md`: Tuy chon neu muon chuyen sang VPS/Docker hoac can self-host thay cho Vercel/Render.
+
+Cloudflare R2 khong bat truoc khi `08d_media_security_delivery_completion.md` hoac phase storage tuong duong implement xong adapter S3/R2, signed URL/upload-session flow, docs, tests, va smoke test. Truoc do production tiep tuc de `STORAGE_PROVIDER=local` de tranh cau hinh nua voi.
 
 ## Nguyen Tac Chung Cho Moi Prompt
 
