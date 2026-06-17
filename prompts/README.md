@@ -9,7 +9,7 @@ Thu muc nay chua cac prompt ban co the gui lan luot cho Codex de hoan thanh du a
 3. Gui cho Codex trong workspace `D:\AJT\TheWedding`.
 4. Sau moi phase, doi Codex chay test, cap nhat docs, commit va push.
 5. Chi sang prompt tiep theo khi prompt truoc da pass verification.
-6. Khi mot prompt da hoan thanh 100% acceptance criteria, Codex phai xoa file prompt do khoi thu muc `prompts/` trong cung commit hoan thanh phase.
+6. Khi mot prompt da hoan thanh 100% acceptance criteria, Codex phai xoa file prompt do khoi thu muc `prompts/` sau khi phase da duoc verify, commit va push thanh cong.
 
 ## Product Plan Bat Buoc [NEW]
 
@@ -32,13 +32,12 @@ Khong code UI moi truoc khi da co design gate: phan tich cam xuc man hinh, de xu
 
 ## Thu Tu Khuyen Nghi
 
-Trang thai hien tai: Phase 6 admin dashboard va Phase 7 media processing da hoan thanh. App da co duong deploy free bang Vercel + Render + Neon. VPS/Docker pipeline la tuy chon sau, khong con la buoc chan truoc cac phase tinh nang.
+Trang thai hien tai: Phase 6 admin dashboard, Phase 7 media processing, va Phase 8 enterprise hardening da hoan thanh. App da co duong deploy free bang Vercel + Render + Neon. VPS/Docker pipeline la tuy chon sau, khong con la buoc chan truoc cac phase tinh nang.
 
 1. `07a_public_album_social_expansion.md`: Public home, featured albums, album privacy, wishes/reactions, Google/Facebook OAuth, redirect sau login, search nang cao, audit redaction.
-2. `07_phase_8_hardening.md`: Security, monitoring, backup, QA, i18n/l10n coverage.
-3. `08_phase_9_scale_features.md`: Payment, CDN, Cloudflare R2/S3 adapter, custom domain model, AI, analytics, user handles.
-4. `09_final_release_qa.md`: Full release QA va cleanup.
-5. `10_phase_10_cicd_docker_vps.md`: Tuy chon neu muon chuyen sang VPS/Docker hoac can self-host thay cho Vercel/Render.
+2. `08_phase_9_scale_features.md`: Payment, CDN, Cloudflare R2/S3 adapter, custom domain model, AI, analytics, user handles.
+3. `09_final_release_qa.md`: Full release QA va cleanup.
+4. `10_phase_10_cicd_docker_vps.md`: Tuy chon neu muon chuyen sang VPS/Docker hoac can self-host thay cho Vercel/Render.
 
 Cloudflare R2 khong bat truoc khi `08_phase_9_scale_features.md` implement xong adapter S3/R2, signed URL/upload-session flow, docs, tests, va smoke test. Truoc do production tiep tuc de `STORAGE_PROVIDER=local` de tranh cau hinh nua voi.
 
