@@ -119,6 +119,18 @@ Audit log metadata for these features must not store passwords, raw tokens, cook
 - `album_search_metadata` is optional and owner-opt-in-ready. Search currently returns public albums only and does not expose private or unlisted albums.
 - `oauth_accounts` stores provider identity metadata only. Provider access/refresh tokens are not stored in this slice.
 
+## Phase 9 Scale Foundation Notes
+
+- Migration `1710000010000-Phase9ScaleFoundation.ts` adds `user_public_handles`, `plan_subscriptions`, `entitlements`, `payment_events`, `custom_domains`, `studio_profiles`, `studio_clients`, `analytics_events`, and `greeting_rules`.
+- `user_public_handles.handle` is globally unique and validated as a TikTok-like public id for canonical album URLs such as `/@{userHandle}/{siteSlug}/albums/{albumSlugOrShortId}`.
+- `plan_subscriptions` stores active plan state for either a tenant or user. Plan behavior is resolved from shared catalog constants, not hardcoded in controllers.
+- `entitlements` lets admins manually grant/revoke feature keys or storage boosts for a `tenant` or `user`. Entitlement mutations write audit logs.
+- `payment_events` uses a unique `(provider, providerEventId)` index for idempotent MoMo event handling. It is an internal placeholder until signed webhook verification is added.
+- `custom_domains` stores verification status and token foundation only; DNS validation and routing are still deferred.
+- `studio_profiles` and `studio_clients` provide B2B client-management foundations without bypassing tenant isolation.
+- `analytics_events` stores safe gallery view/download facts and must not be used to expose private or unlisted albums.
+- `greeting_rules` stores global/tenant/user greeting rules with locale template keys, enable/disable state, and schedule fields.
+
 ## Seeds
 
 Seed script creates default roles, permissions, and role-permission assignments. Super admin creation reads from `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`.

@@ -24,6 +24,9 @@ All notable changes to this project will be documented in this file.
 - Security tests for invalid CSRF, audit redaction, MIME/extension mismatch, tenant quota denial, runtime parameter fail-safe defaults/cache invalidation, payment-disabled assertion, cross-tenant denial, and refresh token reuse.
 - Phase 7A public album expansion with public home, featured public albums, direct-link unlisted album detail, authenticated wishes/reactions, reaction symbol validation, OAuth-safe returnTo routing, authenticated album search, and social/audit tests.
 - Remaining-work prompt set for auth/email/MFA/OAuth, public discovery/moderation/audit, i18n/accessibility UI QA, media security/delivery, and admin operations/monitoring.
+- Phase 9 scale foundation with shared B2C/B2B plan catalog, add-on catalog, feature flag mapping, entitlement gate logic, user public handles, tenant quota summaries, analytics events, greeting rule placeholder, idempotent MoMo payment-event storage, and admin Scale UI.
+- Database migration for `user_public_handles`, `plan_subscriptions`, `entitlements`, `payment_events`, `custom_domains`, `studio_profiles`, `studio_clients`, `analytics_events`, and `greeting_rules`.
+- Locale keys for the new admin Scale surface in Vietnamese, English, and Japanese.
 
 ### Changed
 
@@ -38,6 +41,7 @@ All notable changes to this project will be documented in this file.
 - Clarified that production should keep `STORAGE_PROVIDER=local` before R2 is implemented and verified.
 - Added `TENANT_STORAGE_QUOTA_BYTES` as the default per-tenant upload ceiling before Phase 9 plan/entitlement quota expansion.
 - The web root now renders public album discovery instead of redirecting users to the dashboard/login flow.
+- R2 and MoMo env placeholders are documented and validated as optional values, while production remains on local storage and no public payment webhook is exposed yet.
 
 ## 0.1.0 - 2026-06-12
 

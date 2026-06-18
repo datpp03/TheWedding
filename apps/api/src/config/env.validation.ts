@@ -28,6 +28,18 @@ const envSchema = z.object({
   S3_BUCKET: z.string().optional().default(''),
   S3_ACCESS_KEY: z.string().optional().default(''),
   S3_SECRET_KEY: z.string().optional().default(''),
+  STORAGE_PUBLIC_BASE_URL: z.string().optional().default(''),
+  STORAGE_SIGNED_URL_TTL_SECONDS: z.coerce.number().int().positive().default(900),
+  MAX_UPLOAD_BYTES: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(80 * 1024 * 1024),
+  MAX_VIDEO_UPLOAD_BYTES: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(600 * 1024 * 1024),
   REDIS_URL: z.string().optional().default(''),
   MEDIA_PROCESSING_CONCURRENCY: z.coerce.number().int().positive().default(2),
   MAIL_PROVIDER: z.string().default('smtp'),
@@ -39,6 +51,12 @@ const envSchema = z.object({
   GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional().default(''),
   FACEBOOK_OAUTH_CLIENT_ID: z.string().optional().default(''),
   FACEBOOK_OAUTH_CLIENT_SECRET: z.string().optional().default(''),
+  MOMO_PARTNER_CODE: z.string().optional().default(''),
+  MOMO_ACCESS_KEY: z.string().optional().default(''),
+  MOMO_SECRET_KEY: z.string().optional().default(''),
+  MOMO_ENDPOINT: z.string().optional().default(''),
+  MOMO_IPN_URL: z.string().optional().default(''),
+  MOMO_REDIRECT_URL: z.string().optional().default(''),
   SUPER_ADMIN_EMAIL: z.string().email(),
   SUPER_ADMIN_PASSWORD: z.string().min(12),
 });

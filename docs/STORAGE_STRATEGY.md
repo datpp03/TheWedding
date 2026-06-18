@@ -220,3 +220,19 @@ Do not commit real credentials.
 - Add multipart upload sessions for large mobile uploads.
 - Add migration tooling from local storage to object storage if needed.
 - Add setup docs that guide the owner through Cloudflare/R2 registration, bucket creation, credential generation, env configuration, and smoke testing.
+
+## Phase 9 Foundation Status
+
+Implemented now:
+
+- Env validation and `.env.example` include R2/S3 public base URL, signed URL TTL, and global upload-size variables.
+- Plan/entitlement logic can increase storage limits and gate storage-heavy features before R2 is enabled.
+- Documentation includes the owner-facing R2 setup checklist.
+
+Still deferred and must stay behind carryover before production enablement:
+
+- S3/R2 `StorageService` adapter implementation.
+- Signed upload/download URL generation.
+- Direct-to-object upload sessions and multipart mobile video upload sessions.
+- Local-to-R2 migration tooling and smoke tests.
+- Render/Vercel production switch from `STORAGE_PROVIDER=local` to `r2`.

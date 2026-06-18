@@ -10,4 +10,5 @@ export const dashboardNavItems = [
   { href: '/admin/media', label: 'Media Audit', labelKey: 'admin.nav.media', admin: true },
   { href: '/admin/audit-logs', label: 'Audit Logs', labelKey: 'admin.nav.audit', admin: true },
   { href: '/admin/settings', label: 'Settings', labelKey: 'admin.nav.settings', admin: true },
+  { href: '/admin/scale', label: 'Scale', labelKey: 'admin.nav.scale', admin: true },
 ] as const;

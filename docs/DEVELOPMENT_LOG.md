@@ -841,3 +841,43 @@
 
 - Admin role editing is available through the API; the current MVP UI focuses on status operations and list moderation.
 - Payment checkout disabling is stored as a runtime parameter now and will be enforced when payment checkout endpoints are implemented.
+
+## 2026-06-18 - Prompt 08 Phase 9 Scale Foundation
+
+### Design Gate
+
+- Emotion: operational, premium, and revenue-aware for admins/support.
+- First-look hierarchy: scale metrics and B2C/B2B plan catalog appear before manual unlock controls.
+- Accent color: rose for catalog/highlights, teal for admin unlock controls, amber for add-on cards.
+- Layout: responsive card grids on desktop/tablet, stacked cards/forms on mobile, no white/gray-only surface.
+- States: loading/error notice, saved notice, disabled/busy submit state, i18n keys for all visible copy.
+
+### Completed
+
+- Added shared scale catalog and rules in `packages/shared/src/scale.ts`: B2C plans, B2B studio tiers, add-ons, feature flag keys, plan limit resolution, feature gate checks, public handle normalization, contextual theme fallback resolver, and greeting schedule helper.
+- Added `apps/api/src/modules/scale` with safe public catalog/handle checks, authenticated handle and tenant summary endpoints, admin overview, admin entitlement grants, admin payment-event idempotency placeholder, analytics events, and greeting rule foundation.
+- Added migration `1710000010000-Phase9ScaleFoundation.ts` for user handles, plan subscriptions, entitlements, payment events, custom domains, studio profiles/clients, analytics events, and greeting rules.
+- Added `/admin/scale` UI with plan cards, add-on cards, feature gate list, metrics, and manual entitlement unlock form.
+- Added locale keys for the Scale UI in `vi`, `en`, and `ja`.
+- Added optional env validation/examples for R2/S3 signed URL settings, upload limits, and MoMo placeholders.
+- Added unit coverage for plan/add-on classification, storage boosts, premium theme gates, handle validation, contextual theme fallback, and greeting windows.
+
+### Deferred / Carryover
+
+- Real MoMo checkout, redirect, and signed public webhook verification are not implemented.
+- R2/S3 `StorageService` adapter, signed URLs, direct upload sessions, multipart mobile uploads, local-to-R2 migration, and production smoke tests remain deferred.
+- Canonical public handle routes/redirects are planned but not exposed in Next.js routes yet.
+- Studio delivery workflow, DNS custom-domain verification, watermark processing hook, AI tag adapter/storage UI, contextual theme UI, and greeting scheduler remain gated placeholders.
+- Full browser responsive screenshot QA for `/admin/scale` still needs an authenticated admin session and running app.
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/shared typecheck`: pass
+- `pnpm.cmd --filter @the-wedding/shared build`: pass
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass
+- `pnpm.cmd --filter @the-wedding/web typecheck`: pass
+- `pnpm.cmd format:check`: pass
+- `pnpm.cmd lint`: pass
+- `pnpm.cmd typecheck`: pass
+- `pnpm.cmd test`: pass
+- `pnpm.cmd build`: pass after rerun with elevated permission because Next standalone needs Windows symlink permission.

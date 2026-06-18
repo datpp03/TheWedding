@@ -195,6 +195,8 @@ Status: Phase 7A implemented for MVP public discovery, social interactions, OAut
 
 ## Phase 9: Scale Future
 
+- Status: foundation partially implemented; production providers and large upload/storage flows remain gated.
+- Completed foundation: shared B2C/B2B plan catalog, add-on catalog, feature flag mapping, plan/entitlement gate logic, admin entitlement grant API/UI, user public handle API, tenant scale summary, analytics events, greeting rule placeholder, idempotent MoMo payment-event storage, studio/custom-domain placeholder tables, and admin Scale page.
 - Payment/subscription, custom domain, CDN, Cloudflare R2/S3-compatible production storage, signed URL upload/download, React Native multipart upload sessions, AI tagging, watermark, analytics.
 - Cloudflare R2 remains deferred until this phase. Do not enable R2 env vars or billing-backed R2 usage in production before the adapter, signed URL/upload session flow, tests, smoke tests, and rollback docs are complete.
 - Use Cloudflare R2 as the first production object-storage target, while keeping the adapter S3-compatible for future provider swaps.
@@ -209,6 +211,7 @@ Status: Phase 7A implemented for MVP public discovery, social interactions, OAut
 - [NEW] Add value-added service gates for extra storage, custom domain, premium themes, watermark, online editing, AI classification/search/quality optimization, and advanced security.
 - [NEW] Add admin controls for global theme defaults and premium theme availability if not completed earlier.
 - [NEW] Add contextual theme and automated greeting foundations behind feature flags, with opt-out controls and safe fallbacks when location/weather data is unavailable.
+- Remaining before Phase 9 can be called production-complete: real MoMo checkout and signed webhook verification, S3/R2 adapter, signed URL/upload sessions, multipart uploads, local-to-R2 migration, canonical public handle routes/redirects, full studio client workflow, watermark processing hook, AI tag adapter, and browser responsive smoke screenshots.
 
 ## Post-MVP Growth Track [NEW]
 

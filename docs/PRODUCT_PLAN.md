@@ -33,6 +33,8 @@ Plan tiers should be designed around:
 - Custom domain support.
 - Advanced sharing and analytics.
 
+Phase 9 foundation status: implemented as a shared plan catalog and admin-visible scale dashboard. Purchase/self-service upgrade UX remains gated until real MoMo checkout is verified.
+
 ### B2B Studio Subscriptions [NEW]
 
 Secondary revenue comes from monthly or yearly subscriptions for studios and photographers.
@@ -47,6 +49,8 @@ B2B plans should support:
 - Team/member access in later phases.
 - Professional dashboard analytics.
 
+Phase 9 foundation status: implemented as studio plan tiers plus `studio_profiles` and `studio_clients` tables/API overview counts. Full studio delivery workflow and team access remain future work.
+
 ### Value-Added Services [NEW]
 
 Future add-ons can increase average revenue per account:
@@ -58,6 +62,8 @@ Future add-ons can increase average revenue per account:
 - Watermarking.
 - Online photo/video editing tools.
 - AI classification, search, highlight selection, and image quality optimization.
+
+Phase 9 foundation status: implemented as a gated add-on catalog and admin entitlement unlocks for storage, custom domain, premium themes, security, watermark, AI tools, and online editing placeholders.
 
 ## 4. Product Workflows
 

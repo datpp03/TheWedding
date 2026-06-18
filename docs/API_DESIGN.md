@@ -204,16 +204,20 @@ System parameters are stored under `runtime.system_parameters`, validated with a
 
 ### Plans, Subscriptions, and Payments
 
-- `GET /api/v1/plans`
-- `GET /api/v1/subscription/me`
-- `POST /api/v1/payments/momo/checkout`
-- `POST /api/v1/payments/momo/webhook`
-- `GET /api/v1/admin/plans`
-- `POST /api/v1/admin/plans`
-- `PATCH /api/v1/admin/plans/:planId`
-- `GET /api/v1/admin/payments`
+- `GET /api/v1/scale/catalog` (public): returns the B2C/B2B plan catalog, add-ons, and required feature flag keys.
+- `GET /api/v1/scale/handles/availability?handle=...` (public): validates and checks a public user handle.
+- `GET /api/v1/scale/me`: returns the authenticated user's handle and tenant scale summaries.
+- `PATCH /api/v1/scale/me/handle`: updates the authenticated user's globally unique public handle.
+- `GET /api/v1/scale/tenants/:tenantId/summary`: returns plan, quota, usage, enabled gated features, and canonical handle-based album URL template for a tenant the user can access.
+- `POST /api/v1/scale/analytics/events` (public-safe): records `gallery_view` or `media_download` only when the album is public or the authenticated user owns the tenant.
+- `GET /api/v1/scale/admin/overview`: admin-only operational counts and the scale catalog.
+- `POST /api/v1/scale/admin/entitlements`: admin-only manual feature/storage entitlement grant or revoke.
+- `POST /api/v1/scale/admin/payment-events`: admin-only MoMo payment event placeholder with provider/event idempotency.
+- `POST /api/v1/scale/admin/greeting-rules`: admin-only greeting rule foundation with audit logging.
 
-Planned: MoMo is the first payment provider behind a provider adapter. Subscriptions and admin-granted entitlements can unlock advanced features and increase media storage quota. [NEW] Plans should support B2C couple packages, B2B studio subscriptions, add-ons such as extra storage/custom domains/premium themes, and future value-added services such as AI and online editing.
+Implemented in Phase 9 foundation: B2C couple package catalog, B2B studio subscription catalog, add-on catalog, feature flag mapping, admin-granted entitlements, user public handles, tenant quota summaries, analytics events, greeting rule placeholder, and idempotent payment-event storage.
+
+Still gated/deferred: real MoMo checkout and signed webhook verification, customer self-service plan purchase, R2-backed direct upload sessions, and public route redirects to canonical handle URLs. Do not expose a public payment webhook until MoMo signature validation and replay protection are implemented.
 
 ### Studio/B2B [NEW]
 

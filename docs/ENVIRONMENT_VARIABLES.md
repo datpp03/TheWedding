@@ -41,19 +41,18 @@ The default local setup uses Docker Compose service `postgres`, database `the_we
 - `STORAGE_SIGNED_URL_TTL_SECONDS`: signed URL lifetime for protected media.
 - `MAX_UPLOAD_BYTES`, `MAX_VIDEO_UPLOAD_BYTES`: global upload limits before plan-specific limits are applied.
 
-Future production storage variables are planned in `docs/STORAGE_STRATEGY.md` and should be added to env validation only when the S3-compatible adapter is implemented.
+R2/S3 variables are validated now for production readiness, but production must keep `STORAGE_PROVIDER=local` until the adapter, signed URLs, upload sessions, smoke tests, and rollback docs are complete.
 
 ## Payments
 
-Future MoMo variables should be added only when the MoMo provider adapter is implemented:
+MoMo variables are optional placeholders for the Phase 9 payment adapter foundation:
 
-- `PAYMENT_PROVIDER`: first production value planned as `momo`.
 - `MOMO_PARTNER_CODE`, `MOMO_ACCESS_KEY`, `MOMO_SECRET_KEY`: MoMo merchant credentials.
 - `MOMO_ENDPOINT`: MoMo checkout API endpoint.
-- `MOMO_RETURN_URL`, `MOMO_NOTIFY_URL`: browser return and webhook URLs.
-- `PAYMENT_WEBHOOK_SECRET`: app-side webhook verification secret if needed.
+- `MOMO_IPN_URL`: MoMo server-to-server notification URL.
+- `MOMO_REDIRECT_URL`: browser return URL after checkout.
 
-Do not commit real payment credentials.
+Do not commit real payment credentials. The current API stores idempotent admin-entered payment events only; real checkout and public webhook signature verification remain deferred.
 
 ## Queue and Mail
 

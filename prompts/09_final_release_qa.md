@@ -4,6 +4,16 @@ PLEASE IMPLEMENT THIS PROMPT.
 
 IMPORTANT PROMPT LIFECYCLE: Chi xoa file prompt nay sau khi hoan thanh tat ca muc trong prompt, pass verification, cap nhat docs, commit va push thanh cong. Neu con bat ky hang muc nao chua xong, giu nguyen file prompt va ghi ro phan con lai.
 
+TRUOC KHI BAT DAU: Doc `AGENTS.md` va `docs/SYSTEM_MAP.md` de biet cau truc thu muc, file lien quan, va quy tac ban giao (tiet kiem token, khong quet lai toan repo). Neu muc `## Carryover Khan Cap Tu Prompt Truoc` ben duoi co noi dung, xu ly cac muc do TRUOC.
+
+## Carryover Khan Cap Tu Prompt Truoc
+
+- Priority P0: `prompts/08_phase_9_scale_features.md` chi moi hoan thanh Phase 9 foundation, chua du 100% acceptance. Truoc khi final release, hoac tach thanh prompt rieng/chap nhan gated placeholder, hoac implement tiep cac muc con lai.
+- Phase 9 con thieu: real MoMo checkout/redirect/webhook signature verification/replay protection; R2/S3 `StorageService` adapter; signed upload/download URLs; direct upload sessions; multipart mobile upload; local-to-R2 migration; upload/download smoke tests; rollback docs.
+- Phase 9 con thieu UI/workflow: canonical public route `/@{userHandle}/{siteSlug}/albums/{albumSlugOrShortId}` va redirect route cu; studio delivery workflow; DNS custom-domain verification; watermark processing hook; AI tag adapter/UI; contextual theme UI; greeting scheduler.
+- File lien quan da them trong prompt truoc: `packages/shared/src/scale.ts`, `apps/api/src/modules/scale/**`, `apps/api/src/database/migrations/1710000010000-Phase9ScaleFoundation.ts`, `apps/web/src/features/scale/**`, `apps/web/src/app/(admin)/admin/scale/page.tsx`.
+- Cach tai hien/gap: chay final release acceptance se thay R2/MoMo/canonical handle route chua production-ready. Khong xoa prompt 08 va khong bat `STORAGE_PROVIDER=r2`/public MoMo webhook cho den khi cac muc tren duoc verify.
+
 Ban dang lam trong repo `D:\AJT\TheWedding`. Hay lam final release QA va cleanup.
 
 ## Muc Tieu
@@ -81,6 +91,15 @@ Kiem tra toan bo du an truoc khi xem nhu MVP release-ready.
   - Vietnamese user guide in `docs/HUONG_DAN_SU_DUNG.md`.
   - i18n/l10n setup, locale maintenance, and missing-key troubleshooting.
 
+## Ban Giao Sau Prompt (Bat Buoc)
+
+Theo `AGENTS.md` muc 3, sau khi hoan tat (hoac dung do con viec):
+
+- Cap nhat `VIEC_CAN_LAM.md` (thu muc goc): viec nguoi dung can lam (credentials/config/QA thu cong/quyet dinh san pham), acceptance chua xong va ly do.
+- Neu con loi chua sua hoac viec phai lam ngay, chen vao muc `## Carryover Khan Cap Tu Prompt Truoc` o DAU prompt ke tiep (theo thu tu `prompts/README.md`); neu day la prompt cuoi, ghi vao muc "Khan cap" cua `VIEC_CAN_LAM.md`.
+- Bo sung y tuong nang cap/mo rong tu nghi ra vao `Y_TUONG_NANG_CAP.md` (thu muc goc).
+- Cap nhat `docs/SYSTEM_MAP.md` neu cau truc thu muc/module/route/doc thay doi.
+
 ## Acceptance Criteria
 
 - Working tree clean after commit.
@@ -94,4 +113,5 @@ Kiem tra toan bo du an truoc khi xem nhu MVP release-ready.
 - [NEW] Remaining roadmap clearly states whether B2B studio subscriptions, add-ons/value-added services, admin theme control, contextual themes, automated greetings, premium theme gates, online editing, and AI utilities are implemented or still planned.
 - If Cloudflare R2 is still planned, production env docs must explicitly say to keep `STORAGE_PROVIDER=local` and not enable R2 subscription/credentials yet.
 - [NEW] UI QA confirms no new white/gray-only major surfaces, no text overflow, and clear card hierarchy on implemented plan/studio/theme/greeting surfaces.
+- `VIEC_CAN_LAM.md` va `Y_TUONG_NANG_CAP.md` da duoc cap nhat; viec khan cap (neu co) da chuyen sang prompt ke tiep hoac muc "Khan cap".
 - Commit va push len `origin/main`.

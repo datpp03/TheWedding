@@ -253,3 +253,46 @@ Checklist backup/restore truoc release:
 - Backup thu muc media local theo `LOCAL_STORAGE_PATH` cung thoi diem voi database.
 - Restore thu vao staging bang `pg_restore`, sau do khoi phuc media archive.
 - Smoke test sau restore: dang nhap, dashboard tenant, danh sach media, upload, public gallery, download co kiem quyen, va audit logs.
+
+## Phase 9: Goi Dich Vu, Entitlement, Handle Va Scale Foundation
+
+Phase 9 hien moi mo nen tang an toan cho goi dich vu va tinh nang scale, chua bat thanh toan that hoac R2 production.
+
+### Admin xem catalog goi va unlock thu cong
+
+1. Dang nhap bang tai khoan co quyen `admin.access`.
+2. Mo `http://localhost:3000/admin/scale`.
+3. Khu vuc dau trang hien so subscription, entitlement, payment event, analytics, studio, custom domain va greeting rule dang co.
+4. Khu vuc plan catalog hien cac goi B2C couple va B2B studio: Free, Couple Essential, Couple Premium, Studio Starter, Studio Pro.
+5. Khu vuc add-on hien cac dich vu cong them: extra storage, custom domain, premium themes, advanced security, watermark, AI tools va online editing.
+6. De unlock thu cong, nhap `tenantId` hoac `userId`, chon feature, tuy chon nhap `storageBoostBytes`, ghi ly do, bam `Cap quyen`.
+7. Moi entitlement admin tao se ghi audit log. Neu muon thu hoi, hien tai tao entitlement voi `granted=false` qua API; UI thu hoi rieng se lam sau.
+
+### User public handle va URL album moi
+
+API da co:
+
+- `GET /api/v1/scale/handles/availability?handle=minh_an`
+- `PATCH /api/v1/scale/me/handle`
+- `GET /api/v1/scale/tenants/:tenantId/summary`
+
+Handle chi cho phep chu thuong, so va dau gach duoi, dai 3-24 ky tu. URL canonical du kien:
+
+```txt
+/@{userHandle}/{siteSlug}/albums/{albumSlugOrShortId}
+```
+
+Route public moi va redirect tu route cu chua duoc expose tren UI; tiep tuc dung route public hien tai cho QA cho den khi co prompt hoan thien URL migration.
+
+### Analytics, greeting, studio va custom domain
+
+- Analytics event nen chi ghi cho album public hoac user co quyen tenant. Khong dung analytics de lo album private/unlisted.
+- Greeting rule da co API admin placeholder va locale template key, nhung scheduler/gui loi chuc tu dong chua bat.
+- Studio profile/client va custom domain da co bang foundation, nhung workflow day du va DNS verification chua bat.
+- Premium theme, contextual theme, watermark, AI tagging, online editing dang la gate/add-on foundation; chua phai tinh nang nguoi dung cuoi hoan chinh.
+
+### MoMo va Cloudflare R2
+
+- MoMo hien chi co env optional va bang `payment_events` idempotent cho admin placeholder. Chua co checkout that, webhook public, hoac verify chu ky MoMo.
+- Cloudflare R2 hien chi co env/docs. Production van giu `STORAGE_PROVIDER=local` cho den khi co R2 adapter, signed URL, upload session, smoke test va rollback docs.
+- Nguoi dung can merchant credentials MoMo va tai khoan Cloudflare/R2 that truoc khi bat cac tinh nang production nay.

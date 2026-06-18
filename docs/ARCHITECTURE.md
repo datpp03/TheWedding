@@ -45,6 +45,7 @@ Controllers must not contain business logic or direct database access.
 - Queue: BullMQ/Redis powers Phase 7 media processing. `REDIS_URL` enables the real queue/worker path; local development without Redis falls back to an inline async processor through the same `MediaProcessingService` interface.
 - Mail: provider interface for verification and password reset flows.
 - Payments: provider adapter planned with MoMo first, keeping checkout/webhook logic outside subscription domain rules.
+- Scale foundation: `apps/api/src/modules/scale` owns plan catalog exposure, user public handles, tenant usage summaries, admin entitlements, payment-event idempotency, custom-domain/studio/greeting placeholders, and analytics events. Business rules that are shared with web live in `packages/shared/src/scale.ts`.
 - OAuth: Google and Facebook login should extend the existing auth/session boundary with provider adapters and validated return paths.
 - Runtime settings: admin-managed system parameters and feature flags should be read through an application service with caching, invalidation, permission checks, and audit logging.
 - [NEW] Album discovery/social: public home, featured albums, wishes, reactions, and advanced search should sit behind album/media application services so privacy and tenant ownership checks are shared rather than duplicated in controllers.
@@ -63,3 +64,9 @@ tenants/{tenantId}/media/{mediaId}/versions/{profile}.webp
 The API stores the original media row as `processingStatus=pending`, enqueues a processing job, then the processor updates status to `processing`, writes image profiles for thumbnail, gallery, and lightbox usage, upserts `media_versions`, recalculates `storage_usage`, and marks the media `ready`. Failed jobs store `processingFailureReason` and increment `processingAttempts`; the owner dashboard can retry them.
 
 Image processing uses Sharp today. Video preview is currently metadata-only unless the production worker image adds ffmpeg or another media extraction backend. The worker is intentionally pluggable so later online editing, AI quality optimization, malware scanning, and R2/CDN publication can attach behind the same processing boundary.
+
+## Phase 9 Scale Boundary
+
+The scale module is a foundation layer, not a fully enabled commerce system. It resolves plan limits and feature access through shared catalog constants, active feature flags, and admin-granted entitlements. Controllers expose only safe public reads, authenticated user handle/tenant summaries, and admin-only mutation endpoints.
+
+Production providers remain gated: MoMo checkout/webhook signature verification, R2 storage adapter, signed upload/download URLs, multipart mobile uploads, and local-to-object migration are still separate provider implementations behind existing boundaries.
