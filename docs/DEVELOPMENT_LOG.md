@@ -1,5 +1,19 @@
 # Development Log
 
+## 2026-06-20 - GitHub Actions Web Lint Fix
+
+### Completed
+
+- Reviewed logs in `logs/logs_75040273481`.
+- Identified CI failure in `@the-wedding/web:lint` caused by two `@typescript-eslint/no-unnecessary-type-assertion` errors.
+- Removed the unnecessary `Route` assertion from public album links.
+- Moved the login redirect route assertion to the `router.push` call where Next typed routes require it, keeping lint and typecheck both green.
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/web lint`: pass.
+- `pnpm.cmd --filter @the-wedding/web typecheck`: pass.
+
 ## 2026-06-20 - Production Media Upload Limit And Queue Fallback
 
 ### Completed

@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import type { Route } from 'next';
 import { mediaSrc } from '@/features/media/media-api';
 import type { PublicAlbumCard as PublicAlbumCardData } from './public-album-api';
 
@@ -52,7 +51,7 @@ export function PublicAlbumCard({ album }: { album: PublicAlbumCardData }) {
         </div>
         <Link
           className="mt-auto inline-flex h-10 items-center justify-center rounded-md bg-rose-600 px-4 text-sm font-semibold text-white transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-300"
-          href={`/albums/${album.id}` as Route}
+          href={`/albums/${album.id}`}
         >
           Open album
         </Link>
