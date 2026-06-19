@@ -4,6 +4,12 @@ PLEASE IMPLEMENT THIS PROMPT.
 
 IMPORTANT PROMPT LIFECYCLE: Chi xoa file prompt nay sau khi hoan thanh tat ca muc trong prompt, pass verification, cap nhat docs, commit va push thanh cong. Neu con bat ky hang muc nao chua xong, giu nguyen file prompt va ghi ro phan con lai.
 
+TRUOC KHI BAT DAU: Doc `AGENTS.md` va `docs/SYSTEM_MAP.md` de biet cau truc thu muc, file lien quan, va quy tac ban giao (tiet kiem token, khong quet lai toan repo). Neu muc `## Carryover Khan Cap Tu Prompt Truoc` ben duoi co noi dung, xu ly cac muc do TRUOC.
+
+## Carryover Khan Cap Tu Prompt Truoc
+
+(Trong. Prompt truoc se chen loi chua sua / viec phai lam ngay vao day.)
+
 Ban dang lam trong repo `D:\AJT\TheWedding`. Hay hoan tat media security va delivery readiness: malware scanning, video preview extraction, signed URLs, object storage/R2 adapter, upload sessions, CDN docs, va migration path.
 
 Truoc khi lam, doc:
@@ -15,6 +21,7 @@ Truoc khi lam, doc:
 - `docs/DEPLOYMENT.md`
 - `docs/TROUBLESHOOTING.md`
 - `docs/TESTING_STRATEGY.md`
+- `docs/SEO_GEO_GUIDELINES.md`
 - `docs/HUONG_DAN_SU_DUNG.md`
 
 ## Muc Tieu
@@ -54,6 +61,12 @@ Media pipeline phai du san sang cho production scale: upload duoc scan, video co
   - Document CDN behavior cho optimized public derivatives.
   - Cache invalidation/versioning cho replaced media/derivatives.
   - Khong cache private originals cong khai.
+- SEO/GEO media delivery:
+  - Public optimized derivatives co stable, cacheable URL khi album/media public va owner cho phep preview; private originals/signed URLs/raw object keys khong indexable.
+  - Anh public can alt/caption/title fallback an toan, khong suy luan thong tin nhay cam tu EXIF/AI.
+  - EXIF/location metadata phai stripped hoac khong expose mac dinh; chi expose field owner opt-in.
+  - Open Graph image phai dung derivative public an toan, khong dung signed URL ngan han.
+  - Media sitemap/structured data neu implemented chi include public/indexable media derivatives.
 
 ## UX
 
@@ -69,13 +82,23 @@ Media pipeline phai du san sang cho production scale: upload duoc scan, video co
 - Tests cho malware scanner disabled/success/positive/timeout/error policies.
 - Tests cho video preview fallback khi ffmpeg missing va extraction success khi tool available/mocked.
 - Web tests/smoke cho upload progress va media cards states neu UI thay doi.
+- SEO/GEO tests/smoke cho public derivative URL, Open Graph image fallback, signed/private URL noindex/no sitemap, va EXIF/location privacy.
 - Run verification phu hop: `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`.
 
 ## Docs
 
-- Update `docs/STORAGE_STRATEGY.md`, `docs/API_DESIGN.md`, `docs/AUTH_SECURITY.md`, `docs/ENVIRONMENT_VARIABLES.md`, `docs/DEPLOYMENT.md`, `docs/TROUBLESHOOTING.md`, `docs/TESTING_STRATEGY.md`, `docs/ROADMAP.md`, `docs/CHANGELOG.md`, `docs/DEVELOPMENT_LOG.md`.
+- Update `docs/STORAGE_STRATEGY.md`, `docs/API_DESIGN.md`, `docs/AUTH_SECURITY.md`, `docs/ENVIRONMENT_VARIABLES.md`, `docs/DEPLOYMENT.md`, `docs/TROUBLESHOOTING.md`, `docs/TESTING_STRATEGY.md`, `docs/SEO_GEO_GUIDELINES.md` neu thay doi media index/CDN/metadata policy, `docs/ROADMAP.md`, `docs/CHANGELOG.md`, `docs/DEVELOPMENT_LOG.md`.
 - Them huong dan tieng Viet trong `docs/HUONG_DAN_SU_DUNG.md` cho upload progress, loi scan/rejected, video preview, va gioi han storage.
 - Them guide Cloudflare/R2: dang ky Cloudflare, tao R2 bucket, tao access key least-privilege, cau hinh CORS neu direct upload, env vars, smoke test, rollback ve local, va cach khong bat billing/R2 truoc khi adapter pass.
+
+## Ban Giao Sau Prompt (Bat Buoc)
+
+Theo `AGENTS.md` muc 3, sau khi hoan tat (hoac dung do con viec):
+
+- Cap nhat `VIEC_CAN_LAM.md` (thu muc goc): viec nguoi dung can lam (credentials/config/QA thu cong/quyet dinh san pham), acceptance chua xong va ly do. Moi item phai kem huong dan chi tiet de nguoi dung tu lam duoc: can chuan bi gi, cac buoc thuc hien, file/env/dashboard/URL lien quan, cach smoke test/xac nhan pass, va docs lien quan.
+- Neu con loi chua sua hoac viec phai lam ngay, chen vao muc `## Carryover Khan Cap Tu Prompt Truoc` o DAU prompt ke tiep (theo thu tu `prompts/README.md`); neu day la prompt cuoi, ghi vao muc "Khan cap" cua `VIEC_CAN_LAM.md`.
+- Bo sung y tuong nang cap/mo rong tu nghi ra vao `Y_TUONG_NANG_CAP.md` (thu muc goc).
+- Cap nhat `docs/SYSTEM_MAP.md` neu cau truc thu muc/module/route/doc thay doi.
 
 ## Acceptance Criteria
 
@@ -86,4 +109,6 @@ Media pipeline phai du san sang cho production scale: upload duoc scan, video co
 - Malware scanner adapter co fail-safe policy va positive scan block delivery.
 - Video preview co extraction path khi available va fallback an toan khi unavailable.
 - Production docs noi ro chi set `STORAGE_PROVIDER=r2` sau khi adapter/smoke tests pass.
+- Public media SEO/GEO khong expose private originals, signed URLs, raw object keys, EXIF/location nhay cam, hoac unlisted/private media.
+- `VIEC_CAN_LAM.md` va `Y_TUONG_NANG_CAP.md` da duoc cap nhat; moi item trong `VIEC_CAN_LAM.md` co huong dan thuc hien chi tiet; viec khan cap (neu co) da chuyen sang prompt ke tiep hoac muc "Khan cap".
 - Commit va push len `origin/main`.

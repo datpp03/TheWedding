@@ -14,6 +14,7 @@ Status: completed as documentation baseline.
 Status: active for every future phase.
 
 - Before implementing a product-facing feature, map it to the business model, target user workflow, feature gate/plan gate, and acceptance criteria in `docs/PRODUCT_PLAN.md`.
+- Before implementing or changing a public route/content/metadata/custom-domain/discovery feature, map SEO/GEO requirements in `docs/SEO_GEO_GUIDELINES.md`: index policy, canonical, robots/noindex, sitemap, structured data, Open Graph, i18n metadata, and privacy boundaries.
 - Before implementing UI, complete emotional screen analysis, layout/color/spacing/state proposal, and design signoff notes.
 - Every UI surface must follow `docs/UI_UX_DESIGN.md`: clear accent color, responsive spacing, card hierarchy, complete interaction states, and i18n/l10n text checks for Vietnamese, English, and Japanese.
 - Premium, B2B, contextual, greeting, payment, AI, and storage-heavy features should ship behind feature flags or admin-controlled enablement until verified.
@@ -42,6 +43,7 @@ Status: completed for MVP auth. Email delivery is still provider-ready but SMTP 
 Status: completed for MVP tenant/site foundation.
 
 - Completed: tenant CRUD, owner membership creation, slug availability, public slug route, settings, visibility, SEO/share metadata, and audit log writes.
+- Later SEO/GEO hardening: canonical route migration with user handle/custom domain, sitemap generation, structured data, AI crawler policy, and noindex coverage for protected routes.
 - Completed: authenticated tenant isolation through membership-scoped repository reads and mutation checks.
 - Completed: dashboard onboarding, tenant settings page, public site shell, and private/password access gates with mobile-first loading/error/success states.
 - Later hardening: broader e2e coverage against a running PostgreSQL database, public album/media reads, custom domains, and richer theme-driven public site sections.

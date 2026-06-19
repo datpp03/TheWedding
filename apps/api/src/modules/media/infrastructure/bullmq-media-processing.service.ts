@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MEDIA_PROCESSING_STATUS } from '@the-wedding/shared';
@@ -18,6 +18,7 @@ const JOB_OPTIONS: JobsOptions = {
 
 @Injectable()
 export class BullMqMediaProcessingService implements MediaProcessingService, OnModuleDestroy {
+  private readonly logger = new Logger(BullMqMediaProcessingService.name);
   private readonly queue?: Queue<MediaProcessingJob>;
   private readonly worker?: Worker<MediaProcessingJob>;
 
@@ -32,6 +33,9 @@ export class BullMqMediaProcessingService implements MediaProcessingService, OnM
 
     const connection: ConnectionOptions = { maxRetriesPerRequest: null, url: redisUrl };
     this.queue = new Queue<MediaProcessingJob>(QUEUE_NAME, { connection });
+    this.queue.on('error', (error) => {
+      this.logger.warn(`Media queue connection error: ${error.message}`);
+    });
     this.worker = new Worker<MediaProcessingJob>(
       QUEUE_NAME,
       async (job) => this.processor.process(job.data),
@@ -40,6 +44,9 @@ export class BullMqMediaProcessingService implements MediaProcessingService, OnM
         connection,
       },
     );
+    this.worker.on('error', (error) => {
+      this.logger.warn(`Media worker connection error: ${error.message}`);
+    });
   }
 
   async enqueue(job: MediaProcessingJob): Promise<void> {
@@ -49,16 +56,22 @@ export class BullMqMediaProcessingService implements MediaProcessingService, OnM
       updatedAt: new Date(),
     });
     if (this.queue) {
-      await this.queue.add('process-media', job, {
-        ...JOB_OPTIONS,
-        jobId: job.mediaId,
-      });
-      return;
+      try {
+        await this.queue.add('process-media', job, {
+          ...JOB_OPTIONS,
+          jobId: job.mediaId,
+        });
+        return;
+      } catch (error) {
+        this.logger.warn(
+          `Media queue unavailable; falling back to inline processing for ${job.mediaId}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
     }
 
-    setImmediate(() => {
-      void this.processor.process(job).catch(() => undefined);
-    });
+    this.processInline(job);
   }
 
   async retry(mediaId: string): Promise<void> {
@@ -76,5 +89,16 @@ export class BullMqMediaProcessingService implements MediaProcessingService, OnM
   async onModuleDestroy() {
     await this.worker?.close();
     await this.queue?.close();
+  }
+
+  private processInline(job: MediaProcessingJob) {
+    setImmediate(() => {
+      void this.processor.process(job).catch((error) => {
+        this.logger.error(
+          `Inline media processing failed for ${job.mediaId}`,
+          error instanceof Error ? error.stack : String(error),
+        );
+      });
+    });
   }
 }

@@ -79,6 +79,7 @@ Hệ thống cần có:
 - [NEW] Dynamic Contextual Theme: hệ thống có thể tự đổi tông màu/hiệu ứng theo ngày đêm, thời tiết, mùa, lễ hội, sự kiện và vị trí nếu người dùng cho phép; luôn có opt-out và reduced-motion.
 - [NEW] Automated Greetings: tự động kích hoạt lời chúc sinh nhật, kỷ niệm ngày cưới, Valentine, Tết, ngày cầu hôn hoặc custom date bằng template i18n/l10n.
 - [NEW] Studio/B2B workspace: studio/nhiếp ảnh gia có thể quản lý client, album delivery, branding, quota và subscription riêng.
+- [NEW] SEO/GEO: mọi trang public phải tối ưu cho search engines và AI answer/search engines bằng canonical URL, metadata, sitemap, structured data, Open Graph, robots/AI crawler policy, performance và privacy-first indexing. Không được index hoặc expose album private, unlisted/link-only, auth/admin/dashboard, callback, signed media, raw storage key hoặc dữ liệu nhạy cảm.
 
 ---
 
@@ -99,6 +100,7 @@ Trước khi code, hãy tạo các file tài liệu sau:
 /docs/CHANGELOG.md
 /docs/ENVIRONMENT_VARIABLES.md
 /docs/DEPLOYMENT.md
+/docs/SEO_GEO_GUIDELINES.md
 /docs/TESTING_STRATEGY.md
 /docs/ROADMAP.md
 /docs/TROUBLESHOOTING.md
@@ -292,6 +294,7 @@ Yêu cầu:
 - Có kiểm tra quyền owner/admin
 - Có thể enable/disable site
 - Có thể cấu hình SEO metadata
+- Có canonical URL, Open Graph metadata, sitemap eligibility và structured data theo `docs/SEO_GEO_GUIDELINES.md`
 - Có thể cấu hình sharing image
 - Có thể cấu hình download permission
 
@@ -328,6 +331,7 @@ Chức năng:
 - Album công khai có thể xuất hiện trên trang chủ/search/timeline.
 - Album chỉ người có link không xuất hiện công khai, chỉ ai có link mới xem được.
 - Album riêng tư chỉ chủ album hoặc admin/support được phép xem.
+- Chỉ album công khai, owner-approved/indexable mới được vào sitemap, structured data hoặc AI-facing summaries; unlisted/private không bao giờ vào public discovery/SEO/GEO.
 - Gửi lời chúc cho album, yêu cầu đăng nhập.
 - Yêu thích/tặng biểu tượng cho album, yêu cầu đăng nhập.
 - Cấu hình biểu tượng reaction theo album/theme, không hardcode một icon duy nhất.
@@ -680,6 +684,7 @@ UI yêu cầu:
 - [NEW] Card component phải có hierarchy rõ ràng: image/thumbnail, title, subtitle, metadata nếu cần và action chính.
 - Responsive desktop/mobile
 - Trang public đẹp, nhẹ, tối ưu ảnh
+- Trang public phải có semantic heading, title/description, canonical, Open Graph, alt/caption fallback, structured data nếu phù hợp, sitemap eligibility và noindex policy rõ ràng cho nội dung không public.
 - Gallery layout: grid, masonry, carousel, story, timeline
 - Lightbox xem ảnh
 - Zoom in/out
@@ -846,6 +851,7 @@ Error response chuẩn:
 - Admin access phải audit
 - Public site chỉ trả dữ liệu được public
 - Public home/search/timeline chỉ trả album public; không leak album chỉ người có link hoặc riêng tư
+- Public SEO/GEO cũng phải chỉ dùng dữ liệu public/owner-approved; không đưa dữ liệu private/unlisted vào canonical, sitemap, structured data, Open Graph, AI crawler output hoặc public cache
 - Wish/reaction yêu cầu đăng nhập; anonymous action phải redirect login an toàn và quay lại đúng album
 - OAuth Google/Facebook phải chống open redirect và không log provider token/code/secret
 - Private site yêu cầu auth hoặc password
@@ -999,6 +1005,7 @@ Frontend:
 - Auth flow test
 - Gallery interaction test
 - Admin page smoke test
+- SEO/GEO smoke test cho public metadata, canonical, sitemap, robots/noindex, structured data, Open Graph, i18n metadata và private/unlisted exclusion
 
 Security test:
 
@@ -1202,6 +1209,7 @@ Thực hiện trước các phase còn lại để có thể deploy lên host/VP
 - Notification/email campaign
 - User public handle giống TikTok và canonical album URL có userHandle để tránh trùng tên album giữa các user
 - [NEW] Admin Theme Control, Dynamic Contextual Theme và Automated Greetings nếu core SaaS đã ổn định; nếu chưa thì để placeholder rõ ràng sau feature flag/admin setting
+- [NEW] SEO/GEO hardening: robots.txt, sitemap.xml, canonical handle/custom-domain routing, structured data, Open Graph previews, AI crawler policy và noindex coverage cho protected routes.
 
 ---
 

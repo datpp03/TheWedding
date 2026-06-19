@@ -58,6 +58,11 @@ type MockPasswordHasher = {
   verify: jest.MockedFunction<Argon2PasswordHasher['verify']>;
 };
 
+type MockAuthMailService = {
+  sendEmailVerificationEmail: jest.MockedFunction<(email: string, token: string) => Promise<void>>;
+  sendPasswordResetEmail: jest.MockedFunction<(email: string, token: string) => Promise<void>>;
+};
+
 const context = {
   ipAddress: '127.0.0.1',
   userAgent: 'jest',
@@ -66,7 +71,7 @@ const context = {
 describe(AuthService.name, () => {
   it('registers a user, assigns USER role, and issues tokens', async () => {
     const user = createUser({ email: 'new@example.com' });
-    const { repository, service } = createService();
+    const { authMail, repository, service } = createService();
 
     repository.findUserByEmail.mockResolvedValue(null);
     repository.createUser.mockResolvedValue(user);
@@ -92,6 +97,10 @@ describe(AuthService.name, () => {
     expect(result.tokens.accessToken).toBe('access-token');
     expect(result.tokens.refreshToken).toMatch(/^session-1\./);
     expect(result.devEmailVerificationToken).toMatch(/^email-token-1\./);
+    expect(authMail.sendEmailVerificationEmail).toHaveBeenCalledWith(
+      'new@example.com',
+      expect.stringMatching(/^email-token-1\./),
+    );
   });
 
   it('blocks duplicate registration', async () => {
@@ -189,7 +198,7 @@ describe(AuthService.name, () => {
 
   it('returns a generic forgot password response and creates a reset token for existing users', async () => {
     const user = createUser({ id: 'user-1', email: 'owner@example.com' });
-    const { repository, service } = createService();
+    const { authMail, repository, service } = createService();
 
     repository.findUserByEmail.mockResolvedValue(user);
 
@@ -202,6 +211,10 @@ describe(AuthService.name, () => {
     expect(result.devResetToken).toMatch(/^reset-token-1\./);
     expect(repository.createPasswordResetToken).toHaveBeenCalledWith(
       expect.objectContaining({ userId: user.id }),
+    );
+    expect(authMail.sendPasswordResetEmail).toHaveBeenCalledWith(
+      'owner@example.com',
+      expect.stringMatching(/^reset-token-1\./),
     );
   });
 
@@ -343,6 +356,10 @@ function createService() {
   const tokenService = {
     signAccessToken: jest.fn<Promise<string>, []>().mockResolvedValue('access-token'),
   };
+  const authMail: MockAuthMailService = {
+    sendEmailVerificationEmail: jest.fn<Promise<void>, [string, string]>().mockResolvedValue(),
+    sendPasswordResetEmail: jest.fn<Promise<void>, [string, string]>().mockResolvedValue(),
+  };
   const config = {
     get: jest
       .fn<unknown, Parameters<ConfigService['get']>>()
@@ -362,11 +379,12 @@ function createService() {
     repository as never,
     passwordHasher,
     tokenService as never,
+    authMail as never,
     config as never,
     systemParameters as never,
   );
 
-  return { passwordHasher, repository, service, systemParameters };
+  return { authMail, passwordHasher, repository, service, systemParameters };
 }
 
 function createOneTimeToken(overrides: Partial<OneTimeToken> = {}): OneTimeToken {

@@ -17,6 +17,7 @@ import { Argon2PasswordHasher } from '../infrastructure/argon2-password-hasher';
 import { TypeOrmAuthRepository } from '../infrastructure/typeorm-auth.repository';
 import type { UserOrmEntity } from '../../users/infrastructure/user.orm-entity';
 import type { AuthResult, ForgotPasswordResult, RequestContext, SafeUser } from './auth.types';
+import { AuthMailService } from './auth-mail.service';
 import { AuthTokenService } from './auth-token.service';
 
 const ACCESS_TOKEN_COOKIE = 'access_token';
@@ -31,6 +32,7 @@ export class AuthService {
     private readonly authRepository: TypeOrmAuthRepository,
     private readonly passwordHasher: Argon2PasswordHasher,
     private readonly tokenService: AuthTokenService,
+    private readonly authMail: AuthMailService,
     private readonly config: ConfigService,
     private readonly systemParameters: SystemParametersService,
     @Optional()
@@ -62,6 +64,7 @@ export class AuthService {
 
     await this.authRepository.assignUserRole(user.id);
     const emailVerificationToken = await this.createEmailVerificationToken(user.id);
+    await this.authMail.sendEmailVerificationEmail(email, emailVerificationToken);
     await this.authRepository.recordLogin({
       userId: user.id,
       email,
@@ -135,6 +138,7 @@ export class AuthService {
 
     if (user && canUserLogin(user)) {
       devResetToken = await this.createPasswordResetToken(user.id);
+      await this.authMail.sendPasswordResetEmail(email, devResetToken);
       await this.recordAudit({
         action: 'auth.password_reset_requested',
         actorUserId: user.id,

@@ -8,6 +8,8 @@ The Wedding is a multi-tenant wedding media platform. Couples can create a dedic
 
 [NEW] Public entry direction: the first website screen should be a public home page with featured public albums for today and this week, not a forced login page.
 
+[NEW] SEO/GEO direction: public pages must be discoverable through canonical URLs, metadata, sitemap, structured data, and AI/search crawler policy, while private/unlisted/auth/admin/signed-media surfaces remain non-indexable. Detailed rules live in `docs/SEO_GEO_GUIDELINES.md`.
+
 ## Primary Users
 
 - Couples and site owners: manage sites, albums, media, themes, sharing, storage quota, and premium feature unlocks.
@@ -34,6 +36,7 @@ The Wedding is a multi-tenant wedding media platform. Couples can create a dedic
 ## Experience Direction
 
 - Public wedding sites should feel emotional, modern, media-rich, and shareable.
+- Public wedding sites should be technically discoverable when the owner allows it: clean canonical route, useful title/description, Open Graph image, structured data, and no leakage of private albums or media.
 - Owner dashboard flows should be fast, smooth, and friendly for young couples managing albums, uploads, themes, and links.
 - Admin screens should stay clear and efficient while still matching the modern product visual language.
 - [NEW] Studio workflows should feel professional, repeatable, and status-driven for client delivery work.

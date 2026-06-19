@@ -30,6 +30,7 @@ Kiem tra toan bo du an truoc khi xem nhu MVP release-ready.
   - `docs/API_DESIGN.md`
   - `docs/AUTH_SECURITY.md`
   - `docs/STORAGE_STRATEGY.md`
+  - `docs/SEO_GEO_GUIDELINES.md`
   - `docs/UI_UX_DESIGN.md`
   - `docs/TESTING_STRATEGY.md`
   - `docs/HUONG_DAN_SU_DUNG.md`
@@ -38,6 +39,13 @@ Kiem tra toan bo du an truoc khi xem nhu MVP release-ready.
   - locale files co du `vi`, `en`, `ja`.
   - fallback/missing-key behavior ro rang.
   - date/number/status/action labels hien thi dung trong ba ngon ngu.
+- Kiem tra SEO/GEO:
+  - public home/site/album/custom-domain routes co canonical URL, title/description, Open Graph, structured data neu applicable, va sitemap eligibility dung.
+  - private/unlisted/auth/dashboard/admin/payment callback/OAuth callback/signed media/raw storage/API routes khong vao sitemap va co noindex/robots policy phu hop.
+  - robots.txt va AI crawler policy ro rang theo `docs/SEO_GEO_GUIDELINES.md`.
+  - sitemap chi include public/indexable, owner-approved content.
+  - structured data khop visible content va khong leak EXIF/location/private metadata.
+  - public metadata/i18n/hreflang hoat dong voi `vi`, `en`, `ja` neu locale routing implemented.
 - Kiem tra product/business plan [NEW]:
   - B2C SaaS packages, B2B studio subscriptions, add-ons/value-added services, and admin entitlement direction are either implemented or clearly documented as planned.
   - Custom Theme ca nhan, Admin Theme Control, Dynamic Contextual Theme, and Automated Greetings are either implemented, safely gated, or clearly documented as deferred.
@@ -72,6 +80,7 @@ Kiem tra toan bo du an truoc khi xem nhu MVP release-ready.
   - Google/Facebook OAuth returnTo validation and open-redirect rejection if implemented.
   - authenticated advanced album search does not leak private/unlisted albums if implemented.
   - user handle based public album route if implemented.
+  - SEO/GEO smoke for robots.txt, sitemap.xml, canonical links, Open Graph preview, structured data, and noindex private routes.
   - theme customization.
   - admin dashboard.
   - system parameter toggles for registration/login/read-only mode if implemented.
@@ -95,7 +104,7 @@ Kiem tra toan bo du an truoc khi xem nhu MVP release-ready.
 
 Theo `AGENTS.md` muc 3, sau khi hoan tat (hoac dung do con viec):
 
-- Cap nhat `VIEC_CAN_LAM.md` (thu muc goc): viec nguoi dung can lam (credentials/config/QA thu cong/quyet dinh san pham), acceptance chua xong va ly do.
+- Cap nhat `VIEC_CAN_LAM.md` (thu muc goc): viec nguoi dung can lam (credentials/config/QA thu cong/quyet dinh san pham), acceptance chua xong va ly do. Moi item phai kem huong dan chi tiet de nguoi dung tu lam duoc: can chuan bi gi, cac buoc thuc hien, file/env/dashboard/URL lien quan, cach smoke test/xac nhan pass, va docs lien quan.
 - Neu con loi chua sua hoac viec phai lam ngay, chen vao muc `## Carryover Khan Cap Tu Prompt Truoc` o DAU prompt ke tiep (theo thu tu `prompts/README.md`); neu day la prompt cuoi, ghi vao muc "Khan cap" cua `VIEC_CAN_LAM.md`.
 - Bo sung y tuong nang cap/mo rong tu nghi ra vao `Y_TUONG_NANG_CAP.md` (thu muc goc).
 - Cap nhat `docs/SYSTEM_MAP.md` neu cau truc thu muc/module/route/doc thay doi.
@@ -109,9 +118,10 @@ Theo `AGENTS.md` muc 3, sau khi hoan tat (hoac dung do con viec):
 - User-facing text is managed by i18n/l10n keys with Vietnamese, English, and Japanese coverage.
 - MVP status and remaining roadmap are clear.
 - Remaining roadmap clearly states whether Cloudflare R2 setup, MoMo payment, premium entitlements, and handle-based album URLs are implemented or still planned.
+- SEO/GEO release status is clear: canonical URL strategy, sitemap/robots, structured data, Open Graph, AI crawler policy, and privacy noindex rules are implemented or documented as remaining work.
 - Remaining roadmap clearly states whether public home, featured albums, album wishes/reactions, Google/Facebook OAuth, return-to-album login, advanced album search, and privacy-level migration are implemented or still planned.
 - [NEW] Remaining roadmap clearly states whether B2B studio subscriptions, add-ons/value-added services, admin theme control, contextual themes, automated greetings, premium theme gates, online editing, and AI utilities are implemented or still planned.
 - If Cloudflare R2 is still planned, production env docs must explicitly say to keep `STORAGE_PROVIDER=local` and not enable R2 subscription/credentials yet.
 - [NEW] UI QA confirms no new white/gray-only major surfaces, no text overflow, and clear card hierarchy on implemented plan/studio/theme/greeting surfaces.
-- `VIEC_CAN_LAM.md` va `Y_TUONG_NANG_CAP.md` da duoc cap nhat; viec khan cap (neu co) da chuyen sang prompt ke tiep hoac muc "Khan cap".
+- `VIEC_CAN_LAM.md` va `Y_TUONG_NANG_CAP.md` da duoc cap nhat; moi item trong `VIEC_CAN_LAM.md` co huong dan thuc hien chi tiet; viec khan cap (neu co) da chuyen sang prompt ke tiep hoac muc "Khan cap".
 - Commit va push len `origin/main`.

@@ -58,8 +58,8 @@ Do not commit real payment credentials. The current API stores idempotent admin-
 
 - `REDIS_URL`: BullMQ/Redis connection.
 - `MEDIA_PROCESSING_CONCURRENCY`: number of BullMQ media jobs a worker handles concurrently. Default: `2`.
-- `MAIL_PROVIDER`: mail provider key.
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`: SMTP settings.
+- `MAIL_PROVIDER`: mail provider key. Use `smtp` for Brevo/SendGrid/Mailgun-compatible SMTP delivery.
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`: SMTP settings for password reset and email verification delivery. For Brevo port `587`, use `SMTP_SECURE=false`; keep `SMTP_PASSWORD` only in local `.env` or host secrets.
 
 ## OAuth
 

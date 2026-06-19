@@ -196,6 +196,18 @@ Cards should not be flat blocks with equal-weight content. Album cards, plan car
 - Admin dashboard.
 - Runtime system parameters and feature flags.
 
+### SEO/GEO Discoverability [NEW]
+
+Every public-facing feature must follow `docs/SEO_GEO_GUIDELINES.md`.
+
+Implementation notes:
+
+- Public home, public site, public album, custom-domain pages, studio public profiles, and future guide/marketing pages need explicit index policy, canonical URL, Open Graph metadata, sitemap eligibility, and structured data where useful.
+- Private, unlisted/link-only, auth, dashboard, admin, payment callback, OAuth callback, signed media, and raw storage routes must be excluded from sitemap and use `noindex`/robots controls where applicable.
+- GEO means Generative Engine Optimization: public content should be understandable, citable, and consistent for AI search/answer engines without exposing private data.
+- Local/geographic SEO fields such as region, venue, or studio service area require owner/studio opt-in and must not be inferred from EXIF or image content.
+- AI crawler policy must be intentional in robots.txt and documented before launch.
+
 ### Public Album Discovery And Privacy [NEW]
 
 The public website entry should prioritize album discovery before authentication. Public albums can appear on the home page, search results, and public timeline views. Link-only albums are viewable only with the direct link and must not appear in public discovery. Private albums are visible only to the owner or authorized admins/support users.
@@ -322,9 +334,11 @@ Future implementation should follow this sequence for efficient delivery.
 ### 1. Intake And Scope [NEW]
 
 - Read `docs/PRODUCT_PLAN.md`, `docs/ROADMAP.md`, `docs/UI_UX_DESIGN.md`, and the relevant module README.
+- Read `docs/SEO_GEO_GUIDELINES.md` when the task changes public routes, metadata, sitemap, robots, custom domains, public discovery, media delivery, marketing/help content, or release QA.
 - Identify the target segment: couple, guest, studio, admin, or platform operations.
 - Decide whether the feature is MVP, premium, B2B, add-on, or future placeholder.
 - Define feature flag, plan gate, entitlement gate, or admin setting if applicable.
+- Define SEO/GEO classification if applicable: indexable public page, noindex/private app page, sitemap entry, structured data source, AI crawler policy, and privacy guard.
 - Write 3-5 user stories and acceptance criteria before implementation.
 
 ### 2. UX Gate [NEW]
@@ -342,6 +356,7 @@ Future implementation should follow this sequence for efficient delivery.
 - Define permissions, tenant isolation, audit logs, and privacy/security constraints.
 - Define i18n keys for every visible string.
 - Define analytics/usage events where meaningful.
+- Define canonical URL, robots policy, sitemap behavior, Open Graph/Twitter metadata, structured data, `hreflang`/locale metadata, and noindex/privacy rules for public-facing routes.
 
 ### 4. Implementation Slices [NEW]
 
@@ -366,6 +381,7 @@ Each feature must check:
 - UI smoke test for loading/empty/error/success states.
 - Responsive QA for target widths.
 - i18n/l10n coverage for `vi`, `en`, and `ja`.
+- SEO/GEO smoke checks for public routes: canonical URL, no private/unlisted leakage, robots/noindex, sitemap filtering, structured data validity, Open Graph preview metadata, and AI crawler policy if touched.
 - Docs updated: roadmap, changelog, development log, user guide if behavior changes.
 
 ### 6. Rollout [NEW]

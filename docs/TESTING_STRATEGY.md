@@ -21,6 +21,15 @@
 - [NEW] For each UI feature, verify the design signoff note exists: emotional intent, first-look hierarchy, accent color, spacing, component states, and responsive behavior.
 - [NEW] Validate card hierarchy for album, media, plan, client, and admin cards: thumbnail/image, title, subtitle, metadata, and primary action.
 
+## SEO/GEO
+
+- Public routes have tests or smoke checks for canonical URLs, title/description, Open Graph metadata, structured data, and sitemap eligibility.
+- Private, unlisted/link-only, auth, dashboard, admin, payment/OAuth callback, signed media, and raw storage routes are excluded from sitemap and marked noindex where applicable.
+- Sitemap generation must query only public/indexable data after permission/privacy filtering.
+- Structured data must match visible, owner-approved content and must not include private EXIF/location, raw storage keys, tokens, audit metadata, or unapproved user-generated content.
+- GEO checks confirm public pages have crawlable, answerable content and AI crawler policy is documented in robots.txt before launch.
+- Locale checks include metadata and `hreflang`/alternate URLs when locale routing exists.
+
 ## Security
 
 - Login brute-force and lockout behavior.

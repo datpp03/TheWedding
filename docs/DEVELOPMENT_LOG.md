@@ -1,5 +1,51 @@
 # Development Log
 
+## 2026-06-20 - Production Media Upload Limit And Queue Fallback
+
+### Completed
+
+- Investigated production media upload failures where large phone photos returned `File exceeds upload size limit` and later files returned generic `Internal server error`.
+- Changed image validation to honor configured `MAX_UPLOAD_BYTES` instead of the previous hard-coded 15 MB image ceiling.
+- Kept video validation on `MAX_VIDEO_UPLOAD_BYTES`.
+- Made media processing queue enqueue resilient: if Redis/BullMQ is unavailable or misconfigured, upload returns successfully and processing falls back to inline async processing.
+- Added queue/worker error listeners so Redis connection errors are logged as warnings instead of leaking as unexpected runtime failures.
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass.
+- `pnpm.cmd --filter @the-wedding/api test`: pass.
+- `pnpm.cmd --filter @the-wedding/api lint`: pass.
+- Prettier write/check on changed files: pass.
+
+## 2026-06-20 - Tenant Session Refresh After Site Creation
+
+### Completed
+
+- Investigated production album creation failure returning `Tenant access denied`.
+- Confirmed the request access token had `tenantIds: []`, so the backend correctly denied access to the newly created tenant.
+- Added a frontend auth refresh call immediately after creating a wedding site so the browser receives a fresh access token containing the new tenant membership before album/media actions.
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/web typecheck`: pass.
+- `pnpm.cmd --filter @the-wedding/web lint`: pass.
+- Prettier write/check on changed files: pass.
+
+## 2026-06-19 - Brevo SMTP Auth Email Configuration
+
+### Completed
+
+- Configured local `.env` for Brevo SMTP using `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, and `SMTP_FROM`.
+- Added `AuthMailService` to send password reset and email verification links through SMTP when credentials are configured.
+- Wired auth registration and forgot-password flows to send email while preserving non-production dev token responses.
+- Updated env validation, `.env.example`, environment docs, and the free-hosting guide for Brevo-compatible SMTP setup.
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass.
+- `pnpm.cmd --filter @the-wedding/api test`: pass.
+- Prettier write/check on changed code and documentation files: pass.
+
 ## 2026-06-18 - Remaining Feature Prompt Backlog
 
 ### Completed
@@ -881,3 +927,28 @@
 - `pnpm.cmd typecheck`: pass
 - `pnpm.cmd test`: pass
 - `pnpm.cmd build`: pass after rerun with elevated permission because Next standalone needs Windows symlink permission.
+
+## 2026-06-18 - SEO/GEO Planning And Prompt Rules
+
+### Completed
+
+- Added `docs/SEO_GEO_GUIDELINES.md` as the source of truth for SEO and Generative Engine Optimization.
+- Added rules for canonical URLs, robots/noindex, sitemap eligibility, structured data, Open Graph metadata, i18n metadata, AI crawler policy, media alt/caption handling, and privacy-first indexing.
+- Linked SEO/GEO requirements into `AGENTS.md`, product plan, project overview, roadmap, UI/UX guidelines, testing strategy, system map, prompt README, and active prompt files.
+- Clarified that private, unlisted/link-only, auth, dashboard, admin, callback, signed media, raw storage, and sensitive metadata must not be indexable or AI-facing.
+
+### Tests and Checks
+
+- Documentation/prompt-only update; ran Prettier check on changed markdown files.
+
+## 2026-06-18 - VIEC_CAN_LAM Detailed Handoff Rule
+
+### Completed
+
+- Updated `AGENTS.md` so every future `VIEC_CAN_LAM.md` item must include detailed execution guidance, not only a task title.
+- Updated `prompts/README.md` and all active prompts (`08a` through `10`) so prompt handoff requires mini-runbooks in `VIEC_CAN_LAM.md`.
+- Added a concrete writing template to `VIEC_CAN_LAM.md` covering preparation, steps, configuration/check locations, completion criteria, and related docs.
+
+### Tests and Checks
+
+- Documentation/prompt-only update; ran Prettier check on changed markdown files.

@@ -45,8 +45,13 @@ const envSchema = z.object({
   MAIL_PROVIDER: z.string().default('smtp'),
   SMTP_HOST: z.string().optional().default('localhost'),
   SMTP_PORT: z.coerce.number().int().positive().default(1025),
+  SMTP_SECURE: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
   SMTP_USER: z.string().optional().default(''),
   SMTP_PASSWORD: z.string().optional().default(''),
+  SMTP_FROM: z.string().optional().default('TheWedding <no-reply@localhost>'),
   GOOGLE_OAUTH_CLIENT_ID: z.string().optional().default(''),
   GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional().default(''),
   FACEBOOK_OAUTH_CLIENT_ID: z.string().optional().default(''),

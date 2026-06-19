@@ -77,6 +77,7 @@ Required signoff checks:
 ## Acceptance Checklist
 
 - Key pages are visually coherent with the youthful wedding brand direction.
+- Public pages have SEO/GEO-visible hierarchy: one clear page topic, semantic headings, descriptive link text, image alt/caption fallback, and metadata copy that matches the visible content.
 - Login, register, dashboard, tenant settings, album, media, theme, public gallery, and admin pages are responsive.
 - No text overlaps or escapes its parent container on mobile or desktop.
 - Buttons, forms, menus, tabs, uploads, and galleries have complete interaction states.

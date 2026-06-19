@@ -27,6 +27,9 @@ All notable changes to this project will be documented in this file.
 - Phase 9 scale foundation with shared B2C/B2B plan catalog, add-on catalog, feature flag mapping, entitlement gate logic, user public handles, tenant quota summaries, analytics events, greeting rule placeholder, idempotent MoMo payment-event storage, and admin Scale UI.
 - Database migration for `user_public_handles`, `plan_subscriptions`, `entitlements`, `payment_events`, `custom_domains`, `studio_profiles`, `studio_clients`, `analytics_events`, and `greeting_rules`.
 - Locale keys for the new admin Scale surface in Vietnamese, English, and Japanese.
+- SEO/GEO guideline document covering canonical URLs, robots/noindex, sitemap, structured data, AI crawler policy, public route privacy, media metadata, and verification.
+- Prompt handoff rules now require each `VIEC_CAN_LAM.md` item to include detailed execution instructions, prerequisites, exact places to configure/check, verification steps, and related docs.
+- SMTP auth email delivery using configured host/user/password/from settings for password reset and email verification links.
 
 ### Changed
 
@@ -42,6 +45,11 @@ All notable changes to this project will be documented in this file.
 - Added `TENANT_STORAGE_QUOTA_BYTES` as the default per-tenant upload ceiling before Phase 9 plan/entitlement quota expansion.
 - The web root now renders public album discovery instead of redirecting users to the dashboard/login flow.
 - R2 and MoMo env placeholders are documented and validated as optional values, while production remains on local storage and no public payment webhook is exposed yet.
+- Product plan, roadmap, testing strategy, UI/UX rules, agent rules, and prompt workflow now require SEO/GEO checks for public-facing route/content/metadata work.
+- `VIEC_CAN_LAM.md` now includes a concrete item template so future handoff notes are actionable mini-runbooks instead of short task labels.
+- Mail environment docs and host guide now use `SMTP_PASSWORD`, `SMTP_SECURE`, and `SMTP_FROM` consistently for Brevo-compatible SMTP setup.
+- Creating a wedding site from the dashboard now refreshes the auth session so newly granted tenant access is available before creating albums or uploading media.
+- Media image uploads now honor configured `MAX_UPLOAD_BYTES` instead of a hard-coded 15 MB ceiling, and media processing falls back to inline mode if the Redis queue is unavailable.
 
 ## 0.1.0 - 2026-06-12
 

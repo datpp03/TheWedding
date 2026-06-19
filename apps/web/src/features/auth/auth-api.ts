@@ -55,6 +55,12 @@ export function verifyEmail(input: { token: string }) {
   });
 }
 
+export function refreshSession() {
+  return apiClient<{ user: AuthUser }>('/auth/refresh', {
+    method: 'POST',
+  });
+}
+
 export function logout() {
   return apiClient<{ loggedOut: boolean }>('/auth/logout', {
     method: 'POST',

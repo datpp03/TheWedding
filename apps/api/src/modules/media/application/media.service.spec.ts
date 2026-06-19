@@ -151,6 +151,24 @@ describe('MediaService', () => {
     expect(storage.upload).not.toHaveBeenCalled();
   });
 
+  it('allows large phone photos within the configured image upload limit', async () => {
+    const { service, storage } = createService();
+    const file: MemoryUpload = {
+      buffer: Buffer.from('jpg'),
+      mimetype: 'image/jpeg',
+      originalname: 'phone-photo.jpg',
+      size: 16 * 1024 * 1024,
+    };
+
+    await expect(service.upload('tenant-1', 'album-1', file, baseContext)).resolves.toEqual(
+      expect.objectContaining({
+        mimeType: 'image/jpeg',
+        processingStatus: MEDIA_PROCESSING_STATUS.PENDING,
+      }),
+    );
+    expect(storage.upload).toHaveBeenCalled();
+  });
+
   it('denies public downloads when album downloads are disabled', async () => {
     const { service } = createService();
 

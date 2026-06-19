@@ -7,6 +7,7 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { SettingsModule } from '../settings/settings.module';
 import { UserOrmEntity } from '../users/infrastructure/user.orm-entity';
 import { AuthService } from './application/auth.service';
+import { AuthMailService } from './application/auth-mail.service';
 import { AuthTokenService } from './application/auth-token.service';
 import { Argon2PasswordHasher } from './infrastructure/argon2-password-hasher';
 import { EmailVerificationTokenOrmEntity } from './infrastructure/email-verification-token.orm-entity';
@@ -35,6 +36,7 @@ import { AuthController } from './presentation/auth.controller';
   controllers: [AuthController],
   providers: [
     AuthService,
+    AuthMailService,
     AuthTokenService,
     Argon2PasswordHasher,
     TypeOrmAuthRepository,

@@ -4,9 +4,15 @@ PLEASE IMPLEMENT THIS PROMPT.
 
 IMPORTANT PROMPT LIFECYCLE: Chi xoa file prompt nay sau khi hoan thanh tat ca muc trong prompt, pass verification, cap nhat docs, commit va push thanh cong. Neu con bat ky hang muc nao chua xong, giu nguyen file prompt va ghi ro phan con lai.
 
+TRUOC KHI BAT DAU: Doc `AGENTS.md` va `docs/SYSTEM_MAP.md` de biet cau truc thu muc, file lien quan, va quy tac ban giao (tiet kiem token, khong quet lai toan repo). Neu muc `## Carryover Khan Cap Tu Prompt Truoc` ben duoi co noi dung, xu ly cac muc do TRUOC.
+
+## Carryover Khan Cap Tu Prompt Truoc
+
+(Trong. Prompt truoc se chen loi chua sua / viec phai lam ngay vao day.)
+
 Ban dang lam trong repo `D:\AJT\TheWedding`. Hay bat dau Phase 9.
 
-Truoc khi lam, doc `docs/PRODUCT_PLAN.md`, `docs/PROJECT_OVERVIEW.md`, `docs/ROADMAP.md`, `docs/UI_UX_DESIGN.md`, `docs/STORAGE_STRATEGY.md`, va cac docs module lien quan. [NEW]
+Truoc khi lam, doc `docs/PRODUCT_PLAN.md`, `docs/PROJECT_OVERVIEW.md`, `docs/ROADMAP.md`, `docs/UI_UX_DESIGN.md`, `docs/STORAGE_STRATEGY.md`, `docs/SEO_GEO_GUIDELINES.md`, va cac docs module lien quan. [NEW]
 
 ## Muc Tieu
 
@@ -64,6 +70,13 @@ Them nen tang cho scale/future: SaaS business model, payment/plans, B2B studio s
   - domain model.
   - verification status.
   - deployment docs.
+- SEO/GEO scale foundation [NEW]:
+  - custom domain canonical policy, duplicate-domain canonical handling, and old-route redirect/noindex strategy.
+  - sitemap generation/filtering for public/indexable sites and albums only.
+  - robots.txt policy for public pages, app routes, API, signed media, AI crawlers, and future custom domains.
+  - structured data foundations for public home/site/album/studio pages when owner/studio opt-in exists.
+  - Open Graph/social preview image policy using safe public optimized derivatives.
+  - AI/GEO content summaries must use public, owner-approved facts only and never expose private/unlisted albums, payment/admin data, storage keys, or AI-inferred sensitive fields.
 - Theme monetization and automation [NEW]:
   - album/site custom theme expansion if needed beyond current tenant active theme.
   - premium theme gates by plan/entitlement.
@@ -108,14 +121,24 @@ Them nen tang cho scale/future: SaaS business model, payment/plans, B2B studio s
 - [NEW] Unit tests for plan/add-on classification, B2B studio access boundaries if implemented, premium theme gates, contextual theme resolver fallback, and greeting schedule windows.
 - Smoke tests for analytics events and admin visibility.
 - [NEW] Responsive smoke checks for plan/subscription, studio, theme/admin-control, contextual theme, and greeting UI surfaces that are implemented.
+- SEO/GEO tests for handle/custom-domain canonical URLs, sitemap eligibility, robots/noindex rules, structured data builders, and private/unlisted exclusion.
 - Run full verification.
 
 ## Docs
 
-- Update `docs/PRODUCT_PLAN.md`, architecture, API design, database design, testing strategy, environment variables, deployment, roadmap, changelog, development log.
+- Update `docs/PRODUCT_PLAN.md`, architecture, API design, database design, testing strategy, `docs/SEO_GEO_GUIDELINES.md` neu policy thay doi, environment variables, deployment, roadmap, changelog, development log.
 - Update `docs/HUONG_DAN_SU_DUNG.md` bang tieng Viet de huong dan cac feature moi nhu plan/subscription, MoMo payment, admin entitlement unlocks, user handle/album URLs, custom domain, analytics, watermark, AI tagging, Cloudflare R2/CDN/storage production va upload sessions neu duoc expose ra UI/API.
 - [NEW] If B2B studio, contextual themes, automated greetings, premium themes, extra storage, custom domains, or add-ons are implemented or exposed, update the Vietnamese user guide with step-by-step usage and limitations.
 - Update i18n/l10n locale files and docs for plan names, feature gates, analytics labels, domain statuses, storage messages, and future-feature copy.
+
+## Ban Giao Sau Prompt (Bat Buoc)
+
+Theo `AGENTS.md` muc 3, sau khi hoan tat (hoac dung do con viec):
+
+- Cap nhat `VIEC_CAN_LAM.md` (thu muc goc): viec nguoi dung can lam (credentials/config/QA thu cong/quyet dinh san pham), acceptance chua xong va ly do. Moi item phai kem huong dan chi tiet de nguoi dung tu lam duoc: can chuan bi gi, cac buoc thuc hien, file/env/dashboard/URL lien quan, cach smoke test/xac nhan pass, va docs lien quan.
+- Neu con loi chua sua hoac viec phai lam ngay, chen vao muc `## Carryover Khan Cap Tu Prompt Truoc` o DAU prompt ke tiep (theo thu tu `prompts/README.md`); neu day la prompt cuoi, ghi vao muc "Khan cap" cua `VIEC_CAN_LAM.md`.
+- Bo sung y tuong nang cap/mo rong tu nghi ra vao `Y_TUONG_NANG_CAP.md` (thu muc goc).
+- Cap nhat `docs/SYSTEM_MAP.md` neu cau truc thu muc/module/route/doc thay doi.
 
 ## Acceptance Criteria
 
@@ -129,4 +152,6 @@ Them nen tang cho scale/future: SaaS business model, payment/plans, B2B studio s
 - [NEW] B2C SaaS packages, B2B studio subscription direction, and value-added services are represented in the plan/docs and implemented behind gates where code exists.
 - [NEW] Custom theme expansion, admin theme control, dynamic contextual theme, and automated greetings are either implemented safely or documented as gated placeholders with clear next steps.
 - [NEW] New UI surfaces pass the design gate from `docs/PRODUCT_PLAN.md` and responsive requirements from `docs/UI_UX_DESIGN.md`.
+- [NEW] Public/custom-domain/handle routes have SEO/GEO policy for canonical, robots/noindex, sitemap, structured data, Open Graph, AI crawler behavior, and privacy boundaries.
+- `VIEC_CAN_LAM.md` va `Y_TUONG_NANG_CAP.md` da duoc cap nhat; moi item trong `VIEC_CAN_LAM.md` co huong dan thuc hien chi tiet; viec khan cap (neu co) da chuyen sang prompt ke tiep hoac muc "Khan cap".
 - Commit va push len `origin/main`.

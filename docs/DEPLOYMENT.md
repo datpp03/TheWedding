@@ -53,6 +53,7 @@ The repo includes `.github/workflows/deploy-docker-vps.yml`, `docker-compose.pro
 ## Production Notes
 
 - Use managed PostgreSQL for production; Neon is the current free-tier target for early usage.
+- Before public launch, verify SEO/GEO deployment basics from `docs/SEO_GEO_GUIDELINES.md`: HTTPS canonical domain, redirects between default/custom domains, `robots.txt`, `sitemap.xml`, noindex for auth/admin/dashboard/private routes, Open Graph image reachability, and cache rules that do not expose private/API/signed-media responses.
 - Use Cloudflare R2 through the S3-compatible storage adapter as the first production object-storage target after the adapter is implemented and verified. Keep original media private and generate signed URLs for protected access.
 - Put CDN in front of public optimized media only.
 - Keep original media private by default.

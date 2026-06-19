@@ -4,9 +4,15 @@ PLEASE IMPLEMENT THIS PROMPT.
 
 IMPORTANT PROMPT LIFECYCLE: Chi xoa file prompt nay sau khi hoan thanh tat ca muc trong prompt, pass verification, cap nhat docs, commit va push thanh cong. Neu con bat ky hang muc nao chua xong, giu nguyen file prompt va ghi ro phan con lai.
 
+TRUOC KHI BAT DAU: Doc `AGENTS.md` va `docs/SYSTEM_MAP.md` de biet cau truc thu muc, file lien quan, va quy tac ban giao (tiet kiem token, khong quet lai toan repo). Neu muc `## Carryover Khan Cap Tu Prompt Truoc` ben duoi co noi dung, xu ly cac muc do TRUOC.
+
+## Carryover Khan Cap Tu Prompt Truoc
+
+(Trong. Prompt truoc se chen loi chua sua / viec phai lam ngay vao day.)
+
 Ban dang lam trong repo `D:\AJT\TheWedding`. Hay lam CI/CD Docker VPS truoc cac phase con lai de co the xem tien do du an tu xa tren host/VPS.
 
-Truoc khi lam, doc `docs/PRODUCT_PLAN.md`, `docs/DEPLOYMENT.md`, va `docs/guides/CI_CD_DOCKER_VPS.md` de dam bao deployment docs khong mau thuan voi product/roadmap hien tai. [NEW]
+Truoc khi lam, doc `docs/PRODUCT_PLAN.md`, `docs/DEPLOYMENT.md`, `docs/SEO_GEO_GUIDELINES.md`, va `docs/guides/CI_CD_DOCKER_VPS.md` de dam bao deployment docs khong mau thuan voi product/roadmap hien tai. [NEW]
 
 ## Muc Tieu
 
@@ -48,6 +54,10 @@ Lam theo `docs/guides/CI_CD_DOCKER_VPS.md`.
   - VPS host/user/key/app dir.
   - env production nam tren VPS.
 - Them rollback steps theo commit SHA.
+- SEO/GEO deployment readiness:
+  - Document cach verify production `robots.txt`, `sitemap.xml`, canonical base URL, custom domain canonical, HTTPS redirects, cache headers, Open Graph image reachability, va noindex cho admin/auth/dashboard.
+  - Dam bao reverse proxy/CDN khong cache private/auth/admin/API/signed-media responses cong khai.
+  - Neu dung custom domain, document redirect/canonical strategy giua apex, www, Vercel/Render/default domains.
 
 ## Tests
 
@@ -55,14 +65,25 @@ Lam theo `docs/guides/CI_CD_DOCKER_VPS.md`.
 - Verify Docker build locally or in CI where possible.
 - Verify workflow khong deploy tren PR.
 - Verify deploy chi chay tren `main` hoac manual dispatch neu duoc cau hinh.
+- Verify SEO/GEO deployment smoke: robots.txt/sitemap.xml reachable, HTTPS canonical domain dung, admin/auth/dashboard noindex, public Open Graph image reachable.
 - Run full verification neu thay doi code/runtime.
 
 ## Docs
 
 - Update `docs/DEPLOYMENT.md`.
+- Update `docs/SEO_GEO_GUIDELINES.md` neu deployment/crawler/cache/canonical policy thay doi.
 - Update `docs/guides/CI_CD_DOCKER_VPS.md` neu workflow thuc te khac guide.
 - Update `docs/TROUBLESHOOTING.md` voi loi thuong gap khi registry login, SSH, pull image, restart container.
 - Update `docs/ROADMAP.md`, `docs/CHANGELOG.md`, `docs/DEVELOPMENT_LOG.md`.
+
+## Ban Giao Sau Prompt (Bat Buoc)
+
+Theo `AGENTS.md` muc 3, sau khi hoan tat (hoac dung do con viec):
+
+- Cap nhat `VIEC_CAN_LAM.md` (thu muc goc): viec nguoi dung can lam (credentials/config/QA thu cong/quyet dinh san pham), acceptance chua xong va ly do. Moi item phai kem huong dan chi tiet de nguoi dung tu lam duoc: can chuan bi gi, cac buoc thuc hien, file/env/dashboard/URL lien quan, cach smoke test/xac nhan pass, va docs lien quan.
+- Neu con loi chua sua hoac viec phai lam ngay, chen vao muc `## Carryover Khan Cap Tu Prompt Truoc` o DAU prompt ke tiep (theo thu tu `prompts/README.md`); neu day la prompt cuoi, ghi vao muc "Khan cap" cua `VIEC_CAN_LAM.md`.
+- Bo sung y tuong nang cap/mo rong tu nghi ra vao `Y_TUONG_NANG_CAP.md` (thu muc goc).
+- Cap nhat `docs/SYSTEM_MAP.md` neu cau truc thu muc/module/route/doc thay doi.
 
 ## Acceptance Criteria
 
@@ -70,5 +91,7 @@ Lam theo `docs/guides/CI_CD_DOCKER_VPS.md`.
 - Docker Hub/GHCR registry path va secrets duoc document.
 - VPS deploy job pull image moi va restart container.
 - Rollback theo image tag commit SHA duoc document.
+- Production SEO/GEO smoke checklist cho robots/sitemap/canonical/custom-domain/cache/noindex duoc document.
 - Khong co production secret nao bi commit vao repo.
+- `VIEC_CAN_LAM.md` va `Y_TUONG_NANG_CAP.md` da duoc cap nhat; moi item trong `VIEC_CAN_LAM.md` co huong dan thuc hien chi tiet; viec khan cap (neu co) da chuyen sang prompt ke tiep hoac muc "Khan cap".
 - Commit va push len `origin/main`.

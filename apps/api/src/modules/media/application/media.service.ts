@@ -46,15 +46,15 @@ export type MemoryUpload = {
   size: number;
 };
 
-const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
-const MAX_VIDEO_BYTES = 150 * 1024 * 1024;
-const ALLOWED_TYPES = new Map<string, { extension: string; type: string; maxBytes: number }>([
-  ['image/jpeg', { extension: 'jpg', maxBytes: MAX_IMAGE_BYTES, type: MEDIA_TYPE.IMAGE }],
-  ['image/png', { extension: 'png', maxBytes: MAX_IMAGE_BYTES, type: MEDIA_TYPE.IMAGE }],
-  ['image/webp', { extension: 'webp', maxBytes: MAX_IMAGE_BYTES, type: MEDIA_TYPE.IMAGE }],
-  ['video/mp4', { extension: 'mp4', maxBytes: MAX_VIDEO_BYTES, type: MEDIA_TYPE.VIDEO }],
-  ['video/webm', { extension: 'webm', maxBytes: MAX_VIDEO_BYTES, type: MEDIA_TYPE.VIDEO }],
-  ['video/quicktime', { extension: 'mov', maxBytes: MAX_VIDEO_BYTES, type: MEDIA_TYPE.VIDEO }],
+const DEFAULT_MAX_IMAGE_BYTES = 80 * 1024 * 1024;
+const DEFAULT_MAX_VIDEO_BYTES = 600 * 1024 * 1024;
+const ALLOWED_TYPES = new Map<string, { extension: string; type: string }>([
+  ['image/jpeg', { extension: 'jpg', type: MEDIA_TYPE.IMAGE }],
+  ['image/png', { extension: 'png', type: MEDIA_TYPE.IMAGE }],
+  ['image/webp', { extension: 'webp', type: MEDIA_TYPE.IMAGE }],
+  ['video/mp4', { extension: 'mp4', type: MEDIA_TYPE.VIDEO }],
+  ['video/webm', { extension: 'webm', type: MEDIA_TYPE.VIDEO }],
+  ['video/quicktime', { extension: 'mov', type: MEDIA_TYPE.VIDEO }],
 ]);
 
 @Injectable()
@@ -97,7 +97,10 @@ export class MediaService {
     await this.systemParameters.assertUploadEnabled();
     this.assertTenantAccess(tenantId, context);
     await this.findOwnedAlbum(tenantId, albumId);
-    const validated = validateUpload(file);
+    const validated = validateUpload(file, {
+      maxImageBytes: this.config.get<number>('MAX_UPLOAD_BYTES', DEFAULT_MAX_IMAGE_BYTES),
+      maxVideoBytes: this.config.get<number>('MAX_VIDEO_UPLOAD_BYTES', DEFAULT_MAX_VIDEO_BYTES),
+    });
     await this.assertTenantQuota(tenantId, validated.file.size);
     const mediaId = randomUUID();
     const sortOrder = await this.media.count({ where: { albumId, tenantId } });
@@ -374,7 +377,10 @@ export class MediaService {
   }
 }
 
-function validateUpload(file: MemoryUpload | undefined) {
+function validateUpload(
+  file: MemoryUpload | undefined,
+  limits: { maxImageBytes: number; maxVideoBytes: number },
+) {
   if (!file) {
     throw new BadRequestException('File is required');
   }
@@ -386,7 +392,8 @@ function validateUpload(file: MemoryUpload | undefined) {
   if (extension !== allowed.extension && !(allowed.extension === 'jpg' && extension === 'jpeg')) {
     throw new BadRequestException('File extension does not match MIME type');
   }
-  if (file.size > allowed.maxBytes) {
+  const maxBytes = allowed.type === MEDIA_TYPE.VIDEO ? limits.maxVideoBytes : limits.maxImageBytes;
+  if (file.size > maxBytes) {
     throw new BadRequestException('File exceeds upload size limit');
   }
   return { extension: allowed.extension, file, type: allowed.type };

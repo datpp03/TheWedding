@@ -129,28 +129,29 @@ Khi thêm type/constant dùng cho cả api + web: đặt ở `packages/shared/sr
 
 ## 6. Docs Index (`docs/`)
 
-| File                          | Dùng để                                               | Cập nhật khi                           |
-| ----------------------------- | ----------------------------------------------------- | -------------------------------------- |
-| `PRODUCT_PLAN.md`             | Business model, gói B2C/B2B, add-on, design gate      | Thêm/sửa feature liên quan business/UX |
-| `PROJECT_OVERVIEW.md`         | Tóm tắt sản phẩm, user, định hướng                    | Đổi định hướng sản phẩm                |
-| `ARCHITECTURE.md`             | Kiến trúc tổng thể, boundary                          | Đổi kiến trúc/integration              |
-| `CLEAN_ARCHITECTURE_RULES.md` | Quy tắc tầng backend                                  | Đổi quy ước tầng                       |
-| `DATABASE_DESIGN.md`          | Schema, bảng, migration                               | Thêm/sửa bảng/migration                |
-| `API_DESIGN.md`               | Hợp đồng REST `/api/v1`                               | Thêm/sửa endpoint                      |
-| `AUTH_SECURITY.md`            | Auth/security model                                   | Đổi auth/security                      |
-| `ROLE_PERMISSION.md`          | RBAC, role, permission                                | Thêm/sửa role/permission               |
-| `STORAGE_STRATEGY.md`         | Storage local/R2/CDN/signed URL                       | Đổi storage/media delivery             |
-| `UI_UX_DESIGN.md`             | Hướng dẫn UI/UX + design gate                         | Thêm/sửa UI                            |
-| `TESTING_STRATEGY.md`         | Chiến lược test                                       | Thêm loại test                         |
-| `ENVIRONMENT_VARIABLES.md`    | Biến môi trường                                       | Thêm/sửa env                           |
-| `DEPLOYMENT.md`               | Deploy Vercel/Render/Neon + VPS                       | Đổi deploy                             |
-| `ROADMAP.md`                  | Trạng thái phase (done/planned)                       | Sau mỗi phase                          |
-| `CHANGELOG.md`                | Lịch sử thay đổi                                      | Mỗi thay đổi                           |
-| `DEVELOPMENT_LOG.md`          | Nhật ký chi tiết (đã làm/thiếu/file/risk)             | Mỗi phase                              |
-| `HUONG_DAN_SU_DUNG.md`        | Hướng dẫn dùng (tiếng Việt)                           | Đổi hành vi người dùng                 |
-| `TROUBLESHOOTING.md`          | Lỗi thường gặp                                        | Phát hiện lỗi/cách xử lý               |
-| `GITHUB_FLOW.md`              | Quy trình Git/PR                                      | Đổi quy trình                          |
-| `guides/`                     | Hướng dẫn vận hành (CI/CD, free hosting, di dời host) | Đổi vận hành                           |
+| File                          | Dùng để                                                                                                                          | Cập nhật khi                                                     |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `PRODUCT_PLAN.md`             | Business model, gói B2C/B2B, add-on, design gate                                                                                 | Thêm/sửa feature liên quan business/UX                           |
+| `PROJECT_OVERVIEW.md`         | Tóm tắt sản phẩm, user, định hướng                                                                                               | Đổi định hướng sản phẩm                                          |
+| `ARCHITECTURE.md`             | Kiến trúc tổng thể, boundary                                                                                                     | Đổi kiến trúc/integration                                        |
+| `CLEAN_ARCHITECTURE_RULES.md` | Quy tắc tầng backend                                                                                                             | Đổi quy ước tầng                                                 |
+| `DATABASE_DESIGN.md`          | Schema, bảng, migration                                                                                                          | Thêm/sửa bảng/migration                                          |
+| `API_DESIGN.md`               | Hợp đồng REST `/api/v1`                                                                                                          | Thêm/sửa endpoint                                                |
+| `AUTH_SECURITY.md`            | Auth/security model                                                                                                              | Đổi auth/security                                                |
+| `ROLE_PERMISSION.md`          | RBAC, role, permission                                                                                                           | Thêm/sửa role/permission                                         |
+| `STORAGE_STRATEGY.md`         | Storage local/R2/CDN/signed URL                                                                                                  | Đổi storage/media delivery                                       |
+| `SEO_GEO_GUIDELINES.md`       | Quy tắc SEO + Generative Engine Optimization, robots, sitemap, canonical, structured data, AI crawler policy, privacy index gate | Đổi public route/content/metadata/custom domain/discovery/prompt |
+| `UI_UX_DESIGN.md`             | Hướng dẫn UI/UX + design gate                                                                                                    | Thêm/sửa UI                                                      |
+| `TESTING_STRATEGY.md`         | Chiến lược test                                                                                                                  | Thêm loại test                                                   |
+| `ENVIRONMENT_VARIABLES.md`    | Biến môi trường                                                                                                                  | Thêm/sửa env                                                     |
+| `DEPLOYMENT.md`               | Deploy Vercel/Render/Neon + VPS                                                                                                  | Đổi deploy                                                       |
+| `ROADMAP.md`                  | Trạng thái phase (done/planned)                                                                                                  | Sau mỗi phase                                                    |
+| `CHANGELOG.md`                | Lịch sử thay đổi                                                                                                                 | Mỗi thay đổi                                                     |
+| `DEVELOPMENT_LOG.md`          | Nhật ký chi tiết (đã làm/thiếu/file/risk)                                                                                        | Mỗi phase                                                        |
+| `HUONG_DAN_SU_DUNG.md`        | Hướng dẫn dùng (tiếng Việt)                                                                                                      | Đổi hành vi người dùng                                           |
+| `TROUBLESHOOTING.md`          | Lỗi thường gặp                                                                                                                   | Phát hiện lỗi/cách xử lý                                         |
+| `GITHUB_FLOW.md`              | Quy trình Git/PR                                                                                                                 | Đổi quy trình                                                    |
+| `guides/`                     | Hướng dẫn vận hành (CI/CD, free hosting, di dời host)                                                                            | Đổi vận hành                                                     |
 
 ## 7. Prompts (`prompts/`)
 
@@ -171,6 +172,7 @@ Khi thêm type/constant dùng cho cả api + web: đặt ở `packages/shared/sr
 - Env mới → `apps/api/src/config/env.validation.ts` + `.env.example` + `docs/ENVIRONMENT_VARIABLES.md`.
 - Provider ngoài (mail/storage/scanner/oauth) → adapter sau interface trong `infrastructure/`, không leak secret, có flag bật/tắt.
 - Tạo/sửa prompt → đặt trong `prompts/`, theo cấu trúc chuẩn (xem `prompts/README.md` và `AGENTS.md`), tham chiếu đúng file/thư mục theo bản đồ này.
+- Public route/metadata/SEO/GEO → đọc `docs/SEO_GEO_GUIDELINES.md`; cập nhật canonical, robots/noindex, sitemap, structured data, Open Graph, i18n metadata, privacy guard và tests phù hợp.
 
 ## 9. Verification chuẩn
 

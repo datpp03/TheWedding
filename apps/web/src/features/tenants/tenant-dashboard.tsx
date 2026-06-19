@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { TENANT_VISIBILITY } from '@the-wedding/shared';
 import { MetricCard } from '@/components/metric-card';
+import { refreshSession } from '../auth/auth-api';
 import { checkTenantSlug, createTenant, listTenants, type Tenant } from './tenant-api';
 
 type CreateState = {
@@ -83,6 +84,7 @@ export function TenantDashboard() {
         ...form,
         slug: slugPreview,
       });
+      await refreshSession();
       setTenants((current) => [tenant, ...current]);
       setForm(initialCreateState);
       setSuccess('Wedding site created. Your public slug is ready.');
