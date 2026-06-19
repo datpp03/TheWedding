@@ -1,5 +1,21 @@
 # Development Log
 
+## 2026-06-20 - Production Media Upload 500 Hardening
+
+### Completed
+
+- Investigated the remaining production media upload `INTERNAL_SERVER_ERROR` after tenant access was fixed.
+- Added explicit zero-byte upload validation so malformed/copied multipart requests return `400 File is empty` instead of reaching storage/processing.
+- Wrapped local/object storage writes so filesystem or provider failures return `503 Media storage is unavailable` with server-side logs.
+- Made media processing enqueue best-effort from the upload service: the original upload is accepted after storage/DB/audit succeeds, while queue/processor failures are logged and can be retried.
+- Added service tests for empty files, storage failures, and queue enqueue failures.
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/api test -- media.service.spec.ts`: pass.
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass.
+- `pnpm.cmd --filter @the-wedding/api lint`: pass.
+
 ## 2026-06-20 - GitHub Actions Audit Dependency Overrides
 
 ### Completed

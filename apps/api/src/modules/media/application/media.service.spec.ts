@@ -115,6 +115,21 @@ describe('MediaService', () => {
     expect(storage.upload).not.toHaveBeenCalled();
   });
 
+  it('rejects empty uploads before writing storage', async () => {
+    const { service, storage } = createService();
+    const file: MemoryUpload = {
+      buffer: Buffer.alloc(0),
+      mimetype: 'image/jpeg',
+      originalname: 'photo.jpg',
+      size: 0,
+    };
+
+    await expect(service.upload('tenant-1', 'album-1', file, baseContext)).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+    expect(storage.upload).not.toHaveBeenCalled();
+  });
+
   it('rejects uploads that exceed the tenant storage quota before writing storage', async () => {
     const media = {
       count: jest.fn().mockResolvedValue(0),
@@ -167,6 +182,26 @@ describe('MediaService', () => {
       }),
     );
     expect(storage.upload).toHaveBeenCalled();
+  });
+
+  it('returns a service unavailable error when media storage cannot write the file', async () => {
+    const storage = {
+      delete: jest.fn(),
+      getPublicUrl: jest.fn(),
+      getSignedUrl: jest.fn(),
+      upload: jest.fn().mockRejectedValue(new Error('disk is read-only')),
+    };
+    const { service } = createService({ storage });
+    const file: MemoryUpload = {
+      buffer: Buffer.from('jpg'),
+      mimetype: 'image/jpeg',
+      originalname: 'photo.jpg',
+      size: 3,
+    };
+
+    await expect(service.upload('tenant-1', 'album-1', file, baseContext)).rejects.toBeInstanceOf(
+      ServiceUnavailableException,
+    );
   });
 
   it('denies public downloads when album downloads are disabled', async () => {
@@ -225,5 +260,28 @@ describe('MediaService', () => {
         tenantId: 'tenant-1',
       }),
     );
+  });
+
+  it('accepts uploads when media processing enqueue fails', async () => {
+    const mediaProcessing = {
+      enqueue: jest.fn().mockRejectedValue(new Error('redis unavailable')),
+      retry: jest.fn().mockResolvedValue(undefined),
+    };
+    const { service, storage } = createService({ mediaProcessing });
+    const file: MemoryUpload = {
+      buffer: Buffer.from('jpg'),
+      mimetype: 'image/jpeg',
+      originalname: 'photo.jpg',
+      size: 3,
+    };
+
+    await expect(service.upload('tenant-1', 'album-1', file, baseContext)).resolves.toEqual(
+      expect.objectContaining({
+        mimeType: 'image/jpeg',
+        processingStatus: MEDIA_PROCESSING_STATUS.PENDING,
+      }),
+    );
+    expect(storage.upload).toHaveBeenCalled();
+    expect(mediaProcessing.enqueue).toHaveBeenCalled();
   });
 });

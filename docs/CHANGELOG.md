@@ -50,6 +50,7 @@ All notable changes to this project will be documented in this file.
 - Mail environment docs and host guide now use `SMTP_PASSWORD`, `SMTP_SECURE`, and `SMTP_FROM` consistently for Brevo-compatible SMTP setup.
 - Creating a wedding site from the dashboard now refreshes the auth session so newly granted tenant access is available before creating albums or uploading media.
 - Media image uploads now honor configured `MAX_UPLOAD_BYTES` instead of a hard-coded 15 MB ceiling, and media processing falls back to inline mode if the Redis queue is unavailable.
+- Media uploads now reject empty multipart files with a clear `400 File is empty`, map storage write failures to `503 Media storage is unavailable`, and accept the upload even if async media processing enqueue fails so processing can be retried.
 - Removed unnecessary typed-route assertions that caused GitHub Actions web lint to fail on Linux CI; login now uses a browser redirect after successful sign-in to avoid typed-route cast drift.
 - Added pnpm security overrides for `multer`, `postcss`, and `js-yaml` so GitHub Actions audit no longer reports known moderate/high vulnerabilities.
 

@@ -53,6 +53,18 @@
   - Nơi cấu hình/kiểm tra: Render service Environment hoặc file `.env.production` trên VPS; xem log API khi upload.
   - Xác nhận hoàn tất: ảnh dưới 80 MB không còn báo `File exceeds upload size limit`; nếu Redis chưa có thật, upload vẫn thành công và log chỉ cảnh báo fallback inline processing nếu queue không khả dụng.
   - Docs liên quan: `docs/ENVIRONMENT_VARIABLES.md`, `docs/guides/FREE_HOSTING_VERCEL_RENDER_NEON.md`, `docs/STORAGE_STRATEGY.md`.
+- [~] Redeploy backend và smoke test lại lỗi upload `INTERNAL_SERVER_ERROR` ngày 2026-06-20.
+  - Chuẩn bị: quyền deploy backend API, quyền xem logs host, tài khoản admin/owner có tenant `4fd919e3-3130-4964-93cd-abc5850b9566`, và 2-3 ảnh test thật.
+  - Các bước thực hiện:
+    1. Deploy backend API từ commit mới nhất có sửa lỗi upload.
+    2. Đăng xuất rồi đăng nhập lại trên `https://thewedding.d-ajt.app` để xoay session/token mới, đặc biệt vì token/cookie đã từng được paste vào chat.
+    3. Tạo hoặc mở album thuộc tenant cần test.
+    4. Upload 1 ảnh nhỏ trước; nếu pass, upload tiếp vài ảnh điện thoại dung lượng lớn.
+    5. Nếu lỗi vẫn còn, copy `requestId` trong response và mở log backend tương ứng.
+    6. Không dùng DevTools copied curl/fetch để test file upload vì request copy không chứa binary thật; hãy test bằng UI hoặc `curl -F "albumId=..." -F "file=@D:\\path\\photo.jpg"`.
+  - Nơi cấu hình/kiểm tra: Render/VPS deploy logs, API logs, dashboard Media trên app.
+  - Xác nhận hoàn tất: upload ảnh thật trả success, item xuất hiện trong Media dashboard với trạng thái queued/processing/ready; lỗi file rỗng phải trả `400 File is empty`, lỗi storage phải trả `503 Media storage is unavailable` thay vì `INTERNAL_SERVER_ERROR`.
+  - Docs liên quan: `docs/TROUBLESHOOTING.md`, `docs/STORAGE_STRATEGY.md`, `docs/DEPLOYMENT.md`.
 
 ## QA Thủ Công Cần Môi Trường Thật
 

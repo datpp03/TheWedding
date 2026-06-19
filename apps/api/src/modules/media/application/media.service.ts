@@ -5,7 +5,9 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -59,6 +61,8 @@ const ALLOWED_TYPES = new Map<string, { extension: string; type: string }>([
 
 @Injectable()
 export class MediaService {
+  private readonly logger = new Logger(MediaService.name);
+
   constructor(
     @InjectRepository(MediaOrmEntity)
     private readonly media: Repository<MediaOrmEntity>,
@@ -104,13 +108,7 @@ export class MediaService {
     await this.assertTenantQuota(tenantId, validated.file.size);
     const mediaId = randomUUID();
     const sortOrder = await this.media.count({ where: { albumId, tenantId } });
-    const uploaded = await this.storage.upload(validated.file.buffer, {
-      contentType: validated.file.mimetype,
-      extension: validated.extension,
-      mediaId,
-      tenantId,
-      visibility: 'private',
-    });
+    const uploaded = await this.uploadToStorage(tenantId, mediaId, validated);
     const media = await this.media.save(
       this.media.create({
         albumId,
@@ -146,7 +144,7 @@ export class MediaService {
       albumId,
       mimeType: media.mimeType,
     });
-    await this.mediaProcessing.enqueue({
+    await this.enqueueProcessingBestEffort({
       mediaId,
       mimeType: media.mimeType,
       storageKey: media.storageKey,
@@ -375,6 +373,46 @@ export class MediaService {
       userAgent: context.userAgent,
     });
   }
+
+  private async uploadToStorage(
+    tenantId: string,
+    mediaId: string,
+    validated: ReturnType<typeof validateUpload>,
+  ) {
+    try {
+      return await this.storage.upload(validated.file.buffer, {
+        contentType: validated.file.mimetype,
+        extension: validated.extension,
+        mediaId,
+        tenantId,
+        visibility: 'private',
+      });
+    } catch (error) {
+      this.logger.error(
+        `Media storage upload failed for tenant ${tenantId} and media ${mediaId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      throw new ServiceUnavailableException('Media storage is unavailable');
+    }
+  }
+
+  private async enqueueProcessingBestEffort(job: {
+    mediaId: string;
+    mimeType: string;
+    storageKey: string;
+    tenantId: string;
+    type: string;
+  }) {
+    try {
+      await this.mediaProcessing.enqueue(job);
+    } catch (error) {
+      this.logger.warn(
+        `Media processing enqueue failed for ${job.mediaId}; upload accepted and can be retried: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  }
 }
 
 function validateUpload(
@@ -383,6 +421,9 @@ function validateUpload(
 ) {
   if (!file) {
     throw new BadRequestException('File is required');
+  }
+  if (file.size <= 0 || file.buffer.byteLength <= 0) {
+    throw new BadRequestException('File is empty');
   }
   const allowed = ALLOWED_TYPES.get(file.mimetype);
   if (!allowed) {
