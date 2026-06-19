@@ -1,13 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import type { Route } from 'next';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { login } from './auth-api';
 
 export function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,8 +22,7 @@ export function LoginForm() {
         email: getString(formData, 'email'),
         password: getString(formData, 'password'),
       });
-      router.push(getRedirectPath(searchParams.get('redirect')) as Route);
-      router.refresh();
+      window.location.assign(getRedirectPath(searchParams.get('redirect')));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Sign in failed');
     } finally {

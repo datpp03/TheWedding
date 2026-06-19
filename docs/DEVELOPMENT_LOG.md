@@ -7,7 +7,7 @@
 - Reviewed logs in `logs/logs_75040273481`.
 - Identified CI failure in `@the-wedding/web:lint` caused by two `@typescript-eslint/no-unnecessary-type-assertion` errors.
 - Removed the unnecessary `Route` assertion from public album links.
-- Moved the login redirect route assertion to the `router.push` call where Next typed routes require it, keeping lint and typecheck both green.
+- Replaced the login `router.push(... as Route)` cast with `window.location.assign(...)` after successful sign-in, avoiding CI/local typed-route drift while preserving safe internal redirects.
 
 ### Tests and Checks
 
