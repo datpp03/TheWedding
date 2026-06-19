@@ -51,6 +51,7 @@ All notable changes to this project will be documented in this file.
 - Creating a wedding site from the dashboard now refreshes the auth session so newly granted tenant access is available before creating albums or uploading media.
 - Media image uploads now honor configured `MAX_UPLOAD_BYTES` instead of a hard-coded 15 MB ceiling, and media processing falls back to inline mode if the Redis queue is unavailable.
 - Removed unnecessary typed-route assertions that caused GitHub Actions web lint to fail on Linux CI; login now uses a browser redirect after successful sign-in to avoid typed-route cast drift.
+- Added pnpm security overrides for `multer`, `postcss`, and `js-yaml` so GitHub Actions audit no longer reports known moderate/high vulnerabilities.
 
 ## 0.1.0 - 2026-06-12
 

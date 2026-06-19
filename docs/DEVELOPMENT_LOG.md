@@ -1,5 +1,25 @@
 # Development Log
 
+## 2026-06-20 - GitHub Actions Audit Dependency Overrides
+
+### Completed
+
+- Investigated GitHub Actions audit failure for `multer` denial-of-service advisory `GHSA-72gw-mp4g-v24j`.
+- Confirmed `@nestjs/platform-express@11.1.26` still depends on `multer@2.1.1`, while the patched advisory version is `multer>=2.2.0`.
+- Added root `pnpm.overrides` to pin `multer@2.2.0`.
+- Also resolved remaining moderate audit advisories by overriding `postcss@8.5.15` and `js-yaml@4.2.0`.
+- Regenerated `pnpm-lock.yaml` and confirmed `pnpm audit --audit-level moderate` reports no known vulnerabilities.
+
+### Tests and Checks
+
+- `pnpm.cmd audit --audit-level moderate`: pass, no known vulnerabilities found.
+- `pnpm.cmd format:check`: pass.
+- `pnpm.cmd lint`: pass.
+- `pnpm.cmd typecheck`: pass.
+- `pnpm.cmd test`: pass.
+- `pnpm.cmd build`: pass.
+- `git diff --check`: pass.
+
 ## 2026-06-20 - GitHub Actions Web Lint Fix
 
 ### Completed
