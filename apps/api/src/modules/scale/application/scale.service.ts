@@ -319,8 +319,8 @@ export class ScaleService {
       this.media.count({ where: { tenantId } }),
       this.media
         .createQueryBuilder('media')
-        .select('COALESCE(SUM(CAST(media.sizeBytes AS bigint)), 0)', 'bytes')
-        .where('media.tenantId = :tenantId', { tenantId })
+        .select('COALESCE(SUM(CAST(media."sizeBytes" AS bigint)), 0)', 'bytes')
+        .where('media."tenantId" = :tenantId', { tenantId })
         .getRawOne<{ bytes: string }>(),
     ]);
     return {

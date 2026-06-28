@@ -54,6 +54,7 @@ All notable changes to this project will be documented in this file.
 - Media image uploads now honor configured `MAX_UPLOAD_BYTES` instead of a hard-coded 15 MB ceiling, and media processing falls back to inline mode if the Redis queue is unavailable.
 - Media uploads now reject empty multipart files with a clear `400 File is empty`, map storage write failures to `503 Media storage is unavailable`, and accept the upload even if async media processing enqueue fails so processing can be retried.
 - Media file/download endpoints now read through the `StorageService` boundary, allowing local filesystem and R2-backed objects to share the same permission-checked API routes.
+- Media quota queries now quote PostgreSQL camelCase columns correctly, fixing production upload failures caused by `media.sizebytes does not exist`.
 - Removed unnecessary typed-route assertions that caused GitHub Actions web lint to fail on Linux CI; login now uses a browser redirect after successful sign-in to avoid typed-route cast drift.
 - Added pnpm security overrides for `multer`, `postcss`, and `js-yaml` so GitHub Actions audit no longer reports known moderate/high vulnerabilities.
 

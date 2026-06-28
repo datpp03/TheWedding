@@ -345,8 +345,8 @@ export class MediaService {
     const quotaBytes = this.config.get<number>('TENANT_STORAGE_QUOTA_BYTES', 1024 * 1024 * 1024);
     const used = await this.media
       .createQueryBuilder('media')
-      .select('COALESCE(SUM(media.sizeBytes::bigint), 0)', 'usedBytes')
-      .where('media.tenantId = :tenantId', { tenantId })
+      .select('COALESCE(SUM(media."sizeBytes"::bigint), 0)', 'usedBytes')
+      .where('media."tenantId" = :tenantId', { tenantId })
       .getRawOne<{ usedBytes: string | number | null }>();
     const usedBytes = Number(used?.usedBytes ?? 0);
 

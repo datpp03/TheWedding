@@ -1,5 +1,19 @@
 # Development Log
 
+## 2026-06-29 - Production Upload Quota Query Fix
+
+### Completed
+
+- Investigated Render upload failure with request id `e686e148-4455-4c16-892f-9bec857faff5`.
+- Identified PostgreSQL raw query bug: quota checks referenced camelCase columns as `media.sizeBytes` and `media.tenantId`, which PostgreSQL lowercased to missing columns like `media.sizebytes`.
+- Quoted the affected Postgres column references in media upload quota checks and scale tenant usage summaries.
+- Added a media service test assertion so quota SQL must keep quoted `"sizeBytes"` and `"tenantId"` columns.
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/api test -- media.service.spec.ts`: pass.
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass.
+
 ## 2026-06-29 - Early Cloudflare R2 Storage Adapter
 
 ### Completed

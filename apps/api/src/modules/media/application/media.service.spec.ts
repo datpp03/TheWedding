@@ -131,14 +131,15 @@ describe('MediaService', () => {
   });
 
   it('rejects uploads that exceed the tenant storage quota before writing storage', async () => {
+    const quotaQuery = {
+      getRawOne: jest.fn().mockResolvedValue({ usedBytes: '95' }),
+      select: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+    };
     const media = {
       count: jest.fn().mockResolvedValue(0),
       create: jest.fn((input: Record<string, unknown>) => ({ ...input })),
-      createQueryBuilder: jest.fn().mockReturnValue({
-        getRawOne: jest.fn().mockResolvedValue({ usedBytes: '95' }),
-        select: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-      }),
+      createQueryBuilder: jest.fn().mockReturnValue(quotaQuery),
       findOne: jest.fn().mockResolvedValue({
         allowDownload: false,
         albumId: 'album-1',
@@ -163,6 +164,13 @@ describe('MediaService', () => {
     await expect(service.upload('tenant-1', 'album-1', file, baseContext)).rejects.toBeInstanceOf(
       ForbiddenException,
     );
+    expect(quotaQuery.select).toHaveBeenCalledWith(
+      'COALESCE(SUM(media."sizeBytes"::bigint), 0)',
+      'usedBytes',
+    );
+    expect(quotaQuery.where).toHaveBeenCalledWith('media."tenantId" = :tenantId', {
+      tenantId: 'tenant-1',
+    });
     expect(storage.upload).not.toHaveBeenCalled();
   });
 
