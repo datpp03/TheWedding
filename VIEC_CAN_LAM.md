@@ -146,6 +146,51 @@
 - [ ] Chưa làm workflow B2B studio đầy đủ, DNS custom-domain verification, watermark processing hook, AI tag adapter/UI, contextual theme UI và greeting scheduler.
 - [~] Prompt `prompts/08_phase_9_scale_features.md` được giữ lại vì acceptance chưa hoàn thành 100%, chưa full verification/build, chưa commit/push.
 
+## 2026-06-29 - Prompt 08 Phase 9 Plan-Aware Upload Gates
+
+- [~] Smoke test upload theo plan/entitlement tren production/staging sau khi deploy commit moi.
+  - Chuan bi: tai khoan owner co tenant/albums that, tai khoan admin co `admin.access`, 3 anh JPEG/WebP nho, 1 anh dien thoai gan gioi han 80 MB, va neu can test video thi can file MP4 nho.
+  - Cac buoc thuc hien:
+    1. Deploy backend API tu commit moi nhat.
+    2. Dang nhap admin, mo `https://thewedding.d-ajt.app/admin/scale`.
+    3. Ghi lai `tenantId` can test, cap entitlement storage boost cho tenant/user neu tenant free da het quota.
+    4. Vao `https://thewedding.d-ajt.app/dashboard/media`, chon tenant/album va upload anh nho.
+    5. Upload tiep anh lon duoi `MAX_UPLOAD_BYTES` va theo doi trang thai `queued/processing/ready`.
+    6. Neu test video, bat feature flag `scale.video_uploads` va cap plan/entitlement phu hop truoc khi upload MP4; neu chua bat gate, upload video phai bi tu choi.
+  - Noi cau hinh/kiem tra: `/admin/scale`, admin settings feature flags, dashboard Media, Render API logs, Cloudflare R2 bucket neu `STORAGE_PROVIDER=r2`.
+  - Xac nhan hoan tat: upload anh hop le thanh cong; vuot storage/photo/video/file-size bi tu choi truoc khi object duoc ghi; video chi upload duoc khi plan/entitlement va feature flag cho phep.
+  - Docs lien quan: `docs/HUONG_DAN_SU_DUNG.md`, `docs/API_DESIGN.md`, `docs/STORAGE_STRATEGY.md`, `docs/TESTING_STRATEGY.md`.
+- [~] Chot du lieu subscription/entitlement mau de QA cac goi Free, Couple Essential, Couple Premium, Studio Starter va Studio Pro.
+  - Chuan bi: danh sach tenant/user test, quyen truy cap database staging hoac API/admin tool tao `plan_subscriptions`, va quy tac gia/goi san pham can demo.
+  - Cac buoc thuc hien:
+    1. Tao it nhat 1 tenant free khong co subscription.
+    2. Tao 1 tenant/user voi subscription `couple_essential`.
+    3. Tao 1 tenant/user voi subscription `couple_premium`.
+    4. Tao 1 user studio voi subscription `studio_starter` hoac `studio_pro`.
+    5. Dung `/api/v1/scale/tenants/:tenantId/summary` de doi chieu plan, limits, usage va enabledFeatures.
+  - Noi cau hinh/kiem tra: database `plan_subscriptions`, API `/api/v1/scale/tenants/:tenantId/summary`, `/admin/scale`.
+  - Xac nhan hoan tat: moi goi tra ve dung storage/photo/video/file-size limits va gate; entitlement admin co the tang storage ma khong can thanh toan that.
+  - Docs lien quan: `docs/PRODUCT_PLAN.md`, `docs/DATABASE_DESIGN.md`, `docs/API_DESIGN.md`.
+- [ ] Responsive/browser QA cho `/admin/scale` voi du lieu that.
+  - Chuan bi: app web/API dang chay, tai khoan admin, browser desktop/mobile emulator.
+  - Cac buoc thuc hien:
+    1. Mo `/admin/scale` o cac width 320, 360, 390, 414, 768, 1024 va desktop.
+    2. Kiem tra metric cards, plan cards, add-on cards, feature gate list va entitlement form.
+    3. Thu label dai o tieng Viet/English/Japanese neu locale switch da bat.
+    4. Submit form entitlement hop le va form thieu subjectId de xem loading/error/success.
+  - Noi cau hinh/kiem tra: `http://localhost:3000/admin/scale` hoac production URL, DevTools responsive mode, API logs.
+  - Xac nhan hoan tat: khong co horizontal overflow, text overlap, nut/form khong vo layout, card hierarchy ro, accent rose/teal/amber hien dung.
+  - Docs lien quan: `docs/UI_UX_DESIGN.md`, `docs/PRODUCT_PLAN.md`, `docs/TESTING_STRATEGY.md`.
+- [~] Quyet dinh cach xu ly phan Phase 9 con lai truoc release.
+  - Chuan bi: danh sach uu tien san pham cho MoMo, canonical handle route, direct upload/multipart, B2B studio, custom domain, watermark, AI, contextual theme va greeting scheduler.
+  - Cac buoc thuc hien:
+    1. Doc carryover trong `prompts/09_final_release_qa.md`.
+    2. Chon mot trong hai huong: tach cac muc Phase 9 con lai thanh prompt rieng sau release, hoac tiep tuc implement truoc release.
+    3. Neu release voi placeholder, dam bao UI/API van gated va docs noi ro chua production-ready.
+  - Noi cau hinh/kiem tra: `prompts/08_phase_9_scale_features.md`, `prompts/09_final_release_qa.md`, `docs/ROADMAP.md`, `docs/CHANGELOG.md`.
+  - Xac nhan hoan tat: prompt 09 co the chay release QA voi trang thai Phase 9 ro rang; khong bat MoMo/R2 direct/custom-domain public khi chua verify.
+  - Docs lien quan: `docs/ROADMAP.md`, `docs/PRODUCT_PLAN.md`, `docs/SEO_GEO_GUIDELINES.md`.
+
 ## Đã Xử Lý (tham khảo nhanh, không cần làm lại)
 
 - [x] Nền tảng monorepo, CI, docker, env validation, kết nối DB, migration + seed.

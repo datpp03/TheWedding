@@ -33,6 +33,13 @@ Dang nhap/dang ky/quen mat khau phai san sang hon cho production: khong tra toke
   - Verify web login form dang dung dung method `POST /api/v1/auth/login`.
   - Kiem tra khong co link, redirect, fetch, prefetch, hoac browser navigation nao goi `GET /api/v1/auth/login`.
   - Reproduce loi login gan day neu local/env cho phep; neu con loi `Cannot GET /api/v1/auth/login` hoac `INTERNAL_SERVER_ERROR`, sua root cause va them regression test/smoke note.
+- Persistent browser session:
+  - Audit current cookie/session lifetime across tab close, browser close/reopen, hard refresh, app boot, direct dashboard visit, and visiting public `/`.
+  - Ensure refresh token cookie is persistent according to `REFRESH_TOKEN_EXPIRES_IN` while access token stays short-lived. Khong bien access token thanh long-lived token.
+  - On web app boot and public home load, restore auth state silently via safe `/api/v1/auth/me` and/or refresh flow when the refresh cookie is still valid.
+  - Public home van la public discovery page; neu user da dang nhap thi chi hien signed-in navigation/action state, khong redirect khoi trang chu va khong expose private tenant/admin data.
+  - Handle expired, revoked, or reused refresh sessions bang signed-out UI ro rang; khong tao redirect loop giua `/`, login, va dashboard.
+  - Explicit logout, revoke current session, revoke all sessions, refresh-token rotation/reuse detection, CSRF, HttpOnly, SameSite, Secure cookie flags phai van dung.
 - SMTP/email delivery:
   - Tao email delivery abstraction voi SMTP provider dau tien.
   - Them env vars cho SMTP host/port/secure/user/pass/from/reply-to va che do local development.
@@ -84,7 +91,8 @@ Dang nhap/dang ky/quen mat khau phai san sang hon cho production: khong tra toke
 - Tests cho TOTP enrollment, invalid OTP, expired challenge, disable MFA, va login MFA challenge.
 - Tests cho OAuth state validation, open redirect rejection, provider callback success/failure, existing-email no-silent-merge, verified-email-only linking, provider unlink guard.
 - Tests cho `disableLogin`/`disableRegistration` khi OAuth/MFA dang active.
-- Web tests/smoke cho login password, forgot password, MFA challenge, OAuth button enabled/disabled, va return-to-album.
+- Web tests/smoke cho login password, forgot password, MFA challenge, OAuth button enabled/disabled, return-to-album, browser close/reopen session restore, hard refresh, direct dashboard visit, va public home signed-in state.
+- Regression tests/smoke cho logout, revoke current session, revoke all sessions, expired refresh cookie, va reused refresh token de dam bao persistent session khong song qua cac action nay.
 - SEO/GEO smoke cho auth/OAuth/reset routes: noindex/no sitemap, metadata khong lo token/code/state, callback routes khong co structured data public.
 - Run verification phu hop: `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`.
 
@@ -106,6 +114,9 @@ Theo `AGENTS.md` muc 3, sau khi hoan tat (hoac dung do con viec):
 ## Acceptance Criteria
 
 - Normal login khong con tao request `GET /api/v1/auth/login`.
+- User van dang nhap sau khi dong/mo lai browser, hard refresh, hoac quay ve trang chu neu refresh token chua het han/chua bi revoke.
+- Public home van public/indexable theo policy, nhung co the hien signed-in navigation/action state khi session con hop le ma khong lo du lieu private.
+- Logout, revoke current session, revoke all sessions, expired refresh cookie, va refresh-token reuse deu ket thuc persisted session dung mong doi.
 - Production khong expose reset/verification token trong API payload.
 - Forgot password va verification email gui qua SMTP khi cau hinh day du.
 - User co the bat/tat MFA an toan va bi yeu cau OTP khi dang nhap neu MFA enabled.

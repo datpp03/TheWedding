@@ -85,7 +85,7 @@ Initial migration is located in `apps/api/src/database/migrations/1710000000000-
 ## Phase 8 Security Hardening Notes
 
 - `users.mfaEnabledAt`, `users.mfaMethod`, and `users.mfaSecretEncrypted` provide MFA-ready storage for a future TOTP enrollment and challenge flow. MFA secrets must be encrypted before persistence and must not be logged or included in audit metadata.
-- Uploads enforce tenant quota checks before writing to storage by comparing existing media bytes with `TENANT_STORAGE_QUOTA_BYTES`.
+- Uploads enforce tenant quota checks before writing to storage. Phase 8 used `TENANT_STORAGE_QUOTA_BYTES` as the fallback ceiling; Phase 9 API-managed uploads now resolve active tenant/user plan limits plus admin entitlements for storage bytes, photo count, video count, file size, and video-upload access.
 - Audit metadata is redacted before it is saved so passwords, tokens, cookies, OTP/MFA values, OAuth authorization codes, provider secrets, and raw sensitive headers are not retained in `audit_logs.metadataJson`.
 
 ## Planned System Parameters, Plans, and Public Paths
@@ -125,6 +125,7 @@ Audit log metadata for these features must not store passwords, raw tokens, cook
 - `user_public_handles.handle` is globally unique and validated as a TikTok-like public id for canonical album URLs such as `/@{userHandle}/{siteSlug}/albums/{albumSlugOrShortId}`.
 - `plan_subscriptions` stores active plan state for either a tenant or user. Plan behavior is resolved from shared catalog constants, not hardcoded in controllers.
 - `entitlements` lets admins manually grant/revoke feature keys or storage boosts for a `tenant` or `user`. Entitlement mutations write audit logs.
+- Media upload policy is resolved in the application layer from `plan_subscriptions`, `entitlements`, enabled feature flags, and current `media` usage before any object is written to local/R2 storage.
 - `payment_events` uses a unique `(provider, providerEventId)` index for idempotent MoMo event handling. It is an internal placeholder until signed webhook verification is added.
 - `custom_domains` stores verification status and token foundation only; DNS validation and routing are still deferred.
 - `studio_profiles` and `studio_clients` provide B2B client-management foundations without bypassing tenant isolation.

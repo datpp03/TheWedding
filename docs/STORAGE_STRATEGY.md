@@ -227,6 +227,7 @@ Implemented now:
 
 - Env validation and `.env.example` include R2/S3 public base URL, signed URL TTL, and global upload-size variables.
 - Plan/entitlement logic can increase storage limits and gate storage-heavy features before R2 is enabled.
+- API-managed uploads enforce active tenant/user plan limits and admin entitlements for storage quota, photo/video count, max file size, and video-upload access before writing to local or R2 storage.
 - Documentation includes the owner-facing R2 setup checklist.
 - `S3CompatibleStorageService` supports `STORAGE_PROVIDER=r2`/`s3` for server-side upload/read/delete through the existing `StorageService` boundary.
 - Media file/download endpoints read through `StorageService`, so local and R2 objects use the same permission-checked API surface.

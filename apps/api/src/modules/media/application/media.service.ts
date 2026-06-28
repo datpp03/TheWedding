@@ -24,6 +24,7 @@ import {
   type AuditLogRepository,
 } from '../../audit-logs/domain/audit-log.repository';
 import { SystemParametersService } from '../../settings/application/system-parameters.service';
+import { ScaleService, type TenantUploadPolicy } from '../../scale/application/scale.service';
 import { STORAGE_SERVICE, type StorageService } from '../../storage/domain/storage.service';
 import { TenantOrmEntity } from '../../tenants/infrastructure/tenant.orm-entity';
 import {
@@ -80,6 +81,7 @@ export class MediaService {
     @Inject(MEDIA_PROCESSING_SERVICE)
     private readonly mediaProcessing: MediaProcessingService,
     private readonly config: ConfigService,
+    private readonly scale: ScaleService,
   ) {}
 
   async list(tenantId: string, albumId: string, context: MediaContext) {
@@ -105,7 +107,8 @@ export class MediaService {
       maxImageBytes: this.config.get<number>('MAX_UPLOAD_BYTES', DEFAULT_MAX_IMAGE_BYTES),
       maxVideoBytes: this.config.get<number>('MAX_VIDEO_UPLOAD_BYTES', DEFAULT_MAX_VIDEO_BYTES),
     });
-    await this.assertTenantQuota(tenantId, validated.file.size);
+    const uploadPolicy = await this.scale.getTenantUploadPolicy(tenantId, context.actorUserId);
+    assertUploadPolicy(uploadPolicy, validated.type, validated.file.size);
     const mediaId = randomUUID();
     const sortOrder = await this.media.count({ where: { albumId, tenantId } });
     const uploaded = await this.uploadToStorage(tenantId, mediaId, validated);
@@ -341,20 +344,6 @@ export class MediaService {
     }
   }
 
-  private async assertTenantQuota(tenantId: string, incomingBytes: number) {
-    const quotaBytes = this.config.get<number>('TENANT_STORAGE_QUOTA_BYTES', 1024 * 1024 * 1024);
-    const used = await this.media
-      .createQueryBuilder('media')
-      .select('COALESCE(SUM(media."sizeBytes"::bigint), 0)', 'usedBytes')
-      .where('media."tenantId" = :tenantId', { tenantId })
-      .getRawOne<{ usedBytes: string | number | null }>();
-    const usedBytes = Number(used?.usedBytes ?? 0);
-
-    if (usedBytes + incomingBytes > quotaBytes) {
-      throw new ForbiddenException('Tenant storage quota exceeded');
-    }
-  }
-
   private audit(
     context: MediaContext,
     tenantId: string,
@@ -456,6 +445,32 @@ function validateUpload(
     throw new BadRequestException('File exceeds upload size limit');
   }
   return { extension: allowed.extension, file, type: allowed.type };
+}
+
+function assertUploadPolicy(policy: TenantUploadPolicy, mediaType: string, incomingBytes: number) {
+  if (incomingBytes > policy.limits.maxFileBytes) {
+    throw new BadRequestException('File exceeds plan upload size limit');
+  }
+
+  if (policy.usage.storageBytes + incomingBytes > policy.limits.storageBytes) {
+    throw new ForbiddenException('Tenant storage quota exceeded');
+  }
+
+  if (mediaType === MEDIA_TYPE.IMAGE && policy.usage.photoCount >= policy.limits.maxPhotoCount) {
+    throw new ForbiddenException('Photo quota exceeded for current plan');
+  }
+
+  if (mediaType === MEDIA_TYPE.VIDEO) {
+    if (!policy.videoUploadEnabled) {
+      throw new ForbiddenException('Video uploads require an active plan or entitlement');
+    }
+    if (incomingBytes > policy.limits.maxVideoFileBytes) {
+      throw new BadRequestException('Video exceeds plan upload size limit');
+    }
+    if (policy.usage.videoCount >= policy.limits.maxVideoCount) {
+      throw new ForbiddenException('Video quota exceeded for current plan');
+    }
+  }
 }
 
 function sanitizeDisplayName(value: string) {

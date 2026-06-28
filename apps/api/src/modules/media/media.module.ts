@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AlbumOrmEntity } from '../albums/infrastructure/album.orm-entity';
 import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 import { SettingsModule } from '../settings/settings.module';
+import { ScaleModule } from '../scale/scale.module';
 import { StorageModule } from '../storage/storage.module';
 import { TenantOrmEntity } from '../tenants/infrastructure/tenant.orm-entity';
 import { MediaService } from './application/media.service';
@@ -16,6 +17,7 @@ import { MediaController } from './presentation/media.controller';
 @Module({
   imports: [
     AuditLogsModule,
+    ScaleModule,
     SettingsModule,
     StorageModule,
     TypeOrmModule.forFeature([

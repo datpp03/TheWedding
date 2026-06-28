@@ -36,7 +36,8 @@ Status: completed for MVP auth. Email delivery is still provider-ready but SMTP 
 - Completed: forgot password, reset password, email verification, CSRF token exchange, route protection for dashboard/admin, auth audit log writes.
 - Completed: RBAC payload base through role and permission lookup.
 - Completed: auth unit tests and frontend login/register/forgot/reset/verify wiring.
-- Later hardening: real SMTP delivery, MFA, advanced rate limits, and broader e2e security coverage.
+- Later hardening: real SMTP delivery, MFA, persistent browser session restoration, advanced rate limits, and broader e2e security coverage.
+- Planned: keep users signed in after closing/reopening the browser or returning through the public home page while the refresh token cookie is still valid. The web app should quietly restore `/auth/me` state or refresh the access token on app boot without redirecting the public home away from discovery, and explicit logout/session revoke/revoke-all must still clear persisted access immediately.
 
 ## Phase 3: Tenant/Site
 
@@ -151,6 +152,7 @@ Status: Phase 7A implemented for MVP public discovery, social interactions, OAut
 
 - Completed: first web page is a public home page, not the login page.
 - Completed: public home shows featured albums for today and week.
+- Planned: public home should detect an existing authenticated session and show signed-in navigation/action state without leaking private tenant/admin data or making auth-only content indexable.
 - Define deterministic ranking or admin curation rules for featured albums.
 - Completed: current deterministic ranking uses algorithmic recency with table support for later admin/owner curation.
 - Completed: responsive featured album cards and empty state.
@@ -198,7 +200,7 @@ Status: Phase 7A implemented for MVP public discovery, social interactions, OAut
 ## Phase 9: Scale Future
 
 - Status: foundation partially implemented; production providers and large upload/storage flows remain gated.
-- Completed foundation: shared B2C/B2B plan catalog, add-on catalog, feature flag mapping, plan/entitlement gate logic, admin entitlement grant API/UI, user public handle API, tenant scale summary, analytics events, greeting rule placeholder, idempotent MoMo payment-event storage, studio/custom-domain placeholder tables, admin Scale page, and S3-compatible/R2 storage adapter for API-managed uploads.
+- Completed foundation: shared B2C/B2B plan catalog, add-on catalog, feature flag mapping, plan/entitlement gate logic, admin entitlement grant API/UI, user public handle API, tenant scale summary, API-managed media upload enforcement for plan storage/photo/video/file-size/video gates, analytics events, greeting rule placeholder, idempotent MoMo payment-event storage, studio/custom-domain placeholder tables, admin Scale page, and S3-compatible/R2 storage adapter for API-managed uploads.
 - Payment/subscription, custom domain, CDN, Cloudflare R2/S3-compatible production storage, signed URL upload/download, React Native multipart upload sessions, AI tagging, watermark, analytics.
 - Cloudflare R2 adapter can be enabled early for API-managed uploads after bucket/access key setup and production smoke tests. Direct upload sessions, multipart upload, CDN-first derivative delivery, migration tooling, and rollback automation remain Phase 9 follow-up work.
 - Use Cloudflare R2 as the first production object-storage target, while keeping the adapter S3-compatible for future provider swaps.

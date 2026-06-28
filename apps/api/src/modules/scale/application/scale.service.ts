@@ -8,8 +8,10 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  MEDIA_TYPE,
   SCALE_ADD_ONS,
   SCALE_FEATURE_FLAGS,
+  SCALE_FEATURES,
   SCALE_PLANS,
   getScalePlan,
   hasScaleFeatureAccess,
@@ -49,6 +51,8 @@ export type ScaleContext = {
   ipAddress?: string;
   userAgent?: string | string[];
 };
+
+export type TenantUploadPolicy = Awaited<ReturnType<ScaleService['getTenantUploadPolicy']>>;
 
 @Injectable()
 export class ScaleService {
@@ -132,18 +136,32 @@ export class ScaleService {
     const tenant = await this.tenants.findOne({ where: { id: tenantId } });
     if (!tenant) throw new NotFoundException('Tenant not found');
 
-    const [subscription, tenantEntitlements, userEntitlements, storage, flags, ownerHandle] =
-      await Promise.all([
-        this.subscriptions.findOne({
-          order: { createdAt: 'DESC' },
-          where: { status: 'active', tenantId },
-        }),
-        this.entitlements.find({ where: { subjectId: tenantId, subjectType: 'tenant' } }),
-        this.entitlements.find({ where: { subjectId: user.id, subjectType: 'user' } }),
-        this.getTenantUsage(tenantId),
-        this.listEnabledFeatureFlags(),
-        this.handles.findOne({ where: { userId: tenant.ownerUserId } }),
-      ]);
+    const [policy, ownerHandle] = await Promise.all([
+      this.getTenantUploadPolicy(tenantId, user.id),
+      this.handles.findOne({ where: { userId: tenant.ownerUserId } }),
+    ]);
+
+    return {
+      canonicalAlbumUrlTemplate: ownerHandle
+        ? `/@${ownerHandle.handle}/${tenant.slug}/albums/{albumSlugOrShortId}`
+        : null,
+      enabledFeatures: policy.enabledFeatures,
+      limits: policy.limits,
+      plan: policy.plan,
+      storage: policy.usage,
+      tenantId,
+      tenantSlug: tenant.slug,
+    };
+  }
+
+  async getTenantUploadPolicy(tenantId: string, userId: string) {
+    const [subscription, tenantEntitlements, userEntitlements, usage, flags] = await Promise.all([
+      this.findActiveSubscription(tenantId, userId),
+      this.entitlements.find({ where: { subjectId: tenantId, subjectType: 'tenant' } }),
+      this.entitlements.find({ where: { subjectId: userId, subjectType: 'user' } }),
+      this.getTenantUsage(tenantId),
+      this.listEnabledFeatureFlags(),
+    ]);
     const grants = toEntitlementGrants([...tenantEntitlements, ...userEntitlements]);
     const plan = getScalePlan(subscription?.planId);
     const limits = resolvePlanLimits(plan.id, grants);
@@ -152,15 +170,16 @@ export class ScaleService {
     );
 
     return {
-      canonicalAlbumUrlTemplate: ownerHandle
-        ? `/@${ownerHandle.handle}/${tenant.slug}/albums/{albumSlugOrShortId}`
-        : null,
       enabledFeatures,
       limits,
       plan,
-      storage,
-      tenantId,
-      tenantSlug: tenant.slug,
+      usage,
+      videoUploadEnabled: hasScaleFeatureAccess(
+        plan.id,
+        SCALE_FEATURES.VIDEO_UPLOADS,
+        grants,
+        flags,
+      ),
     };
   }
 
@@ -315,8 +334,10 @@ export class ScaleService {
   }
 
   private async getTenantUsage(tenantId: string) {
-    const [mediaCount, raw] = await Promise.all([
+    const [mediaCount, photoCount, videoCount, raw] = await Promise.all([
       this.media.count({ where: { tenantId } }),
+      this.media.count({ where: { tenantId, type: MEDIA_TYPE.IMAGE } }),
+      this.media.count({ where: { tenantId, type: MEDIA_TYPE.VIDEO } }),
       this.media
         .createQueryBuilder('media')
         .select('COALESCE(SUM(CAST(media."sizeBytes" AS bigint)), 0)', 'bytes')
@@ -325,13 +346,29 @@ export class ScaleService {
     ]);
     return {
       mediaCount,
+      photoCount,
       storageBytes: Number(raw?.bytes ?? 0),
+      videoCount,
     };
   }
 
   private async listEnabledFeatureFlags() {
     const flags = await this.featureFlags.find({ where: { enabled: true } });
     return flags.map((flag) => flag.key);
+  }
+
+  private async findActiveSubscription(tenantId: string, userId: string) {
+    const [tenantSubscription, userSubscription] = await Promise.all([
+      this.subscriptions.findOne({
+        order: { createdAt: 'DESC' },
+        where: { status: 'active', tenantId },
+      }),
+      this.subscriptions.findOne({
+        order: { createdAt: 'DESC' },
+        where: { status: 'active', userId },
+      }),
+    ]);
+    return tenantSubscription ?? userSubscription ?? null;
   }
 
   private audit(

@@ -252,10 +252,10 @@ Nhung thay doi Phase 8 chu yeu nam o backend, nhung nguoi kiem thu can biet cac 
 
 1. API tra header `x-correlation-id` cho moi request. Khi bao loi, hay gui kem gia tri nay de doi chieu log.
 2. Cac endpoint dang nhap, dang ky, quen mat khau, refresh token, upload va admin co rate limit. Neu gap HTTP 429, cho het cua so gioi han roi thu lai.
-3. Upload kiem tra MIME type, duoi file, kich thuoc theo loai media, va quota tenant truoc khi ghi file.
-4. Quota mac dinh cau hinh bang `TENANT_STORAGE_QUOTA_BYTES`. Local mac dinh la `1073741824` bytes.
+3. Upload kiem tra MIME type, duoi file, kich thuoc theo loai media, plan/entitlement gate, va quota tenant truoc khi ghi file.
+4. Phase 9 da dung policy theo goi dich vu/entitlement cho API-managed upload. `TENANT_STORAGE_QUOTA_BYTES` chi con la bien fallback/lich su cho cac tai lieu Phase 8, khong phai cach mo khoa quota chinh.
 5. Neu upload bao "File extension does not match MIME type", hay export/doi file dung dinh dang that truoc khi thu lai.
-6. Neu upload bao "Tenant storage quota exceeded", hay xoa bot media hoac tang `TENANT_STORAGE_QUOTA_BYTES` trong moi truong test.
+6. Neu upload bao "Tenant storage quota exceeded", hay xoa bot media hoac vao `/admin/scale` cap storage entitlement cho tenant/user; khong chi tang env quota.
 7. MFA hien moi co nen schema/model de trien khai TOTP sau nay; chua co man enrollment hoac buoc nhap OTP khi dang nhap.
 8. Audit log tu redaction cac truong nhay cam nhu password, token, cookie, OTP/MFA, OAuth code, provider secret va header nhay cam.
 
@@ -279,6 +279,7 @@ Phase 9 hien moi mo nen tang an toan cho goi dich vu va tinh nang scale. R2 adap
 5. Khu vuc add-on hien cac dich vu cong them: extra storage, custom domain, premium themes, advanced security, watermark, AI tools va online editing.
 6. De unlock thu cong, nhap `tenantId` hoac `userId`, chon feature, tuy chon nhap `storageBoostBytes`, ghi ly do, bam `Cap quyen`.
 7. Moi entitlement admin tao se ghi audit log. Neu muon thu hoi, hien tai tao entitlement voi `granted=false` qua API; UI thu hoi rieng se lam sau.
+8. Entitlement/plan hien duoc backend dung de chan API-managed media upload neu vuot dung luong, so anh, so video, max file size, hoac chua co video gate.
 
 ### User public handle va URL album moi
 

@@ -3,7 +3,7 @@ import {
   ForbiddenException,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { MEDIA_PROCESSING_STATUS, TENANT_VISIBILITY } from '@the-wedding/shared';
+import { MEDIA_PROCESSING_STATUS, SCALE_PLAN_IDS, TENANT_VISIBILITY } from '@the-wedding/shared';
 import { MediaService, type MemoryUpload } from './media.service';
 
 describe('MediaService', () => {
@@ -69,6 +69,33 @@ describe('MediaService', () => {
     const config = {
       get: jest.fn((_key: string, defaultValue?: number) => defaultValue ?? 1024 * 1024 * 1024),
     };
+    const scale = {
+      getTenantUploadPolicy: jest.fn().mockResolvedValue({
+        enabledFeatures: [],
+        limits: {
+          analyticsLevel: 'none',
+          customDomain: false,
+          maxFileBytes: 80 * 1024 * 1024,
+          maxPhotoCount: 150,
+          maxVideoCount: 0,
+          maxVideoFileBytes: 0,
+          premiumThemes: false,
+          privacyLevel: 'basic',
+          storageBytes: 1024 * 1024 * 1024,
+          studioClients: 0,
+          supportLevel: 'community',
+          videoSupport: false,
+        },
+        plan: { id: SCALE_PLAN_IDS.FREE },
+        usage: {
+          mediaCount: 0,
+          photoCount: 0,
+          storageBytes: 0,
+          videoCount: 0,
+        },
+        videoUploadEnabled: false,
+      }),
+    };
 
     const service = new MediaService(
       (overrides.media ?? media) as never,
@@ -80,6 +107,7 @@ describe('MediaService', () => {
       (overrides.systemParameters ?? systemParameters) as never,
       (overrides.mediaProcessing ?? mediaProcessing) as never,
       (overrides.config ?? config) as never,
+      (overrides.scale ?? scale) as never,
     );
     return { media, mediaProcessing, service, storage };
   }
@@ -131,29 +159,26 @@ describe('MediaService', () => {
   });
 
   it('rejects uploads that exceed the tenant storage quota before writing storage', async () => {
-    const quotaQuery = {
-      getRawOne: jest.fn().mockResolvedValue({ usedBytes: '95' }),
-      select: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-    };
-    const media = {
-      count: jest.fn().mockResolvedValue(0),
-      create: jest.fn((input: Record<string, unknown>) => ({ ...input })),
-      createQueryBuilder: jest.fn().mockReturnValue(quotaQuery),
-      findOne: jest.fn().mockResolvedValue({
-        allowDownload: false,
-        albumId: 'album-1',
-        id: 'media-1',
-        mimeType: 'image/jpeg',
-        originalFileName: 'photo.jpg',
-        storageKey: 'tenants/tenant-1/media/media-1/original/random.jpg',
-        tenantId: 'tenant-1',
-        visibility: TENANT_VISIBILITY.PRIVATE,
+    const scale = {
+      getTenantUploadPolicy: jest.fn().mockResolvedValue({
+        enabledFeatures: [],
+        limits: {
+          maxFileBytes: 100,
+          maxPhotoCount: 150,
+          maxVideoCount: 0,
+          maxVideoFileBytes: 0,
+          storageBytes: 100,
+        },
+        usage: {
+          mediaCount: 1,
+          photoCount: 1,
+          storageBytes: 95,
+          videoCount: 0,
+        },
+        videoUploadEnabled: false,
       }),
-      save: jest.fn((entity) => Promise.resolve(entity)),
     };
-    const config = { get: jest.fn().mockReturnValue(100) };
-    const { service, storage } = createService({ config, media });
+    const { service, storage } = createService({ scale });
     const file: MemoryUpload = {
       buffer: Buffer.from('jpgjpg'),
       mimetype: 'image/jpeg',
@@ -164,13 +189,75 @@ describe('MediaService', () => {
     await expect(service.upload('tenant-1', 'album-1', file, baseContext)).rejects.toBeInstanceOf(
       ForbiddenException,
     );
-    expect(quotaQuery.select).toHaveBeenCalledWith(
-      'COALESCE(SUM(media."sizeBytes"::bigint), 0)',
-      'usedBytes',
+    expect(scale.getTenantUploadPolicy).toHaveBeenCalledWith('tenant-1', 'user-1');
+    expect(storage.upload).not.toHaveBeenCalled();
+  });
+
+  it('rejects uploads when the plan photo count is exhausted before writing storage', async () => {
+    const scale = {
+      getTenantUploadPolicy: jest.fn().mockResolvedValue({
+        enabledFeatures: [],
+        limits: {
+          maxFileBytes: 100,
+          maxPhotoCount: 1,
+          maxVideoCount: 0,
+          maxVideoFileBytes: 0,
+          storageBytes: 1000,
+        },
+        usage: {
+          mediaCount: 1,
+          photoCount: 1,
+          storageBytes: 100,
+          videoCount: 0,
+        },
+        videoUploadEnabled: false,
+      }),
+    };
+    const { service, storage } = createService({ scale });
+    const file: MemoryUpload = {
+      buffer: Buffer.from('jpg'),
+      mimetype: 'image/jpeg',
+      originalname: 'photo.jpg',
+      size: 3,
+    };
+
+    await expect(service.upload('tenant-1', 'album-1', file, baseContext)).rejects.toBeInstanceOf(
+      ForbiddenException,
     );
-    expect(quotaQuery.where).toHaveBeenCalledWith('media."tenantId" = :tenantId', {
-      tenantId: 'tenant-1',
-    });
+    expect(storage.upload).not.toHaveBeenCalled();
+  });
+
+  it('rejects videos when the video upload feature gate is disabled', async () => {
+    const scale = {
+      getTenantUploadPolicy: jest.fn().mockResolvedValue({
+        enabledFeatures: [],
+        limits: {
+          maxFileBytes: 80 * 1024 * 1024,
+          maxPhotoCount: 150,
+          maxVideoCount: 8,
+          maxVideoFileBytes: 200 * 1024 * 1024,
+          storageBytes: 10 * 1024 * 1024 * 1024,
+        },
+        usage: {
+          mediaCount: 0,
+          photoCount: 0,
+          storageBytes: 0,
+          videoCount: 0,
+        },
+        videoUploadEnabled: false,
+      }),
+    };
+    const { service, storage } = createService({ scale });
+    const file: MemoryUpload = {
+      buffer: Buffer.from('mp4'),
+      mimetype: 'video/mp4',
+      originalname: 'clip.mp4',
+      size: 3,
+    };
+
+    await expect(service.upload('tenant-1', 'album-1', file, baseContext)).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
     expect(storage.upload).not.toHaveBeenCalled();
   });
 

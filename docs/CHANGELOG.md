@@ -32,6 +32,8 @@ All notable changes to this project will be documented in this file.
 - SMTP auth email delivery using configured host/user/password/from settings for password reset and email verification links.
 - S3-compatible Cloudflare R2 storage adapter for API-managed media uploads, reads, deletes, and public derivative URL generation when a public base URL is configured.
 - Cloudflare R2 setup guide for bucket creation, access keys, Render env configuration, smoke tests, and rollback.
+- Persistent browser session restoration task in the auth roadmap and 08A prompt, covering browser close/reopen, hard refresh, homepage auth-state restoration, and logout/revoke regression requirements.
+- Phase 9 media upload usage gates now enforce active tenant/user plan limits plus admin entitlements for storage quota, photo/video counts, max file size, and video-upload access before storage writes.
 
 ### Changed
 
@@ -44,7 +46,7 @@ All notable changes to this project will be documented in this file.
 - Marked Docker VPS CI/CD as an optional later deployment track instead of the next required phase.
 - Cloudflare R2 activation is now available for API-managed uploads after bucket/access key setup and smoke tests; direct upload sessions, multipart uploads, migration tooling, and CDN hardening remain deferred.
 - Clarified that production can switch from `STORAGE_PROVIDER=local` to `r2` once the R2 guide is completed and verified.
-- Added `TENANT_STORAGE_QUOTA_BYTES` as the default per-tenant upload ceiling before Phase 9 plan/entitlement quota expansion.
+- Replaced the Phase 8 static tenant upload quota path with Phase 9 plan/entitlement-aware upload policy for API-managed media uploads.
 - The web root now renders public album discovery instead of redirecting users to the dashboard/login flow.
 - R2 and MoMo env placeholders are documented and validated as optional values, while production remains on local storage and no public payment webhook is exposed yet.
 - Product plan, roadmap, testing strategy, UI/UX rules, agent rules, and prompt workflow now require SEO/GEO checks for public-facing route/content/metadata work.

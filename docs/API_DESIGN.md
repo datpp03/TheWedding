@@ -215,7 +215,7 @@ System parameters are stored under `runtime.system_parameters`, validated with a
 - `POST /api/v1/scale/admin/payment-events`: admin-only MoMo payment event placeholder with provider/event idempotency.
 - `POST /api/v1/scale/admin/greeting-rules`: admin-only greeting rule foundation with audit logging.
 
-Implemented in Phase 9 foundation: B2C couple package catalog, B2B studio subscription catalog, add-on catalog, feature flag mapping, admin-granted entitlements, user public handles, tenant quota summaries, analytics events, greeting rule placeholder, and idempotent payment-event storage.
+Implemented in Phase 9 foundation: B2C couple package catalog, B2B studio subscription catalog, add-on catalog, feature flag mapping, admin-granted entitlements, user public handles, tenant quota summaries, API-managed media upload gates based on active tenant/user plan plus entitlements, analytics events, greeting rule placeholder, and idempotent payment-event storage.
 
 Still gated/deferred: real MoMo checkout and signed webhook verification, customer self-service plan purchase, R2-backed direct upload sessions, and public route redirects to canonical handle URLs. Do not expose a public payment webhook until MoMo signature validation and replay protection are implemented.
 

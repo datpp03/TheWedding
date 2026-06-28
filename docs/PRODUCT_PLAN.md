@@ -33,7 +33,7 @@ Plan tiers should be designed around:
 - Custom domain support.
 - Advanced sharing and analytics.
 
-Phase 9 foundation status: implemented as a shared plan catalog and admin-visible scale dashboard. Purchase/self-service upgrade UX remains gated until real MoMo checkout is verified.
+Phase 9 foundation status: implemented as a shared plan catalog and admin-visible scale dashboard. API-managed media uploads now enforce plan/entitlement storage quota, photo/video count, max file size, and video-upload gates. Purchase/self-service upgrade UX remains gated until real MoMo checkout is verified.
 
 ### B2B Studio Subscriptions [NEW]
 

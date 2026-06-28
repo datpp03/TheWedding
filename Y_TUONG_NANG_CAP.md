@@ -29,6 +29,8 @@
 - **Plan simulator trước khi mua**: cho couple/studio kéo thả số ảnh, video, dung lượng dự kiến để app gợi ý gói phù hợp. Giá trị: tăng conversion và giảm chọn sai gói. Tác động: trung bình · Phức tạp: trung bình · Phụ thuộc: shared scale catalog.
 - **Custom domain health monitor**: job định kỳ kiểm tra DNS/CNAME/TXT và cảnh báo admin/user khi domain lỗi. Giá trị: giảm downtime cho khách premium. Tác động: trung bình · Phức tạp: trung bình · Phụ thuộc: custom domain verification.
 
+- **Quota forecast va canh bao nang cap goi**: dung usage/limit Phase 9 de du bao khi tenant sap het dung luong, so anh hoac so video; hien canh bao som trong dashboard va goi y goi/add-on phu hop. Gia tri: giam upload failure bat ngo va tang conversion nang cap. Tac dong: trung binh-cao · Phuc tap: trung binh · Phu thuoc: scale upload policy, notification/email, payment checkout sau nay.
+
 ## Vận Hành & Chất Lượng
 
 - **i18n key completeness CI check**: script tự fail khi thiếu key ở vi/en/ja. Tác động: trung bình · Phức tạp: thấp.

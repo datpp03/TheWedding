@@ -9,7 +9,7 @@ TRUOC KHI BAT DAU: Doc `AGENTS.md` va `docs/SYSTEM_MAP.md` de biet cau truc thu 
 ## Carryover Khan Cap Tu Prompt Truoc
 
 - Priority P0: `prompts/08_phase_9_scale_features.md` chi moi hoan thanh Phase 9 foundation, chua du 100% acceptance. Truoc khi final release, hoac tach thanh prompt rieng/chap nhan gated placeholder, hoac implement tiep cac muc con lai.
-- Phase 9 con thieu: real MoMo checkout/redirect/webhook signature verification/replay protection; R2/S3 `StorageService` adapter; signed upload/download URLs; direct upload sessions; multipart mobile upload; local-to-R2 migration; upload/download smoke tests; rollback docs.
+- Phase 9 con thieu: real MoMo checkout/redirect/webhook signature verification/replay protection; signed upload/download URLs; direct upload sessions; multipart mobile upload; local-to-R2 migration; R2 upload/download smoke tests tren production credentials; CDN-first derivative delivery. R2/S3 `StorageService` adapter cho API-managed upload da co.
 - Phase 9 con thieu UI/workflow: canonical public route `/@{userHandle}/{siteSlug}/albums/{albumSlugOrShortId}` va redirect route cu; studio delivery workflow; DNS custom-domain verification; watermark processing hook; AI tag adapter/UI; contextual theme UI; greeting scheduler.
 - File lien quan da them trong prompt truoc: `packages/shared/src/scale.ts`, `apps/api/src/modules/scale/**`, `apps/api/src/database/migrations/1710000010000-Phase9ScaleFoundation.ts`, `apps/web/src/features/scale/**`, `apps/web/src/app/(admin)/admin/scale/page.tsx`.
 - Cach tai hien/gap: chay final release acceptance se thay R2/MoMo/canonical handle route chua production-ready. Khong xoa prompt 08 va khong bat `STORAGE_PROVIDER=r2`/public MoMo webhook cho den khi cac muc tren duoc verify.

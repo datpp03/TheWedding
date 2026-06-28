@@ -1,5 +1,56 @@
 # Development Log
 
+## 2026-06-29 - Phase 9 Plan-Aware Media Upload Gates
+
+### Design Gate
+
+- Changed screen: no new user-facing screen; existing `/admin/scale` remains the operational surface for plan catalog and manual entitlement unlocks.
+- Emotion: operational and support-friendly for admins, with media upload failures explained by plan/entitlement policy instead of hidden storage errors.
+- First-look hierarchy: admins inspect current plan/add-on/entitlement state before granting storage or feature access.
+- Accent color/state plan: reuse existing rose catalog highlights, teal entitlement controls, and amber add-on cards; no white/gray-only new surface was added.
+- Responsive and i18n risk: no new visible UI copy was added in this slice, so existing `vi`/`en`/`ja` Scale keys remain unchanged.
+
+### Completed
+
+- Added `ScaleService.getTenantUploadPolicy()` to resolve active tenant subscription first, then user subscription fallback, tenant/user entitlements, enabled feature flags, and current media usage.
+- Updated API-managed media uploads to enforce Phase 9 policy before writing to local/R2 storage:
+  - storage quota;
+  - photo count;
+  - video count;
+  - max file size;
+  - video-upload feature gate.
+- Kept global env upload-size validation as an outer safety ceiling before plan-specific limits.
+- Added media service tests for plan storage quota denial, photo-count quota denial, and disabled video-upload gate.
+- Updated product, roadmap, API/database/storage/testing/user-guide docs and corrected Prompt 09 carryover so R2 adapter status is accurate.
+
+### Deferred / Carryover
+
+- Real MoMo checkout/webhook signature verification, signed URL upload/download sessions, multipart mobile upload, local-to-R2 migration tooling, CDN-first derivative delivery, canonical handle routes, full studio workflow, watermark hook, AI tag adapter/UI, contextual theme UI, and greeting scheduler remain gated follow-up work.
+- `/admin/scale` still needs authenticated browser responsive QA on real data before release.
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/api test -- --runTestsByPath src/modules/media/application/media.service.spec.ts src/modules/scale/application/scale-foundation.spec.ts`: pass.
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass.
+- `pnpm.cmd format:check`: pass after formatting `media.service.spec.ts`.
+- `pnpm.cmd lint`: pass.
+- `pnpm.cmd typecheck`: pass.
+- `pnpm.cmd test`: pass; existing tests intentionally log the storage-failure and Redis-fallback cases.
+- `pnpm.cmd build`: pass; Windows emitted a non-fatal long-link warning while collecting Next standalone traces.
+- `git diff --check`: pass.
+
+## 2026-06-29 - Persistent Session Planning Task
+
+### Completed
+
+- Added a roadmap task for keeping users signed in across browser close/reopen, hard refresh, direct app visits, and public home visits while the refresh token remains valid.
+- Added prompt 08A implementation, test, and acceptance requirements for silent auth-state restoration, public-home signed-in navigation state, and logout/revoke/expired-token regressions.
+- Preserved the existing security model in the planning task: short-lived access tokens, persistent refresh cookies, refresh rotation/reuse detection, CSRF, and HttpOnly/SameSite/Secure cookie flags.
+
+### Tests and Checks
+
+- Docs/prompt-only change; no runtime tests required.
+
 ## 2026-06-29 - Public Album Media URL Fallback And Layout Polish
 
 ### Completed

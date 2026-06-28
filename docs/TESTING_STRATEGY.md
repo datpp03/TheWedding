@@ -58,7 +58,7 @@
 - Studio/B2B users cannot access clients or albums outside their studio membership.
 - Contextual themes work without location/weather permission and provide opt-out/reduced-motion behavior.
 - Automated greetings trigger only within the configured date/time window and use locale keys for visible text.
-- Phase 9 foundation automated coverage includes plan/add-on classification, storage boost resolution, premium theme gates requiring feature flags, public handle normalization, contextual theme safe fallback, and greeting schedule windows.
+- Phase 9 foundation automated coverage includes plan/add-on classification, storage boost resolution, premium theme gates requiring feature flags, public handle normalization, contextual theme safe fallback, greeting schedule windows, media upload storage quota enforcement, photo-count quota enforcement, and video-upload feature gate denial.
 - Public featured albums include only public albums.
 - Advanced album search never returns private albums and never returns unlisted albums without direct-link access.
 - Reaction symbol validation uses album/theme-approved keys rather than arbitrary user-submitted markup.
