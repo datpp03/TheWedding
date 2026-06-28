@@ -14,7 +14,7 @@ export type PutOptions = UploadOptions & {
 
 export type UploadedFile = {
   key: string;
-  url: string;
+  url: string | null;
   size: number;
   contentType: string;
 };
@@ -25,5 +25,5 @@ export interface StorageService {
   read(key: string): Promise<Buffer>;
   delete(key: string): Promise<void>;
   getSignedUrl(key: string, options: { expiresInSeconds: number }): Promise<string>;
-  getPublicUrl(key: string): string;
+  getPublicUrl(key: string): string | null;
 }

@@ -69,4 +69,4 @@ Image processing uses Sharp today. Video preview is currently metadata-only unle
 
 The scale module is a foundation layer, not a fully enabled commerce system. It resolves plan limits and feature access through shared catalog constants, active feature flags, and admin-granted entitlements. Controllers expose only safe public reads, authenticated user handle/tenant summaries, and admin-only mutation endpoints.
 
-Production providers remain gated: MoMo checkout/webhook signature verification, R2 storage adapter, signed upload/download URLs, multipart mobile uploads, and local-to-object migration are still separate provider implementations behind existing boundaries.
+Production providers remain gated for payment and advanced media delivery: MoMo checkout/webhook signature verification, signed upload/download URL endpoints, multipart mobile uploads, CDN-first public derivative delivery, and local-to-object migration are still separate provider implementations behind existing boundaries. The S3-compatible/R2 storage adapter is available for API-managed uploads.

@@ -30,6 +30,8 @@ All notable changes to this project will be documented in this file.
 - SEO/GEO guideline document covering canonical URLs, robots/noindex, sitemap, structured data, AI crawler policy, public route privacy, media metadata, and verification.
 - Prompt handoff rules now require each `VIEC_CAN_LAM.md` item to include detailed execution instructions, prerequisites, exact places to configure/check, verification steps, and related docs.
 - SMTP auth email delivery using configured host/user/password/from settings for password reset and email verification links.
+- S3-compatible Cloudflare R2 storage adapter for API-managed media uploads, reads, deletes, and public derivative URL generation when a public base URL is configured.
+- Cloudflare R2 setup guide for bucket creation, access keys, Render env configuration, smoke tests, and rollback.
 
 ### Changed
 
@@ -40,8 +42,8 @@ All notable changes to this project will be documented in this file.
 - Reordered the remaining prompt workflow around the active Vercel + Render + Neon deployment path.
 - Expanded the recommended prompt order so unfinished cross-phase work can be completed before broad Phase 9 scale features.
 - Marked Docker VPS CI/CD as an optional later deployment track instead of the next required phase.
-- Deferred Cloudflare R2 activation to Phase 9 until the S3/R2 adapter, signed URLs/upload sessions, tests, docs, and smoke tests are complete.
-- Clarified that production should keep `STORAGE_PROVIDER=local` before R2 is implemented and verified.
+- Cloudflare R2 activation is now available for API-managed uploads after bucket/access key setup and smoke tests; direct upload sessions, multipart uploads, migration tooling, and CDN hardening remain deferred.
+- Clarified that production can switch from `STORAGE_PROVIDER=local` to `r2` once the R2 guide is completed and verified.
 - Added `TENANT_STORAGE_QUOTA_BYTES` as the default per-tenant upload ceiling before Phase 9 plan/entitlement quota expansion.
 - The web root now renders public album discovery instead of redirecting users to the dashboard/login flow.
 - R2 and MoMo env placeholders are documented and validated as optional values, while production remains on local storage and no public payment webhook is exposed yet.
@@ -51,6 +53,7 @@ All notable changes to this project will be documented in this file.
 - Creating a wedding site from the dashboard now refreshes the auth session so newly granted tenant access is available before creating albums or uploading media.
 - Media image uploads now honor configured `MAX_UPLOAD_BYTES` instead of a hard-coded 15 MB ceiling, and media processing falls back to inline mode if the Redis queue is unavailable.
 - Media uploads now reject empty multipart files with a clear `400 File is empty`, map storage write failures to `503 Media storage is unavailable`, and accept the upload even if async media processing enqueue fails so processing can be retried.
+- Media file/download endpoints now read through the `StorageService` boundary, allowing local filesystem and R2-backed objects to share the same permission-checked API routes.
 - Removed unnecessary typed-route assertions that caused GitHub Actions web lint to fail on Linux CI; login now uses a browser redirect after successful sign-in to avoid typed-route cast drift.
 - Added pnpm security overrides for `multer`, `postcss`, and `js-yaml` so GitHub Actions audit no longer reports known moderate/high vulnerabilities.
 

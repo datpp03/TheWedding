@@ -15,6 +15,7 @@
 
 - **Tải ảnh hàng loạt dạng ZIP**: cho phép tải cả album (nếu allow-download) qua job nén async. Tác động: cao · Phức tạp: trung bình · Phụ thuộc: queue/storage.
 - **Slideshow/“live wall” trình chiếu tại tiệc**: chế độ toàn màn hình tự động chạy ảnh mới. Tác động: trung bình · Phức tạp: thấp.
+- **Tách private originals và public derivatives trên R2/CDN**: giữ original trong private prefix/bucket, còn thumbnail/gallery WebP có public custom domain/CDN riêng. Giá trị: public gallery nhanh hơn, không lộ original, dễ kiểm soát SEO/GEO media. Tác động: cao · Phức tạp: trung bình · Phụ thuộc: R2 adapter, media processing, custom domain/CDN policy.
 - **AI auto-highlight reel**: tự chọn ảnh đẹp + ghép video ngắn. Tác động: cao · Phức tạp: cao · Phụ thuộc: AI/ffmpeg, Phase 9.
 - **Nhóm khuôn mặt (opt-in, có đồng ý)**: gom ảnh theo người để khách tìm ảnh của mình. Tác động: cao · Phức tạp: cao · Lưu ý: quyền riêng tư.
 - **BlurHash/LQIP + PWA offline gallery**: cải thiện cảm nhận tốc độ và xem offline. Tác động: trung bình · Phức tạp: trung bình.

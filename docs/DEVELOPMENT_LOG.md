@@ -1,5 +1,26 @@
 # Development Log
 
+## 2026-06-29 - Early Cloudflare R2 Storage Adapter
+
+### Completed
+
+- Pulled Cloudflare R2 forward from the later Phase 9 queue because production media uploads on Render local disk remained unreliable.
+- Added AWS SDK S3 dependencies and implemented `S3CompatibleStorageService` behind the existing `StorageService` boundary.
+- Updated `StorageModule` to select local storage by default or the S3-compatible adapter when `STORAGE_PROVIDER=r2`/`s3`.
+- Updated media file/download endpoints to read through `StorageService` instead of `LocalStorageService`, so local and R2 objects share permission-checked routes.
+- Adjusted media DTO fallback URLs so owner/public views can use checked API endpoints when no public CDN/base URL is configured.
+- Added `docs/guides/CLOUDFLARE_R2_SETUP.md` with bucket, access key, Render env, smoke test, and rollback instructions.
+
+### Deferred / Follow-Up
+
+- Direct browser/mobile upload sessions, multipart/resumable uploads, local-to-R2 migration tooling, signed URL endpoints, and CDN/custom-domain derivative delivery remain separate Phase 9 follow-up work.
+- Production still needs real Cloudflare R2 credentials configured on Render and manual smoke testing with real images.
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass.
+- `pnpm.cmd --filter @the-wedding/api test`: pass.
+
 ## 2026-06-20 - Production Media Upload 500 Hardening
 
 ### Completed

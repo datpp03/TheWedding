@@ -175,6 +175,14 @@ Sau khi đăng nhập, mở `http://localhost:3000/admin`. Tài khoản phải c
 - Storage key do backend sinh, không dùng filename người dùng làm path.
 - Thư mục storage local không commit lên Git.
 
+## Lưu Ý Cloudflare R2 Production
+
+- Production có thể dùng `STORAGE_PROVIDER=r2` sau khi đã tạo bucket R2, access key và cấu hình env trên Render.
+- Upload hiện vẫn đi qua API trước rồi API ghi vào R2. Chưa phải direct browser/mobile upload.
+- Bucket nên giữ private trong giai đoạn đầu. Dashboard và public media dùng các API endpoint đã kiểm tra quyền để đọc file khi chưa có public CDN/custom domain.
+- Nếu cấu hình `STORAGE_PUBLIC_BASE_URL`, chỉ dùng cho optimized derivative public; không dùng để expose original/private media.
+- Hướng dẫn cấu hình chi tiết nằm ở `docs/guides/CLOUDFLARE_R2_SETUP.md`.
+
 ## Checklist Khi Hoàn Thành Chức Năng Mới
 
 Mỗi phase/prompt sau khi thêm chức năng mới cần cập nhật file này:
@@ -256,7 +264,7 @@ Checklist backup/restore truoc release:
 
 ## Phase 9: Goi Dich Vu, Entitlement, Handle Va Scale Foundation
 
-Phase 9 hien moi mo nen tang an toan cho goi dich vu va tinh nang scale, chua bat thanh toan that hoac R2 production.
+Phase 9 hien moi mo nen tang an toan cho goi dich vu va tinh nang scale. R2 adapter da co cho API-managed upload, nhung thanh toan that, direct upload, multipart upload, migration tool va CDN toi uu van chua hoan tat.
 
 ### Admin xem catalog goi va unlock thu cong
 
@@ -294,5 +302,6 @@ Route public moi va redirect tu route cu chua duoc expose tren UI; tiep tuc dung
 ### MoMo va Cloudflare R2
 
 - MoMo hien chi co env optional va bang `payment_events` idempotent cho admin placeholder. Chua co checkout that, webhook public, hoac verify chu ky MoMo.
-- Cloudflare R2 hien chi co env/docs. Production van giu `STORAGE_PROVIDER=local` cho den khi co R2 adapter, signed URL, upload session, smoke test va rollback docs.
+- Cloudflare R2 da co adapter cho API-managed upload. Can tao bucket/access key tren Cloudflare, cau hinh Render env, redeploy va smoke test truoc khi coi production upload on dinh.
+- Signed upload session, multipart upload, local-to-R2 migration va CDN-first delivery van la viec sau.
 - Nguoi dung can merchant credentials MoMo va tai khoan Cloudflare/R2 that truoc khi bat cac tinh nang production nay.

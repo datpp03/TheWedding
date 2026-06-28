@@ -10,7 +10,7 @@ GitHub repository
   |-- Render Free: apps/api NestJS Docker
   |-- Neon Free: PostgreSQL database
   |-- Redis: tam thoi tat bang REDIS_URL rong
-  |-- Cloudflare R2 Free: de sau, khi adapter S3/R2 on dinh
+  |-- Cloudflare R2 Free: object storage cho media production sau khi cau hinh bucket/access key
 ```
 
 ## Nguyen Tac Khong Mat Phi
@@ -20,7 +20,7 @@ GitHub repository
 3. Neon: chon Free plan, khong them paid compute/storage.
 4. Khong tao database tren Render de luu du lieu that.
 5. Redis de trong: `REDIS_URL=`.
-6. Storage anh/video production chua bat, vi Render local disk khong phai noi luu tru lau dai.
+6. Storage anh/video production nen dung Cloudflare R2; Render local disk chi la tam thoi.
 7. Dat reminder hang thang de vao Neon/Render kiem tra usage.
 
 Link pricing nen xem lai truoc khi tao resource:
@@ -303,11 +303,17 @@ REDIS_URL=rediss://default:password@host:port
 
 Redeploy API sau khi cap nhat.
 
-## Buoc 9: Bat Cloudflare R2 Sau Nay
+## Buoc 9: Bat Cloudflare R2
 
-Chi bat khi adapter S3/R2 da on dinh.
+Adapter S3/R2 da co cho API-managed upload. Nen bat R2 som neu upload tren Render local disk khong on dinh.
 
-Trang thai hien tai: chua bat R2. Khong can bam `Add R2 subscription` tren Cloudflare va khong them cac bien `S3_*` vao Render cho den khi Phase 9 implement xong adapter R2, signed URL/upload session, docs, tests, va smoke test. Production tam thoi giu:
+Lam theo guide chi tiet:
+
+```txt
+docs/guides/CLOUDFLARE_R2_SETUP.md
+```
+
+Neu chua co bucket/access key R2, production tam thoi giu:
 
 ```env
 STORAGE_PROVIDER=local
@@ -321,6 +327,7 @@ S3_REGION=auto
 S3_BUCKET=the-wedding-media
 S3_ACCESS_KEY=<r2-access-key>
 S3_SECRET_KEY=<r2-secret-key>
+STORAGE_PUBLIC_BASE_URL=
 STORAGE_SIGNED_URL_TTL_SECONDS=900
 ```
 
@@ -338,4 +345,4 @@ Upload anh/video that khong nen phu thuoc Render local disk.
 - `REDIS_URL` de rong.
 - Web goi duoc API.
 - Login/register hoat dong.
-- Upload file chi dung de test cho den khi co R2.
+- Neu upload production can on dinh, Cloudflare R2 bucket/access key da cau hinh va smoke test upload/dashboard/download da pass.

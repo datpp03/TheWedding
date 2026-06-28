@@ -457,8 +457,12 @@ function cleanNullable(value: string | null | undefined) {
 
 function toMediaDto(media: MediaOrmEntity, isPublic = false) {
   const optimizedUrl = media.optimizedUrl ?? null;
-  const ownerDisplayUrl =
-    optimizedUrl ?? `/api/v1/tenants/${media.tenantId}/media/${media.id}/file`;
+  const ownerDisplayUrl = `/api/v1/tenants/${media.tenantId}/media/${media.id}/file`;
+  const publicDisplayUrl =
+    optimizedUrl ??
+    (media.processingStatus === MEDIA_PROCESSING_STATUS.READY
+      ? `/api/v1/public/tenants/${media.tenantId}/media/${media.id}/file`
+      : null);
   return {
     albumId: media.albumId,
     createdAt: media.createdAt,
@@ -472,12 +476,12 @@ function toMediaDto(media: MediaOrmEntity, isPublic = false) {
     processingAttempts: media.processingAttempts,
     processingFailureReason: media.processingFailureReason,
     processingStatus: media.processingStatus,
-    publicUrl: isPublic ? optimizedUrl : ownerDisplayUrl,
+    publicUrl: isPublic ? publicDisplayUrl : ownerDisplayUrl,
     sizeBytes: Number(media.sizeBytes),
     sortOrder: media.sortOrder,
     takenAt: media.takenAt,
     tenantId: media.tenantId,
-    thumbnailUrl: media.thumbnailUrl,
+    thumbnailUrl: media.thumbnailUrl ?? (isPublic ? publicDisplayUrl : null),
     title: media.title,
     type: media.type,
     updatedAt: media.updatedAt,

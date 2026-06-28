@@ -41,7 +41,7 @@ The default local setup uses Docker Compose service `postgres`, database `the_we
 - `STORAGE_SIGNED_URL_TTL_SECONDS`: signed URL lifetime for protected media.
 - `MAX_UPLOAD_BYTES`, `MAX_VIDEO_UPLOAD_BYTES`: global upload limits before plan-specific limits are applied.
 
-R2/S3 variables are validated now for production readiness, but production must keep `STORAGE_PROVIDER=local` until the adapter, signed URLs, upload sessions, smoke tests, and rollback docs are complete.
+R2/S3 adapter support is available for API-managed uploads. Set `STORAGE_PROVIDER=r2` only after creating the Cloudflare R2 bucket/access keys and configuring the required `S3_*` variables on the API host. Direct browser/mobile upload sessions, multipart uploads, local-to-R2 migration tooling, and CDN-first delivery remain separate follow-up work. See `docs/guides/CLOUDFLARE_R2_SETUP.md`.
 
 ## Payments
 

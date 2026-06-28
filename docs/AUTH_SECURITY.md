@@ -103,5 +103,5 @@
 - Randomize storage keys.
 - Prevent path traversal.
 - Keep original media private unless explicitly public.
-- Signed URL TTL remains planned for Phase 9 when the S3-compatible/R2 adapter and signed URL endpoints are implemented. Target default TTL is 900 seconds for protected media.
+- Signed URL TTL remains planned for Phase 9 signed URL endpoints. The S3-compatible/R2 adapter is available for API-managed uploads, while protected media still uses permission-checked API endpoints by default. Target default TTL is 900 seconds for future signed media URLs.
 - Add malware scanning integration when available.

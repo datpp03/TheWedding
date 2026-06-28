@@ -31,6 +31,19 @@ Original files remain private. Normal gallery display should use optimized deriv
 
 ## Production Direction
 
-Use S3-compatible object storage with private buckets, randomized storage keys, and signed URLs for protected media.
+Use S3-compatible object storage with private buckets and randomized storage keys.
+
+Implemented early:
+
+- `STORAGE_PROVIDER=r2` or `STORAGE_PROVIDER=s3` selects the S3-compatible adapter.
+- API-managed uploads can write originals and derivatives to Cloudflare R2.
+- Media file/download endpoints read through `StorageService`, so permission checks stay in the media module.
+
+Still planned:
+
+- Direct upload sessions.
+- Multipart/resumable uploads.
+- Dedicated signed URL endpoints.
+- CDN/custom-domain delivery for public derivatives.
 
 See `docs/STORAGE_STRATEGY.md` for the full storage architecture, upload flows, provider recommendation, and mobile roadmap.

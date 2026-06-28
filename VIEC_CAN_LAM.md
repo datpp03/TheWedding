@@ -37,8 +37,31 @@
   - Xác nhận hoàn tất: restart/redeploy backend, test đăng ký tài khoản, quên mật khẩu và verify email; email phải đến inbox thật và link reset/verify phải hoạt động.
   - Docs liên quan: `docs/ENVIRONMENT_VARIABLES.md`, `docs/DEPLOYMENT.md`.
 - [~] Google/Facebook OAuth: mới có luồng start + validate `returnTo`. Callback exchange/account linking còn tắt cho tới khi xác nhận quy tắc liên kết theo email đã verify; cần client ID/secret của provider.
-- [~] Cloudflare R2 / object storage: đang để `STORAGE_PROVIDER=local`. Khi triển khai `08d`/Phase 9 mới đăng ký Cloudflare, tạo bucket R2, access key, cấu hình env/CORS.
-- [~] Cloudflare R2 / object storage: Phase 9 đã thêm env/docs/gate foundation nhưng chưa có R2 adapter, signed URL, upload session, multipart upload, migration tool và smoke test. Tiếp tục giữ `STORAGE_PROVIDER=local`.
+- [~] Cloudflare R2 / object storage: code đã có adapter cho API-managed upload; người dùng cần tạo bucket/access key, cấu hình Render env và smoke test trước khi coi upload production ổn định.
+  - Chuẩn bị: tài khoản Cloudflare, quyền bật R2, quyền vào Render backend API, 1-3 ảnh test nhỏ và 1-3 ảnh điện thoại dung lượng lớn.
+  - Các bước thực hiện:
+    1. Vào Cloudflare dashboard, mở `R2 Object Storage`, tạo bucket private, ví dụ `thewedding-media-prod`.
+    2. Ghi lại Cloudflare `Account ID`; endpoint R2 sẽ là `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`.
+    3. Tạo R2 access key/API token có quyền đọc, ghi và xóa object trong bucket production.
+    4. Vào Render backend API, cấu hình `STORAGE_PROVIDER=r2`, `S3_ENDPOINT`, `S3_REGION=auto`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `STORAGE_SIGNED_URL_TTL_SECONDS=900`, `MAX_UPLOAD_BYTES=83886080`, `MAX_VIDEO_UPLOAD_BYTES=629145600`.
+    5. Để `STORAGE_PUBLIC_BASE_URL=` rỗng nếu chưa cấu hình public/custom domain cho R2.
+    6. Redeploy backend API từ commit mới nhất.
+    7. Đăng xuất/đăng nhập lại app, vào dashboard Media, upload ảnh nhỏ trước rồi upload vài ảnh điện thoại lớn.
+    8. Mở Cloudflare R2 bucket, kiểm tra object xuất hiện dưới `tenants/{tenantId}/media/{mediaId}/original/` và `versions/`.
+  - Nơi cấu hình/kiểm tra: Cloudflare R2 dashboard, Render service Environment, `https://thewedding.d-ajt.app/dashboard/media`, log backend API.
+  - Xác nhận hoàn tất: upload trả success, media chuyển `queued/processing` sang `ready`, dashboard xem/tải ảnh được, R2 bucket có original và derivative WebP, không còn lỗi `Media storage is unavailable`.
+  - Docs liên quan: `docs/guides/CLOUDFLARE_R2_SETUP.md`, `docs/ENVIRONMENT_VARIABLES.md`, `docs/STORAGE_STRATEGY.md`, `docs/DEPLOYMENT.md`.
+- [ ] Rotate R2 access key đã bị lộ trong chat trước khi dùng production.
+  - Chuẩn bị: quyền vào Cloudflare R2 API Tokens và Render Environment.
+  - Các bước thực hiện:
+    1. Vào Cloudflare R2 `API Tokens`.
+    2. Xóa/revoke token vừa tạo nếu secret đã từng được gửi qua chat hoặc chụp màn hình public.
+    3. Tạo lại `Account API Token` mới với quyền `Object Read & Write`, scope chỉ bucket `thewedding-media-prod`, TTL `Forever`, không lọc IP.
+    4. Copy `Access Key ID` và `Secret Access Key` mới, dán trực tiếp vào Render env `S3_ACCESS_KEY` và `S3_SECRET_KEY`; không gửi lại qua chat.
+    5. Nếu cần test local, điền key mới vào `.env` local trên máy, không commit.
+  - Nơi cấu hình/kiểm tra: Cloudflare R2 API Tokens, Render backend API Environment, file `.env` local nếu test local.
+  - Xác nhận hoàn tất: token cũ không còn hoạt động; backend deploy với key mới upload được ảnh lên R2.
+  - Docs liên quan: `docs/guides/CLOUDFLARE_R2_SETUP.md`, `docs/ENVIRONMENT_VARIABLES.md`.
 - [~] MoMo payment & gói dịch vụ: Phase 9 mới có catalog, entitlement và payment-event idempotency placeholder. Cần tài khoản merchant + credentials, checkout thật, redirect và webhook verify chữ ký trước khi bật thanh toán.
 - [~] Secrets trên Vercel/Render/Neon (và VPS nếu dùng `10`): JWT/cookie secrets, DATABASE_URL, CORS origins, registry/SSH secrets.
 - [~] Cấu hình host cho media upload sau lỗi production ngày 2026-06-20.

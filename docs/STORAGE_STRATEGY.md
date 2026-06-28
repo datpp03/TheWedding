@@ -188,7 +188,7 @@ MAX_VIDEO_UPLOAD_BYTES=
 
 For Cloudflare R2, map `S3_ENDPOINT` to the R2 S3 API endpoint, `S3_BUCKET` to the bucket name, and the access key/secret key to an R2 API token with least-privilege object access. When Phase 9 starts, add a Vietnamese step-by-step guide for creating a Cloudflare account, enabling R2, creating the bucket, generating credentials, configuring CORS if direct uploads are used, and validating the upload/optimized-display flow.
 
-Current production status: do not enable R2 subscription or set `STORAGE_PROVIDER=r2` on Render until Phase 9 implements and verifies the adapter. Keep production on `STORAGE_PROVIDER=local` for the free-hosting smoke-test stage.
+Current production status: the S3-compatible/R2 adapter is implemented for API-managed uploads. You may set `STORAGE_PROVIDER=r2` on Render after creating the R2 bucket/access keys, configuring the required `S3_*` variables, and running the smoke tests in `docs/guides/CLOUDFLARE_R2_SETUP.md`. Direct browser/mobile upload sessions, multipart upload, CDN-first derivative delivery, local-to-R2 migration tooling, and rollback automation remain follow-up work.
 
 Do not commit real credentials.
 
@@ -214,7 +214,7 @@ Do not commit real credentials.
 
 ### Phase 9
 
-- Add Cloudflare R2 production adapter through the S3-compatible boundary.
+- Completed early: add Cloudflare R2 production adapter through the S3-compatible boundary for API-managed uploads.
 - Add signed upload/download URLs.
 - Add CDN for public optimized assets.
 - Add multipart upload sessions for large mobile uploads.
@@ -228,11 +228,12 @@ Implemented now:
 - Env validation and `.env.example` include R2/S3 public base URL, signed URL TTL, and global upload-size variables.
 - Plan/entitlement logic can increase storage limits and gate storage-heavy features before R2 is enabled.
 - Documentation includes the owner-facing R2 setup checklist.
+- `S3CompatibleStorageService` supports `STORAGE_PROVIDER=r2`/`s3` for server-side upload/read/delete through the existing `StorageService` boundary.
+- Media file/download endpoints read through `StorageService`, so local and R2 objects use the same permission-checked API surface.
 
-Still deferred and must stay behind carryover before production enablement:
+Still deferred before Phase 9 can be called production-complete:
 
-- S3/R2 `StorageService` adapter implementation.
 - Signed upload/download URL generation.
 - Direct-to-object upload sessions and multipart mobile video upload sessions.
 - Local-to-R2 migration tooling and smoke tests.
-- Render/Vercel production switch from `STORAGE_PROVIDER=local` to `r2`.
+- CDN/custom-domain optimization for public derivative URLs.

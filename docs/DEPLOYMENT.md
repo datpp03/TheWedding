@@ -54,18 +54,19 @@ The repo includes `.github/workflows/deploy-docker-vps.yml`, `docker-compose.pro
 
 - Use managed PostgreSQL for production; Neon is the current free-tier target for early usage.
 - Before public launch, verify SEO/GEO deployment basics from `docs/SEO_GEO_GUIDELINES.md`: HTTPS canonical domain, redirects between default/custom domains, `robots.txt`, `sitemap.xml`, noindex for auth/admin/dashboard/private routes, Open Graph image reachability, and cache rules that do not expose private/API/signed-media responses.
-- Use Cloudflare R2 through the S3-compatible storage adapter as the first production object-storage target after the adapter is implemented and verified. Keep original media private and generate signed URLs for protected access.
+- Use Cloudflare R2 through the S3-compatible storage adapter as the first production object-storage target. The adapter supports API-managed uploads now; direct upload sessions and multipart uploads remain follow-up work.
 - Put CDN in front of public optimized media only.
 - Keep original media private by default.
-- R2 setup checklist for the owner when the adapter is ready:
+- R2 setup checklist for the owner:
   1. Create or sign in to a Cloudflare account.
   2. Enable R2 and create a private bucket for production media.
   3. Generate least-privilege R2 access keys for object read/write in that bucket.
   4. Set `STORAGE_PROVIDER=r2`, `S3_ENDPOINT`, `S3_REGION=auto`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `STORAGE_PUBLIC_BASE_URL`, and `STORAGE_SIGNED_URL_TTL_SECONDS` in the API environment.
   5. Configure CORS on the bucket only if direct browser/mobile upload sessions are exposed.
-  6. Run upload, processing, optimized-display, signed-download, and rollback smoke tests before switching production traffic.
+  6. Run upload, processing, dashboard display, public album display, download, and rollback smoke tests before switching production traffic.
 - Configure backup/restore and retention policy before launch.
 - See `docs/STORAGE_STRATEGY.md` for the storage rollout plan, mobile upload model, CDN direction, and provider boundary.
+- See `docs/guides/CLOUDFLARE_R2_SETUP.md` for step-by-step Cloudflare R2 bucket, key, Render env, smoke test, and rollback instructions.
 - See `docs/guides/CI_CD_DOCKER_VPS.md` before enabling automated production deploys.
 - See `docs/guides/HUONG_DAN_DI_DOI_HOST_DATABASE_STORAGE.md` before moving VPS/host, database, or media storage.
 

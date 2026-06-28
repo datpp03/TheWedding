@@ -12,6 +12,7 @@ import {
   UploadedFile,
   UploadedFiles,
   UseInterceptors,
+  Inject,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Throttle } from '@nestjs/throttler';
@@ -19,7 +20,7 @@ import type { Request, Response } from 'express';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Public } from '../../../common/decorators/public.decorator';
 import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
-import { LocalStorageService } from '../../storage/infrastructure/local-storage.service';
+import { STORAGE_SERVICE, type StorageService } from '../../storage/domain/storage.service';
 import { MediaService, type MemoryUpload } from '../application/media.service';
 import {
   BatchDeleteMediaDto,
@@ -33,7 +34,8 @@ import {
 export class MediaController {
   constructor(
     private readonly media: MediaService,
-    private readonly localStorage: LocalStorageService,
+    @Inject(STORAGE_SERVICE)
+    private readonly storage: StorageService,
   ) {}
 
   @Get('tenants/:tenantId/albums/:albumId/media')
@@ -139,7 +141,7 @@ export class MediaController {
       'Content-Disposition',
       `attachment; filename="${file.fileName.replace(/"/g, '')}"`,
     );
-    return response.sendFile(this.localStorage.resolveKey(file.storageKey));
+    return response.send(await this.storage.read(file.storageKey));
   }
 
   @Get('tenants/:tenantId/media/:mediaId/file')
@@ -152,7 +154,7 @@ export class MediaController {
   ) {
     const file = await this.media.getFile(tenantId, mediaId, createContext(user, request));
     response.setHeader('Content-Type', file.mimeType);
-    return response.sendFile(this.localStorage.resolveKey(file.storageKey));
+    return response.send(await this.storage.read(file.storageKey));
   }
 
   @Public()
@@ -175,7 +177,7 @@ export class MediaController {
       'Content-Disposition',
       `attachment; filename="${file.fileName.replace(/"/g, '')}"`,
     );
-    return response.sendFile(this.localStorage.resolveKey(file.storageKey));
+    return response.send(await this.storage.read(file.storageKey));
   }
 
   @Public()
@@ -188,7 +190,7 @@ export class MediaController {
     const file = await this.media.getFile(tenantId, mediaId);
     response.setHeader('Content-Type', file.mimeType);
     response.setHeader('Cache-Control', 'public, max-age=300');
-    return response.sendFile(this.localStorage.resolveKey(file.storageKey));
+    return response.send(await this.storage.read(file.storageKey));
   }
 }
 
