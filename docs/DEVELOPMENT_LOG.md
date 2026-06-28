@@ -1,5 +1,22 @@
 # Development Log
 
+## 2026-06-29 - Media Blur Placeholder Length Guard
+
+### Completed
+
+- Investigated Render media processing failure where R2 successfully stored `thumb_360.webp`, `gallery_1280.webp`, and `lightbox_2048.webp`, but the media item still became `failed`.
+- Identified the database update failure: generated inline WebP blur placeholders could exceed the `media.blurHash varchar(200)` column limit.
+- Added a length guard so overlong placeholders are stored as `null` while optimized image URLs, thumbnails, dimensions, and media processing status can still be saved.
+- Added image processing test coverage to ensure media updates never write a `blurHash` longer than 200 characters.
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/api test -- media-processing.processor.spec.ts`: pass.
+- `pnpm.cmd --filter @the-wedding/api lint`: pass.
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass.
+- `pnpm.cmd format:check`: pass.
+- `git diff --check`: pass.
+
 ## 2026-06-29 - Production Upload Quota Query Fix
 
 ### Completed

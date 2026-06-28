@@ -35,6 +35,8 @@ const IMAGE_PROFILES: ImageProfile[] = [
   },
 ];
 
+const MAX_BLUR_HASH_LENGTH = 200;
+
 @Injectable()
 export class MediaProcessingProcessor {
   constructor(
@@ -92,7 +94,7 @@ export class MediaProcessingProcessor {
       .toBuffer();
 
     const updates: Partial<MediaOrmEntity> = {
-      blurHash: `data:image/webp;base64,${blurPlaceholder.toString('base64')}`,
+      blurHash: createSafeBlurHash(blurPlaceholder),
       height: metadata.height ?? null,
       width: metadata.width ?? null,
     };
@@ -202,6 +204,11 @@ export class MediaProcessingProcessor {
 
 function createVersionKey(media: MediaOrmEntity, fileName: string) {
   return path.posix.join('tenants', media.tenantId, 'media', media.id, 'versions', fileName);
+}
+
+function createSafeBlurHash(buffer: Buffer) {
+  const value = `data:image/webp;base64,${buffer.toString('base64')}`;
+  return value.length <= MAX_BLUR_HASH_LENGTH ? value : null;
 }
 
 function readFailure(caught: unknown) {

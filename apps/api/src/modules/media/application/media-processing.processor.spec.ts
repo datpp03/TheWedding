@@ -4,16 +4,7 @@ import { MediaProcessingProcessor } from './media-processing.processor';
 
 describe('MediaProcessingProcessor', () => {
   it('creates image versions idempotently and marks media ready', async () => {
-    const original = await sharp({
-      create: {
-        background: '#f5a3b7',
-        channels: 3,
-        height: 64,
-        width: 64,
-      },
-    })
-      .jpeg()
-      .toBuffer();
+    const original = await createNoisyJpeg();
     const media = {
       id: 'media-1',
       mimeType: 'image/jpeg',
@@ -64,6 +55,24 @@ describe('MediaProcessingProcessor', () => {
       media.id,
       expect.objectContaining({ processingStatus: MEDIA_PROCESSING_STATUS.READY }),
     );
+    expect(mediaRepo.update).toHaveBeenCalledWith(
+      media.id,
+      expect.objectContaining({ blurHash: null }),
+    );
     expect(mediaRepo.query).toHaveBeenCalled();
   });
 });
+
+async function createNoisyJpeg() {
+  const width = 64;
+  const height = 1024;
+  const data = Buffer.alloc(width * height * 3);
+  let seed = 123456789;
+  for (let index = 0; index < data.length; index += 1) {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    data[index] = seed & 0xff;
+  }
+  return sharp(data, { raw: { channels: 3, height, width } })
+    .jpeg({ quality: 95 })
+    .toBuffer();
+}
