@@ -1,5 +1,22 @@
 # Development Log
 
+## 2026-06-29 - Media Cross-Origin Display Header
+
+### Completed
+
+- Investigated dashboard image display failure where the media file endpoint returned `200 OK` but Chrome blocked the image with `net::ERR_BLOCKED_BY_RESPONSE.NotSameOrigin`.
+- Identified Helmet's default `Cross-Origin-Resource-Policy: same-origin` as incompatible with the production split between `thewedding.d-ajt.app` and `thewedding-api.d-ajt.app`.
+- Added explicit `Cross-Origin-Resource-Policy: cross-origin` headers to permission-checked media file/download responses while keeping auth, album visibility, and download permission checks unchanged.
+- Documented the public album URL format for direct album viewing.
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass.
+- `pnpm.cmd --filter @the-wedding/api lint`: pass.
+- `pnpm.cmd --filter @the-wedding/api test`: pass.
+- `pnpm.cmd format:check`: pass.
+- `git diff --check`: pass.
+
 ## 2026-06-29 - Media Blur Placeholder Length Guard
 
 ### Completed

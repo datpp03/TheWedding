@@ -31,6 +31,9 @@ Tài liệu này dành cho người kiểm thử và người dùng nội bộ k
 - Cài đặt wedding site: `http://localhost:3000/dashboard/settings`
 - Admin: `http://localhost:3000/admin`
 - Public site: `http://localhost:3000/{siteSlug}`
+- Public album direct link: `http://localhost:3000/albums/{albumId}`
+- Production dashboard media: `https://thewedding.d-ajt.app/dashboard/media`
+- Production public album direct link: `https://thewedding.d-ajt.app/albums/{albumId}`
 
 ## Tài Khoản Local Để Kiểm Thử
 
@@ -78,6 +81,7 @@ Nếu reset database local, hãy chạy lại seed để tạo super admin. Vớ
    - sắp xếp bằng Up/Down;
    - xóa album.
 6. Cover album được chọn từ màn Media sau khi upload ảnh.
+7. Để xem album bằng link trực tiếp, mở `http://localhost:3000/albums/{albumId}` hoặc production `https://thewedding.d-ajt.app/albums/{albumId}`. Album `public` và `unlisted` xem được bằng link, album `private` sẽ không hiện ở public detail.
 
 ## Upload Và Quản Lý Media
 

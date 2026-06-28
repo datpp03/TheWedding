@@ -43,6 +43,7 @@ corepack prepare pnpm@10.12.1 --activate
 - Public gallery does not show a just-uploaded item: this is expected while status is queued or processing. Public galleries only use optimized derivatives by default so original files stay private.
 - Video preview is metadata-only in this phase. Add ffmpeg to the worker image before expecting extracted preview frames.
 - Media fails after R2 creates `thumb_360.webp`, `gallery_1280.webp`, and `lightbox_2048.webp` with `value too long for type character varying(200)`: deploy the media blur placeholder length guard, then retry processing from the owner media dashboard.
+- Image request returns `200 OK` but the browser shows `net::ERR_BLOCKED_BY_RESPONSE.NotSameOrigin`: confirm the media file/download response includes `Cross-Origin-Resource-Policy: cross-origin`, then redeploy the API.
 - Upload fails with "File extension does not match MIME type": rename/export the file with the correct extension for its MIME type before retrying.
 - Upload fails with "File is empty": retry from the browser file picker instead of replaying a DevTools copied curl/fetch request, because copied multipart requests do not include the real binary file body.
 - Upload fails with "Tenant storage quota exceeded": delete unused media, increase `TENANT_STORAGE_QUOTA_BYTES` for the environment, or wait for Phase 9 plan/entitlement quota controls.

@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Header,
   Param,
   Patch,
   Post,
@@ -136,7 +135,7 @@ export class MediaController {
     @Res() response: Response,
   ) {
     const file = await this.media.getDownload(tenantId, mediaId, createContext(user, request));
-    response.setHeader('Content-Type', file.mimeType);
+    setMediaResponseHeaders(response, file.mimeType, 'private, max-age=0');
     response.setHeader(
       'Content-Disposition',
       `attachment; filename="${file.fileName.replace(/"/g, '')}"`,
@@ -153,7 +152,7 @@ export class MediaController {
     @Res() response: Response,
   ) {
     const file = await this.media.getFile(tenantId, mediaId, createContext(user, request));
-    response.setHeader('Content-Type', file.mimeType);
+    setMediaResponseHeaders(response, file.mimeType, 'private, max-age=0');
     return response.send(await this.storage.read(file.storageKey));
   }
 
@@ -165,14 +164,13 @@ export class MediaController {
 
   @Public()
   @Get('public/tenants/:tenantId/media/:mediaId/download')
-  @Header('Cache-Control', 'private, max-age=0')
   async publicDownload(
     @Param('tenantId') tenantId: string,
     @Param('mediaId') mediaId: string,
     @Res() response: Response,
   ) {
     const file = await this.media.getDownload(tenantId, mediaId);
-    response.setHeader('Content-Type', file.mimeType);
+    setMediaResponseHeaders(response, file.mimeType, 'private, max-age=0');
     response.setHeader(
       'Content-Disposition',
       `attachment; filename="${file.fileName.replace(/"/g, '')}"`,
@@ -188,8 +186,7 @@ export class MediaController {
     @Res() response: Response,
   ) {
     const file = await this.media.getFile(tenantId, mediaId);
-    response.setHeader('Content-Type', file.mimeType);
-    response.setHeader('Cache-Control', 'public, max-age=300');
+    setMediaResponseHeaders(response, file.mimeType, 'public, max-age=300');
     return response.send(await this.storage.read(file.storageKey));
   }
 }
@@ -205,4 +202,10 @@ function createContext(user: AuthenticatedUser, request: Request) {
 
 function getUploadCeilingBytes() {
   return 150 * 1024 * 1024;
+}
+
+function setMediaResponseHeaders(response: Response, contentType: string, cacheControl: string) {
+  response.setHeader('Content-Type', contentType);
+  response.setHeader('Cache-Control', cacheControl);
+  response.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 }

@@ -56,6 +56,7 @@ All notable changes to this project will be documented in this file.
 - Media file/download endpoints now read through the `StorageService` boundary, allowing local filesystem and R2-backed objects to share the same permission-checked API routes.
 - Media quota queries now quote PostgreSQL camelCase columns correctly, fixing production upload failures caused by `media.sizebytes does not exist`.
 - Media image processing now skips overlong inline blur placeholders instead of writing values longer than the `media.blurHash` column limit, fixing production failures after R2 derivatives are generated.
+- Media file/download responses now explicitly allow cross-origin resource embedding so the web app can display permission-checked API images from the separate API domain.
 - Removed unnecessary typed-route assertions that caused GitHub Actions web lint to fail on Linux CI; login now uses a browser redirect after successful sign-in to avoid typed-route cast drift.
 - Added pnpm security overrides for `multer`, `postcss`, and `js-yaml` so GitHub Actions audit no longer reports known moderate/high vulnerabilities.
 
