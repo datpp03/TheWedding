@@ -27,17 +27,16 @@ describe(PublicAlbumsService.name, () => {
   };
 
   function createService(overrides: Record<string, unknown> = {}) {
-    const albumQueryBuilder = {
-      andWhere: jest.fn().mockReturnThis(),
-      getMany: jest.fn().mockResolvedValue([publicAlbum]),
-      innerJoin: jest.fn().mockReturnThis(),
-      leftJoin: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      take: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-    };
     const albums = {
-      createQueryBuilder: jest.fn().mockReturnValue(albumQueryBuilder),
+      createQueryBuilder: jest.fn().mockReturnValue({
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([publicAlbum]),
+        innerJoin: jest.fn().mockReturnThis(),
+        leftJoin: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+      }),
       find: jest.fn().mockResolvedValue([publicAlbum]),
       findOne: jest.fn().mockResolvedValue(publicAlbum),
     };
@@ -47,6 +46,7 @@ describe(PublicAlbumsService.name, () => {
       findOne: jest.fn().mockResolvedValue(null),
     };
     const tenants = {
+      find: jest.fn().mockResolvedValue([tenant]),
       findOne: jest.fn().mockResolvedValue(tenant),
     };
     const users = {
@@ -91,31 +91,35 @@ describe(PublicAlbumsService.name, () => {
       (overrides.searchMetadata ?? searchMetadata) as never,
       (overrides.auditLogs ?? auditLogs) as never,
     );
-    return { albumQueryBuilder, albums, auditLogs, reactions, reactionSymbols, service, wishes };
+    return { albums, auditLogs, reactions, reactionSymbols, service, tenants, wishes };
   }
 
   it('returns featured albums through the same public tenant visibility query as detail pages', async () => {
-    const { albumQueryBuilder, albums, service } = createService();
+    const { albums, service, tenants } = createService();
 
     await service.featured('today');
 
-    expect(albums.find).not.toHaveBeenCalled();
-    expect(albums.createQueryBuilder).toHaveBeenCalledWith('album');
-    expect(albumQueryBuilder.innerJoin).toHaveBeenCalledWith(
-      expect.any(Function),
-      'tenant',
-      'tenant.id = album."tenantId"',
+    expect(albums.find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { visibility: ALBUM_VISIBILITY.PUBLIC },
+      }),
     );
-    expect(albumQueryBuilder.where).toHaveBeenCalledWith('album.visibility = :albumVisibility', {
-      albumVisibility: ALBUM_VISIBILITY.PUBLIC,
+    const tenantFindArg = (
+      tenants.find.mock.calls as Array<[{ where: { status: string; visibility: string } }]>
+    )[0]?.[0];
+    expect(tenantFindArg?.where.status).toBe(TENANT_STATUS.ACTIVE);
+    expect(tenantFindArg?.where.visibility).toBe(TENANT_VISIBILITY.PUBLIC);
+  });
+
+  it('hides featured public albums when the owning tenant is not public', async () => {
+    const { service } = createService({
+      tenants: {
+        find: jest.fn().mockResolvedValue([]),
+        findOne: jest.fn().mockResolvedValue(null),
+      },
     });
-    expect(albumQueryBuilder.andWhere).toHaveBeenCalledWith(
-      'tenant.visibility = :tenantVisibility',
-      { tenantVisibility: TENANT_VISIBILITY.PUBLIC },
-    );
-    expect(albumQueryBuilder.andWhere).toHaveBeenCalledWith('tenant.status = :tenantStatus', {
-      tenantStatus: TENANT_STATUS.ACTIVE,
-    });
+
+    await expect(service.featured('today')).resolves.toEqual([]);
   });
 
   it('allows unlisted albums by direct link but hides private albums', async () => {

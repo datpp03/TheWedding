@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ALBUM_VISIBILITY, TENANT_STATUS, TENANT_VISIBILITY } from '@the-wedding/shared';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import {
   AUDIT_LOG_REPOSITORY,
   type AuditLogRepository,
@@ -88,19 +88,21 @@ export class PublicAlbumsService {
     });
     const curatedAlbumIds = curated.map((entry) => entry.albumId);
     const albums = curatedAlbumIds.length
-      ? await this.createPublicAlbumListQuery()
-          .andWhere('album.id IN (:...albumIds)', { albumIds: curatedAlbumIds })
-          .getMany()
-      : await this.createPublicAlbumListQuery()
-          .orderBy('album."createdAt"', 'DESC')
-          .take(limit)
-          .getMany();
+      ? await this.albums.find({
+          where: { id: In(curatedAlbumIds), visibility: ALBUM_VISIBILITY.PUBLIC },
+        })
+      : await this.albums.find({
+          order: { createdAt: 'DESC' },
+          take: limit,
+          where: { visibility: ALBUM_VISIBILITY.PUBLIC },
+        });
+    const publicAlbums = await this.filterPublicTenantAlbums(albums);
 
     const sorted = curatedAlbumIds.length
       ? curatedAlbumIds
-          .map((id) => albums.find((album) => album.id === id))
+          .map((id) => publicAlbums.find((album) => album.id === id))
           .filter((album): album is AlbumOrmEntity => Boolean(album))
-      : albums;
+      : publicAlbums;
 
     return this.toPublicCards(sorted.slice(0, limit), 'algorithm');
   }
@@ -322,19 +324,18 @@ export class PublicAlbumsService {
     return album;
   }
 
-  private createPublicAlbumListQuery() {
-    return this.albums
-      .createQueryBuilder('album')
-      .innerJoin(TenantOrmEntity, 'tenant', 'tenant.id = album."tenantId"')
-      .where('album.visibility = :albumVisibility', {
-        albumVisibility: ALBUM_VISIBILITY.PUBLIC,
-      })
-      .andWhere('album."deletedAt" IS NULL')
-      .andWhere('tenant.visibility = :tenantVisibility', {
-        tenantVisibility: TENANT_VISIBILITY.PUBLIC,
-      })
-      .andWhere('tenant.status = :tenantStatus', { tenantStatus: TENANT_STATUS.ACTIVE })
-      .andWhere('tenant."deletedAt" IS NULL');
+  private async filterPublicTenantAlbums(albums: AlbumOrmEntity[]) {
+    if (!albums.length) return [];
+    const tenantIds = [...new Set(albums.map((album) => album.tenantId))];
+    const tenants = await this.tenants.find({
+      where: {
+        id: In(tenantIds),
+        status: TENANT_STATUS.ACTIVE,
+        visibility: TENANT_VISIBILITY.PUBLIC,
+      },
+    });
+    const publicTenantIds = new Set(tenants.map((tenant) => tenant.id));
+    return albums.filter((album) => publicTenantIds.has(album.tenantId));
   }
 
   private async toPublicCards(albums: AlbumOrmEntity[], source: string) {
