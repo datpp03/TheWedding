@@ -122,7 +122,7 @@ export class MediaService {
         sizeBytes: String(uploaded.size),
         sortOrder,
         storageKey: uploaded.key,
-        storageProvider: 'local',
+        storageProvider: this.config.get<string>('STORAGE_PROVIDER', 'local'),
         storedFileName: path.posix.basename(uploaded.key),
         tenantId,
         type: validated.type,
@@ -140,7 +140,7 @@ export class MediaService {
         versionType: 'original',
       }),
     );
-    await this.audit(context, tenantId, 'media.uploaded', media.id, {
+    await this.auditBestEffort(context, tenantId, 'media.uploaded', media.id, {
       albumId,
       mimeType: media.mimeType,
     });
@@ -372,6 +372,24 @@ export class MediaService {
       tenantId,
       userAgent: context.userAgent,
     });
+  }
+
+  private async auditBestEffort(
+    context: MediaContext,
+    tenantId: string,
+    action: string,
+    entityId?: string,
+    metadata?: Record<string, unknown>,
+  ) {
+    try {
+      await this.audit(context, tenantId, action, entityId, metadata);
+    } catch (error) {
+      this.logger.warn(
+        `Media audit failed for ${action}${entityId ? ` ${entityId}` : ''}; upload flow continues: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
   }
 
   private async uploadToStorage(
