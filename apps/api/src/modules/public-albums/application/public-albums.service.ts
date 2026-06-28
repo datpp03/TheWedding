@@ -7,7 +7,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ALBUM_VISIBILITY, TENANT_STATUS, TENANT_VISIBILITY } from '@the-wedding/shared';
+import {
+  ALBUM_VISIBILITY,
+  MEDIA_PROCESSING_STATUS,
+  MEDIA_TYPE,
+  TENANT_STATUS,
+  TENANT_VISIBILITY,
+} from '@the-wedding/shared';
 import { In, Repository } from 'typeorm';
 import {
   AUDIT_LOG_REPOSITORY,
@@ -356,7 +362,7 @@ export class PublicAlbumsService {
       tenantSlug: tenant?.slug ?? '',
       title: album.title,
       description: album.description,
-      coverUrl: cover?.thumbnailUrl ?? cover?.optimizedUrl ?? null,
+      coverUrl: cover ? resolvePublicMediaUrl(cover, 'thumbnail') : null,
       mediaCount,
       reactionCount: reactions,
       source,
@@ -382,17 +388,20 @@ export class PublicAlbumsService {
     return {
       ...card,
       allowDownload: Boolean(album.allowDownload),
-      media: media.map((item) => ({
-        albumId: item.albumId,
-        id: item.id,
-        originalFileName: item.originalFileName,
-        processingStatus: item.processingStatus,
-        publicUrl: item.optimizedUrl,
-        tenantId: item.tenantId,
-        thumbnailUrl: item.thumbnailUrl,
-        title: item.title,
-        type: item.type,
-      })),
+      media: media.map((item) => {
+        const publicUrl = resolvePublicMediaUrl(item, 'gallery');
+        return {
+          albumId: item.albumId,
+          id: item.id,
+          originalFileName: item.originalFileName,
+          processingStatus: item.processingStatus,
+          publicUrl,
+          tenantId: item.tenantId,
+          thumbnailUrl: item.thumbnailUrl ?? publicUrl,
+          title: item.title,
+          type: item.type,
+        };
+      }),
       reactions,
       symbols,
       wishes,
@@ -444,4 +453,14 @@ export class PublicAlbumsService {
       userAgent: context.userAgent,
     });
   }
+}
+
+function resolvePublicMediaUrl(media: MediaOrmEntity, preferred: 'gallery' | 'thumbnail') {
+  if (preferred === 'thumbnail' && media.thumbnailUrl) return media.thumbnailUrl;
+  if (media.optimizedUrl) return media.optimizedUrl;
+  if (preferred === 'gallery' && media.thumbnailUrl) return media.thumbnailUrl;
+  if (media.type === MEDIA_TYPE.IMAGE && media.processingStatus === MEDIA_PROCESSING_STATUS.READY) {
+    return `/api/v1/public/tenants/${media.tenantId}/media/${media.id}/file`;
+  }
+  return null;
 }

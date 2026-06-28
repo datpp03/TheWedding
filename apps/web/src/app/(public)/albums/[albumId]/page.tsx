@@ -32,47 +32,69 @@ export default async function PublicAlbumPage({ params }: PageProps) {
     );
   }
 
+  const heroMedia = album.media.find((item) => item.type === 'image' && item.publicUrl);
+
   return (
-    <main className="min-h-screen bg-pearl">
-      <section className="px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-          <Link className="text-lg font-semibold text-ink" href="/">
+    <main className="min-h-screen bg-[#fbfaf7] text-ink">
+      <section className="px-4 py-5 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+          <Link className="text-lg font-semibold tracking-tight" href="/">
             The Wedding
           </Link>
           <Link
-            className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-neutral-700 shadow-sm"
+            className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-neutral-700 shadow-sm ring-1 ring-neutral-200 transition hover:-translate-y-0.5 hover:shadow-md"
             href="/login"
           >
             Sign in
           </Link>
         </div>
       </section>
-      <section className="px-4 pb-8 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
-          <div>
-            <p className="text-sm font-semibold uppercase text-teal-700">
-              {album.visibility === 'unlisted' ? 'Direct link album' : 'Public album'}
-            </p>
-            <h1 className="mt-3 text-4xl font-semibold leading-tight text-ink sm:text-5xl">
-              {album.title}
-            </h1>
-            {album.description ? (
-              <p className="mt-4 max-w-2xl text-base leading-7 text-neutral-600">
-                {album.description}
+
+      <section className="px-4 pb-6 pt-4 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
+          <div className="grid gap-6">
+            <div className="max-w-3xl">
+              <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
+                {album.visibility === 'unlisted' ? 'Direct link album' : 'Public album'}
               </p>
-            ) : null}
-            <div className="mt-5 flex flex-wrap gap-2 text-sm font-medium">
-              <span className="rounded-full bg-rose-50 px-3 py-1 text-rose-700">
-                {album.mediaCount} moments
-              </span>
-              <span className="rounded-full bg-teal-50 px-3 py-1 text-teal-700">
-                {album.wishCount} wishes
-              </span>
-              <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-700">
-                {album.reactionCount} reactions
-              </span>
+              <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+                {album.title}
+              </h1>
+              {album.description ? (
+                <p className="mt-4 max-w-2xl text-base leading-7 text-neutral-600">
+                  {album.description}
+                </p>
+              ) : null}
+              <div className="mt-6 flex flex-wrap gap-2 text-sm font-medium">
+                <span className="rounded-full bg-rose-50 px-3 py-1 text-rose-700">
+                  {album.mediaCount} moments
+                </span>
+                <span className="rounded-full bg-teal-50 px-3 py-1 text-teal-700">
+                  {album.wishCount} wishes
+                </span>
+                <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-700">
+                  {album.reactionCount} reactions
+                </span>
+              </div>
             </div>
+
+            {heroMedia?.publicUrl ? (
+              <div className="relative aspect-[16/9] overflow-hidden rounded-md bg-neutral-100 shadow-sm ring-1 ring-neutral-200">
+                <img
+                  className="h-full w-full object-cover"
+                  src={mediaSrc(heroMedia.publicUrl)}
+                  alt={heroMedia.title ?? heroMedia.originalFileName}
+                  loading="eager"
+                />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 to-transparent p-5">
+                  <p className="max-w-xl text-sm font-medium text-white/90">
+                    {heroMedia.title ?? heroMedia.originalFileName}
+                  </p>
+                </div>
+              </div>
+            ) : null}
           </div>
+
           <AlbumSocialPanel
             albumId={album.id}
             initialReactions={album.reactions}
@@ -82,39 +104,58 @@ export default async function PublicAlbumPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="px-4 pb-12 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-6xl gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {album.media.length ? (
-            album.media.map((item) => (
-              <div
-                key={item.id}
-                className="aspect-square overflow-hidden rounded-md bg-white shadow-sm"
-              >
-                {item.type === 'image' && item.publicUrl ? (
-                  <img
-                    className="h-full w-full object-cover"
-                    src={mediaSrc(item.publicUrl)}
-                    alt={item.title ?? item.originalFileName}
-                    loading="lazy"
-                  />
-                ) : item.type === 'video' && item.publicUrl ? (
-                  <video
-                    className="h-full w-full object-cover"
-                    src={mediaSrc(item.publicUrl)}
-                    controls
-                  />
-                ) : (
-                  <div className="grid h-full place-items-center bg-amber-50 p-4 text-center text-sm font-semibold text-amber-800">
-                    {item.processingStatus}
-                  </div>
-                )}
-              </div>
-            ))
-          ) : (
-            <div className="rounded-md border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-600 sm:col-span-2 lg:col-span-3">
-              This album does not have public media yet.
+      <section className="px-4 pb-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-4 flex items-end justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-wide text-rose-700">Gallery</p>
+              <h2 className="mt-1 text-2xl font-semibold tracking-tight">Wedding moments</h2>
             </div>
-          )}
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {album.media.length ? (
+              album.media.map((item, index) => (
+                <div
+                  key={item.id}
+                  className={`group overflow-hidden rounded-md bg-white shadow-sm ring-1 ring-neutral-200 transition hover:-translate-y-0.5 hover:shadow-lg ${
+                    index === 0 && album.media.length > 1 ? 'sm:col-span-2 sm:row-span-2' : ''
+                  }`}
+                >
+                  {item.type === 'image' && item.publicUrl ? (
+                    <div className="relative aspect-[4/5]">
+                      <img
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                        src={mediaSrc(item.publicUrl)}
+                        alt={item.title ?? item.originalFileName}
+                        loading={index < 2 ? 'eager' : 'lazy'}
+                      />
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 to-transparent p-4 opacity-0 transition group-hover:opacity-100">
+                        <p className="truncate text-sm font-medium text-white">
+                          {item.title ?? item.originalFileName}
+                        </p>
+                      </div>
+                    </div>
+                  ) : item.type === 'video' && item.publicUrl ? (
+                    <video
+                      className="aspect-[4/5] h-full w-full object-cover"
+                      src={mediaSrc(item.publicUrl)}
+                      controls
+                    />
+                  ) : (
+                    <div className="grid aspect-[4/5] place-items-center bg-amber-50 p-4 text-center text-sm font-semibold text-amber-800">
+                      {item.processingStatus === 'ready'
+                        ? 'Image is being prepared'
+                        : item.processingStatus}
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="rounded-md border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-600 sm:col-span-2 lg:col-span-3">
+                This album does not have public media yet.
+              </div>
+            )}
+          </div>
         </div>
       </section>
     </main>

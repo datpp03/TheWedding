@@ -1,5 +1,11 @@
 import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
-import { ALBUM_VISIBILITY, TENANT_STATUS, TENANT_VISIBILITY } from '@the-wedding/shared';
+import {
+  ALBUM_VISIBILITY,
+  MEDIA_PROCESSING_STATUS,
+  MEDIA_TYPE,
+  TENANT_STATUS,
+  TENANT_VISIBILITY,
+} from '@the-wedding/shared';
 import { PublicAlbumsService } from './public-albums.service';
 
 describe(PublicAlbumsService.name, () => {
@@ -148,6 +154,38 @@ describe(PublicAlbumsService.name, () => {
     await expect(privateService.getPublicAlbum('album-1')).rejects.toBeInstanceOf(
       NotFoundException,
     );
+  });
+
+  it('returns a permission-checked public file URL for ready images without stored public URLs', async () => {
+    const { service } = createService({
+      media: {
+        count: jest.fn().mockResolvedValue(1),
+        find: jest.fn().mockResolvedValue([
+          {
+            albumId: 'album-1',
+            id: 'media-1',
+            optimizedUrl: null,
+            originalFileName: 'photo.jpg',
+            processingStatus: MEDIA_PROCESSING_STATUS.READY,
+            tenantId: 'tenant-1',
+            thumbnailUrl: null,
+            title: null,
+            type: MEDIA_TYPE.IMAGE,
+          },
+        ]),
+        findOne: jest.fn().mockResolvedValue(null),
+      },
+    });
+
+    await expect(service.getPublicAlbum('album-1')).resolves.toMatchObject({
+      coverUrl: null,
+      media: [
+        {
+          publicUrl: '/api/v1/public/tenants/tenant-1/media/media-1/file',
+          thumbnailUrl: '/api/v1/public/tenants/tenant-1/media/media-1/file',
+        },
+      ],
+    });
   });
 
   it('rejects duplicate wishes from the same user', async () => {

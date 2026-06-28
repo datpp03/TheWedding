@@ -1,5 +1,24 @@
 # Development Log
 
+## 2026-06-29 - Public Album Media URL Fallback And Layout Polish
+
+### Completed
+
+- Investigated public album payload for `5f9f9361-5b41-4f64-bfb0-e71de8ce065c`; media was `processingStatus=ready` but both `publicUrl` and `thumbnailUrl` were `null`, causing the web page to render the `ready` placeholder instead of an image.
+- Added a public album media URL fallback that uses `/api/v1/public/tenants/{tenantId}/media/{mediaId}/file` for ready image media when optimized URLs are missing.
+- Added service test coverage for ready public images without stored public URLs.
+- Refreshed the public album page with a softer hero, closer gallery section, larger image treatment, subtle hover states, and a less rigid layout.
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/api test -- public-albums.service.spec.ts`: pass.
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass.
+- `pnpm.cmd --filter @the-wedding/web typecheck`: pass.
+- `pnpm.cmd --filter @the-wedding/api lint`: pass.
+- `pnpm.cmd --filter @the-wedding/web lint`: pass.
+- `pnpm.cmd format:check`: pass.
+- `git diff --check`: pass.
+
 ## 2026-06-29 - Public Album Featured Detail Filter Alignment
 
 ### Completed

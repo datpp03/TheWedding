@@ -58,6 +58,7 @@ All notable changes to this project will be documented in this file.
 - Media image processing now skips overlong inline blur placeholders instead of writing values longer than the `media.blurHash` column limit, fixing production failures after R2 derivatives are generated.
 - Media file/download responses now explicitly allow cross-origin resource embedding so the web app can display permission-checked API images from the separate API domain.
 - Public home featured albums now use the same public tenant visibility/status filter as album detail pages, preventing visible cards from opening to `Album not found`.
+- Public album detail now falls back to permission-checked public media file URLs when processed media lacks stored optimized URLs, and the album page layout has a softer hero/gallery presentation.
 - Removed unnecessary typed-route assertions that caused GitHub Actions web lint to fail on Linux CI; login now uses a browser redirect after successful sign-in to avoid typed-route cast drift.
 - Added pnpm security overrides for `multer`, `postcss`, and `js-yaml` so GitHub Actions audit no longer reports known moderate/high vulnerabilities.
 
