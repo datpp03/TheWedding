@@ -1,5 +1,23 @@
 # Development Log
 
+## 2026-06-29 - Public Album Featured Detail Filter Alignment
+
+### Completed
+
+- Investigated production 404 where public home showed album `5f9f9361-5b41-4f64-bfb0-e71de8ce065c`, but opening `/albums/5f9f9361-5b41-4f64-bfb0-e71de8ce065c` returned `Album not found`.
+- Confirmed the API mismatch: public home filtered only album visibility, while album detail also required the owning tenant/site to be public and active.
+- Updated featured album queries to require album public visibility, tenant public visibility, tenant active status, and non-deleted album/tenant records.
+- Added service test coverage to ensure featured albums use the same tenant visibility/status policy as detail pages.
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/api test -- public-albums.service.spec.ts`: pass.
+- `pnpm.cmd --filter @the-wedding/api test`: pass.
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass.
+- `pnpm.cmd --filter @the-wedding/api lint`: pass.
+- `pnpm.cmd format:check`: pass.
+- `git diff --check`: pass.
+
 ## 2026-06-29 - Media Cross-Origin Display Header
 
 ### Completed

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ALBUM_VISIBILITY, TENANT_STATUS, TENANT_VISIBILITY } from '@the-wedding/shared';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import {
   AUDIT_LOG_REPOSITORY,
   type AuditLogRepository,
@@ -88,14 +88,13 @@ export class PublicAlbumsService {
     });
     const curatedAlbumIds = curated.map((entry) => entry.albumId);
     const albums = curatedAlbumIds.length
-      ? await this.albums.find({
-          where: { id: In(curatedAlbumIds), visibility: ALBUM_VISIBILITY.PUBLIC },
-        })
-      : await this.albums.find({
-          order: { createdAt: 'DESC' },
-          take: limit,
-          where: { visibility: ALBUM_VISIBILITY.PUBLIC },
-        });
+      ? await this.createPublicAlbumListQuery()
+          .andWhere('album.id IN (:...albumIds)', { albumIds: curatedAlbumIds })
+          .getMany()
+      : await this.createPublicAlbumListQuery()
+          .orderBy('album."createdAt"', 'DESC')
+          .take(limit)
+          .getMany();
 
     const sorted = curatedAlbumIds.length
       ? curatedAlbumIds
@@ -321,6 +320,21 @@ export class PublicAlbumsService {
       throw new NotFoundException('Album not found');
     }
     return album;
+  }
+
+  private createPublicAlbumListQuery() {
+    return this.albums
+      .createQueryBuilder('album')
+      .innerJoin(TenantOrmEntity, 'tenant', 'tenant.id = album."tenantId"')
+      .where('album.visibility = :albumVisibility', {
+        albumVisibility: ALBUM_VISIBILITY.PUBLIC,
+      })
+      .andWhere('album."deletedAt" IS NULL')
+      .andWhere('tenant.visibility = :tenantVisibility', {
+        tenantVisibility: TENANT_VISIBILITY.PUBLIC,
+      })
+      .andWhere('tenant.status = :tenantStatus', { tenantStatus: TENANT_STATUS.ACTIVE })
+      .andWhere('tenant."deletedAt" IS NULL');
   }
 
   private async toPublicCards(albums: AlbumOrmEntity[], source: string) {

@@ -27,16 +27,17 @@ describe(PublicAlbumsService.name, () => {
   };
 
   function createService(overrides: Record<string, unknown> = {}) {
+    const albumQueryBuilder = {
+      andWhere: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue([publicAlbum]),
+      innerJoin: jest.fn().mockReturnThis(),
+      leftJoin: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+    };
     const albums = {
-      createQueryBuilder: jest.fn().mockReturnValue({
-        andWhere: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([publicAlbum]),
-        innerJoin: jest.fn().mockReturnThis(),
-        leftJoin: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        take: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-      }),
+      createQueryBuilder: jest.fn().mockReturnValue(albumQueryBuilder),
       find: jest.fn().mockResolvedValue([publicAlbum]),
       findOne: jest.fn().mockResolvedValue(publicAlbum),
     };
@@ -90,19 +91,31 @@ describe(PublicAlbumsService.name, () => {
       (overrides.searchMetadata ?? searchMetadata) as never,
       (overrides.auditLogs ?? auditLogs) as never,
     );
-    return { albums, auditLogs, reactions, reactionSymbols, service, wishes };
+    return { albumQueryBuilder, albums, auditLogs, reactions, reactionSymbols, service, wishes };
   }
 
-  it('returns public featured albums through the public visibility query', async () => {
-    const { albums, service } = createService();
+  it('returns featured albums through the same public tenant visibility query as detail pages', async () => {
+    const { albumQueryBuilder, albums, service } = createService();
 
     await service.featured('today');
 
-    expect(albums.find).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { visibility: ALBUM_VISIBILITY.PUBLIC },
-      }),
+    expect(albums.find).not.toHaveBeenCalled();
+    expect(albums.createQueryBuilder).toHaveBeenCalledWith('album');
+    expect(albumQueryBuilder.innerJoin).toHaveBeenCalledWith(
+      expect.any(Function),
+      'tenant',
+      'tenant.id = album."tenantId"',
     );
+    expect(albumQueryBuilder.where).toHaveBeenCalledWith('album.visibility = :albumVisibility', {
+      albumVisibility: ALBUM_VISIBILITY.PUBLIC,
+    });
+    expect(albumQueryBuilder.andWhere).toHaveBeenCalledWith(
+      'tenant.visibility = :tenantVisibility',
+      { tenantVisibility: TENANT_VISIBILITY.PUBLIC },
+    );
+    expect(albumQueryBuilder.andWhere).toHaveBeenCalledWith('tenant.status = :tenantStatus', {
+      tenantStatus: TENANT_STATUS.ACTIVE,
+    });
   });
 
   it('allows unlisted albums by direct link but hides private albums', async () => {
