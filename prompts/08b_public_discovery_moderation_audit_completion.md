@@ -6,6 +6,8 @@ IMPORTANT PROMPT LIFECYCLE: Chi xoa file prompt nay sau khi hoan thanh tat ca mu
 
 TRUOC KHI BAT DAU: Doc `AGENTS.md` va `docs/SYSTEM_MAP.md` de biet cau truc thu muc, file lien quan, va quy tac ban giao (tiet kiem token, khong quet lai toan repo). Neu muc `## Carryover Khan Cap Tu Prompt Truoc` ben duoi co noi dung, xu ly cac muc do TRUOC.
 
+Taste Skill Frontend Rule: Khi task cham frontend/UI/layout/component/form/dashboard/admin/public page/redesign/accessibility/responsive QA, doc `docs/ai/taste-skill-integration.md` va `.cursor/rules/taste-skill-frontend.mdc` truoc khi code; audit man hinh hien tai va giu nguyen API/props/state/permission/routing/business logic neu task chi la UI.
+
 ## Carryover Khan Cap Tu Prompt Truoc
 
 (Trong. Prompt truoc se chen loi chua sua / viec phai lam ngay vao day.)
@@ -21,6 +23,7 @@ Truoc khi lam, doc:
 - `docs/ROLE_PERMISSION.md`
 - `docs/TESTING_STRATEGY.md`
 - `docs/SEO_GEO_GUIDELINES.md`
+- `docs/REALTIME_WEBHOOK_PLAN.md`
 - `docs/HUONG_DAN_SU_DUNG.md`
 
 ## Muc Tieu
@@ -60,6 +63,10 @@ Neu chua co cau tra loi product rieng, dung default an toan sau:
   - Kiem tra reaction symbol config UI/API khong cho unsafe text/icon.
   - Them owner/admin view summary reactions neu chua co.
   - Abuse signals cho duplicate/invalid/rate-limited attempts neu can.
+- Realtime/social event compatibility:
+  - Neu `08g_realtime_webhook_event_platform.md` da duoc implement, publish safe domain events cho wish created/approved/hidden/rejected va reaction created/deleted.
+  - Public realtime channels chi duoc nhan wishes da visible/approved va reaction aggregate public-safe; khong bao gio phat pending/rejected/private/unlisted data ra public.
+  - Owner/admin moderation channels phai permission-check theo tenant/album va khong leak email/token/raw request data.
 - Search metadata consent:
   - Xac dinh source data cho age range, region, venue/location, time, theme.
   - Them consent/visibility controls neu metadata co the nhay cam.
@@ -83,6 +90,7 @@ Neu chua co cau tra loi product rieng, dung default an toan sau:
 - Backend tests cho featured privacy boundaries, opt-in/curated rules, pagination/sort, priority/window behavior.
 - Backend tests cho wish moderation statuses, owner/admin permission, public-visible-only reads, duplicate/rate-limit behavior.
 - Backend tests cho search consent, public-only filters, unlisted/private exclusion, va pagination.
+- Backend tests cho realtime event payload privacy neu social events duoc publish.
 - Audit export/filter tests voi redaction assertions.
 - Web tests/smoke cho public home, owner moderation UI, admin curation UI, va advanced search responsive states.
 - SEO/GEO tests/smoke cho sitemap filtering, canonical URL, structured data khop visible content, Open Graph preview, va private/unlisted exclusion.
@@ -90,7 +98,7 @@ Neu chua co cau tra loi product rieng, dung default an toan sau:
 
 ## Docs
 
-- Update `docs/PRODUCT_PLAN.md`, `docs/API_DESIGN.md`, `docs/AUTH_SECURITY.md`, `docs/ROLE_PERMISSION.md`, `docs/TESTING_STRATEGY.md`, `docs/SEO_GEO_GUIDELINES.md` neu thay doi discovery/index policy, `docs/ROADMAP.md`, `docs/CHANGELOG.md`, `docs/DEVELOPMENT_LOG.md`.
+- Update `docs/PRODUCT_PLAN.md`, `docs/API_DESIGN.md`, `docs/AUTH_SECURITY.md`, `docs/ROLE_PERMISSION.md`, `docs/TESTING_STRATEGY.md`, `docs/SEO_GEO_GUIDELINES.md` neu thay doi discovery/index policy, `docs/REALTIME_WEBHOOK_PLAN.md` neu them/sua event social, `docs/ROADMAP.md`, `docs/CHANGELOG.md`, `docs/DEVELOPMENT_LOG.md`.
 - Update `docs/HUONG_DAN_SU_DUNG.md` bang tieng Viet cho owner opt-in, admin curation, wish moderation, public search, va privacy limits.
 - Ghi ro featured ranking/curation rule dang dung va cac product decisions con deferred neu co.
 
@@ -98,9 +106,9 @@ Neu chua co cau tra loi product rieng, dung default an toan sau:
 
 Theo `AGENTS.md` muc 3, sau khi hoan tat (hoac dung do con viec):
 
-- Cap nhat `VIEC_CAN_LAM.md` (thu muc goc): viec nguoi dung can lam (credentials/config/QA thu cong/quyet dinh san pham), acceptance chua xong va ly do. Moi item phai kem huong dan chi tiet de nguoi dung tu lam duoc: can chuan bi gi, cac buoc thuc hien, file/env/dashboard/URL lien quan, cach smoke test/xac nhan pass, va docs lien quan.
-- Neu con loi chua sua hoac viec phai lam ngay, chen vao muc `## Carryover Khan Cap Tu Prompt Truoc` o DAU prompt ke tiep (theo thu tu `prompts/README.md`); neu day la prompt cuoi, ghi vao muc "Khan cap" cua `VIEC_CAN_LAM.md`.
-- Bo sung y tuong nang cap/mo rong tu nghi ra vao `Y_TUONG_NANG_CAP.md` (thu muc goc).
+- Tao/cap nhat task file trong `viec-can-lam/` cho viec nguoi dung can lam (credentials/config/QA thu cong/quyet dinh san pham), acceptance chua xong va ly do. Dung `viec-can-lam/_TEMPLATE.md`, dat vao dung muc do, roi cap nhat `viec-can-lam/README.md` nhu muc luc link/trang thai. Moi task file phai co huong dan chi tiet de nguoi dung tu lam duoc: can chuan bi gi, cac buoc thuc hien, file/env/dashboard/URL lien quan, cach smoke test/xac nhan pass, va docs lien quan.
+- Neu con loi chua sua hoac viec phai lam ngay, tao/cap nhat file trong `viec-can-lam/00_khan_cap/`, roi chen tom tat + link vao muc `## Carryover Khan Cap Tu Prompt Truoc` o DAU prompt ke tiep (theo thu tu `prompts/README.md`); neu day la prompt cuoi, ghi link vao muc "Khan Cap" cua `viec-can-lam/README.md`.
+- Tao/cap nhat file y tuong trong `y-tuong-nang-cap/` bang `y-tuong-nang-cap/_TEMPLATE.md`, roi cap nhat `y-tuong-nang-cap/README.md`.
 - Cap nhat `docs/SYSTEM_MAP.md` neu cau truc thu muc/module/route/doc thay doi.
 
 ## Acceptance Criteria
@@ -111,6 +119,7 @@ Theo `AGENTS.md` muc 3, sau khi hoan tat (hoac dung do con viec):
 - Advanced search co consent/privacy rules, pagination, sort, va tests.
 - SEO/GEO pass: public canonical/metadata/schema/sitemap dung, khong leak unlisted/private/pending moderation vao search engines hoac AI-facing content.
 - Audit filters/export bao gom social/discovery events va redaction pass.
+- Social realtime events, neu implemented, dung shared event contract va khong leak pending/private/unlisted data.
 - Public/social UI responsive, i18n-complete cho `vi`, `en`, `ja`, va khong overflow.
-- `VIEC_CAN_LAM.md` va `Y_TUONG_NANG_CAP.md` da duoc cap nhat; moi item trong `VIEC_CAN_LAM.md` co huong dan thuc hien chi tiet; viec khan cap (neu co) da chuyen sang prompt ke tiep hoac muc "Khan cap".
+- `viec-can-lam/`, `viec-can-lam/README.md` va `y-tuong-nang-cap/README.md` da duoc cap nhat; moi task file trong `viec-can-lam/` co huong dan thuc hien chi tiet; viec khan cap (neu co) da chuyen sang prompt ke tiep hoac `viec-can-lam/00_khan_cap/`.
 - Commit va push len `origin/main`.

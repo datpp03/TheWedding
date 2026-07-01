@@ -10,6 +10,8 @@ The Wedding is a multi-tenant wedding media platform. Couples can create a dedic
 
 [NEW] SEO/GEO direction: public pages must be discoverable through canonical URLs, metadata, sitemap, structured data, and AI/search crawler policy, while private/unlisted/auth/admin/signed-media surfaces remain non-indexable. Detailed rules live in `docs/SEO_GEO_GUIDELINES.md`.
 
+[NEW] Realtime direction: the app should use a shared event/webhook platform for live media status, wishes/reactions, payment status, studio delivery, and admin operations. Detailed rules live in `docs/REALTIME_WEBHOOK_PLAN.md`.
+
 ## Primary Users
 
 - Couples and site owners: manage sites, albums, media, themes, sharing, storage quota, and premium feature unlocks.
@@ -22,6 +24,7 @@ The Wedding is a multi-tenant wedding media platform. Couples can create a dedic
 - B2C SaaS plans for couples, tiered by storage, number of photos/videos, premium themes, privacy/security controls, custom domains, and advanced sharing/analytics.
 - B2B studio subscriptions for studios and photographers, focused on client management, multiple albums, studio branding, review/delivery workflows, and higher storage quotas.
 - Value-added services such as extra storage, custom domains, premium themes, advanced privacy, watermarking, online editing, and AI classification/search/quality optimization.
+- Realtime live gallery/event wall, outbound studio webhooks, and automation integrations can become premium or studio add-ons after the event platform is verified.
 
 ## MVP Outcomes
 
@@ -41,7 +44,7 @@ The Wedding is a multi-tenant wedding media platform. Couples can create a dedic
 - Admin screens should stay clear and efficient while still matching the modern product visual language.
 - [NEW] Studio workflows should feel professional, repeatable, and status-driven for client delivery work.
 - [NEW] Every future UI task must follow the design gate in `docs/PRODUCT_PLAN.md`: emotional screen analysis, layout/color/state proposal, and design signoff before coding.
-- All frontend work must follow `docs/UI_UX_DESIGN.md`.
+- All frontend work must follow `docs/UI_UX_DESIGN.md` and the Taste Skill integration rule in `docs/ai/taste-skill-integration.md`.
 
 ## Non-MVP Future Capabilities
 
@@ -54,5 +57,6 @@ The Wedding is a multi-tenant wedding media platform. Couples can create a dedic
 - Google and Facebook OAuth login integrated with the existing secure session model.
 - CDN integration, custom domains, watermarking, AI tagging/search.
 - Guest comments, guest uploads, analytics, notifications, and media marketplace features.
+- Realtime event outbox, SSE browser updates, signed inbound provider webhooks, signed outbound studio/automation webhooks, and webhook delivery observability.
 - [NEW] Album/site-level custom theme expansion, admin global theme controls, contextual day/night/weather/season/holiday theme rules, and automated greetings for birthdays, wedding anniversaries, Valentine, Tet, and custom dates.
 - [NEW] Studio/B2B workspaces with client management, delivery status, branding controls, team access later, and professional reporting.

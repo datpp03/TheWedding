@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const isProtected = PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
-  if (!isProtected || request.cookies.has('access_token')) {
+  if (!isProtected || request.cookies.has('access_token') || request.cookies.has('refresh_token')) {
     return NextResponse.next();
   }
 

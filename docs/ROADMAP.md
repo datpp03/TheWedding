@@ -17,7 +17,18 @@ Status: active for every future phase.
 - Before implementing or changing a public route/content/metadata/custom-domain/discovery feature, map SEO/GEO requirements in `docs/SEO_GEO_GUIDELINES.md`: index policy, canonical, robots/noindex, sitemap, structured data, Open Graph, i18n metadata, and privacy boundaries.
 - Before implementing UI, complete emotional screen analysis, layout/color/spacing/state proposal, and design signoff notes.
 - Every UI surface must follow `docs/UI_UX_DESIGN.md`: clear accent color, responsive spacing, card hierarchy, complete interaction states, and i18n/l10n text checks for Vietnamese, English, and Japanese.
+- Frontend/UI/layout/redesign work must also apply the internal Taste Skill rule in `docs/ai/taste-skill-integration.md` and `.cursor/rules/taste-skill-frontend.mdc`: audit the current surface first, improve taste contextually, and preserve API/auth/permission/routing/business logic for UI-only tasks.
 - Premium, B2B, contextual, greeting, payment, AI, and storage-heavy features should ship behind feature flags or admin-controlled enablement until verified.
+
+## Final Release QA Status
+
+Status: partially completed by Prompt 09 automation; manual production/staging QA remains required before declaring the MVP release-ready.
+
+- Completed: full local automated verification passed with `pnpm.cmd format:check`, `pnpm.cmd lint`, `pnpm.cmd typecheck`, `pnpm.cmd test`, and `pnpm.cmd build`.
+- Completed: Next.js public SEO routes now expose `robots.txt` and `sitemap.xml`; sitemap generation includes the public root and public featured album URLs only when the public-home API is reachable.
+- Completed: public home, public site, and public album pages now define canonical/Open Graph metadata and noindex non-public/password/unavailable public-route fallbacks.
+- Completed: new public home/card/social-panel copy uses `vi`, `en`, and `ja` i18n keys.
+- Remaining: clean DB migration run, API/Web smoke with a real PostgreSQL database, browser UX QA, full responsive screenshot matrix, OAuth/SMTP/R2 production credential smoke tests, and any paid/external provider checks listed in `viec-can-lam/`.
 
 ## Phase 1: Project Setup
 
@@ -30,14 +41,14 @@ Status: completed for local scaffold and runtime verification.
 
 ## Phase 2: Auth & User
 
-Status: completed for MVP auth. Email delivery is still provider-ready but SMTP sending is not implemented.
+Status: completed for MVP auth plus Prompt 08A production hardening.
 
 - Completed: register, login, logout, current user, session list, revoke session, revoke all sessions, refresh token rotation.
 - Completed: forgot password, reset password, email verification, CSRF token exchange, route protection for dashboard/admin, auth audit log writes.
 - Completed: RBAC payload base through role and permission lookup.
 - Completed: auth unit tests and frontend login/register/forgot/reset/verify wiring.
-- Later hardening: real SMTP delivery, MFA, persistent browser session restoration, advanced rate limits, and broader e2e security coverage.
-- Planned: keep users signed in after closing/reopening the browser or returning through the public home page while the refresh token cookie is still valid. The web app should quietly restore `/auth/me` state or refresh the access token on app boot without redirecting the public home away from discovery, and explicit logout/session revoke/revoke-all must still clear persisted access immediately.
+- Completed in Prompt 08A: SMTP delivery adapter for auth emails, production token hiding, persistent refresh cookie TTL from env, silent frontend refresh/session restore, TOTP MFA enrollment/challenge/disable, and Google/Facebook OAuth callback exchange/link/unlink rules.
+- Later hardening: broader e2e browser coverage, backup-code/recovery flow for MFA, provider-specific OAuth sandbox smoke tests, and richer account recovery UX.
 
 ## Phase 3: Tenant/Site
 
@@ -58,6 +69,7 @@ Status: completed for MVP album/media.
 - Completed: dashboard album/media management, drag/drop upload queue with retryable failure state, grid view, batch select/delete/move, cover selection, public gallery, responsive media grid, and keyboard lightbox.
 - Completed: Phase 4 keeps `StorageService` provider-neutral and follows `docs/STORAGE_STRATEGY.md` for backend-generated keys and future S3-compatible/direct-upload expansion.
 - Later hardening: resumable uploads, progress backed by XHR/fetch upload events, virus scanning, thumbnails, optimized variants, signed URLs, and CDN delivery.
+- Later hardening: realtime media processing updates through the shared event/webhook platform instead of manual refresh/polling where possible.
 
 ## Living User Guide
 
@@ -137,7 +149,7 @@ Status: completed for MVP image processing and retry monitoring.
 
 ## Public Album And Social Expansion Track [NEW]
 
-Status: Phase 7A implemented for MVP public discovery, social interactions, OAuth-safe redirect foundation, authenticated search, and audit tracing. Remaining items are noted below.
+Status: Phase 7A implemented for MVP public discovery, social interactions, OAuth-safe redirect foundation, authenticated search, and audit tracing. Prompt 08A completed provider callback exchange/account linking; remaining items are noted below.
 
 ### Expansion Phase 1: Security And Extensible Structure [NEW]
 
@@ -169,7 +181,7 @@ Status: Phase 7A implemented for MVP public discovery, social interactions, OAut
 
 - Completed: Google/Facebook OAuth routes validate safe `returnTo` and reject open redirects.
 - Completed: provider start redirects are available when client IDs are configured.
-- Remaining: provider callback exchange/account linking is disabled until verified-email linking rules are confirmed.
+- Completed in Prompt 08A: provider callback exchange/account linking is active behind provider-enabled env flags. Verified new provider email can create a new user; existing password accounts are not silently merged and must link from authenticated settings; unverified provider email is blocked.
 
 ### Expansion Phase 5: Advanced Album Search [NEW]
 
@@ -190,6 +202,7 @@ Status: Phase 7A implemented for MVP public discovery, social interactions, OAut
 - Status: partially completed for backend security foundations and documentation.
 - Completed: MFA-ready user model fields and migration, global/request-specific rate limiting, request correlation IDs, audit metadata redaction, tenant upload quota checks, stricter upload abuse tests, invalid CSRF tests, runtime system parameter fail-safe/cache invalidation tests, and backup/restore documentation.
 - Remaining: production monitoring dashboard, malware scanning integration, full browser responsive screenshot matrix, and OAuth/wish/reaction checks after those modules are implemented.
+- Remaining: realtime event/webhook delivery monitoring once the event platform is implemented.
 - MFA, feature flags, monitoring, backup, security audit, performance optimization.
 - Add formal cross-device UI QA, layout-shift checks, and interaction performance checks for critical frontend flows.
 - Audit UI strings for i18n/l10n coverage and verify Vietnamese, English, and Japanese layouts do not overflow.
@@ -199,10 +212,12 @@ Status: Phase 7A implemented for MVP public discovery, social interactions, OAut
 
 ## Phase 9: Scale Future
 
-- Status: foundation partially implemented; production providers and large upload/storage flows remain gated.
+- Status: release scope decision completed for final QA. The MVP may proceed with Phase 9 foundation enabled only where implemented and safe; unfinished Phase 9 capabilities remain documented as gated placeholders or follow-up work.
+- Release decision: choose the gated-placeholder path for final release QA. Do not block Prompt 09 on production-complete MoMo, realtime/webhook, direct upload, multipart upload, canonical handle routes, full studio workflow, watermark, AI, contextual theme, or greeting scheduler. Verify that incomplete features are disabled, admin-only, plan-gated, entitlement-gated, system-parameter gated, or clearly documented.
 - Completed foundation: shared B2C/B2B plan catalog, add-on catalog, feature flag mapping, plan/entitlement gate logic, admin entitlement grant API/UI, user public handle API, tenant scale summary, API-managed media upload enforcement for plan storage/photo/video/file-size/video gates, analytics events, greeting rule placeholder, idempotent MoMo payment-event storage, studio/custom-domain placeholder tables, admin Scale page, and S3-compatible/R2 storage adapter for API-managed uploads.
+- Planned realtime foundation: event envelope, transactional outbox, SSE browser channels, signed inbound provider webhooks, signed outbound webhooks, retry/dead-letter delivery, and admin visibility following `docs/REALTIME_WEBHOOK_PLAN.md`.
 - Payment/subscription, custom domain, CDN, Cloudflare R2/S3-compatible production storage, signed URL upload/download, React Native multipart upload sessions, AI tagging, watermark, analytics.
-- Cloudflare R2 adapter can be enabled early for API-managed uploads after bucket/access key setup and production smoke tests. Direct upload sessions, multipart upload, CDN-first derivative delivery, migration tooling, and rollback automation remain Phase 9 follow-up work.
+- Cloudflare R2 adapter is integrated into the software for API-managed uploads and can be enabled after bucket/access key setup and production smoke tests. Direct upload sessions, multipart upload, CDN-first derivative delivery, migration tooling, and rollback automation remain Phase 9 follow-up work.
 - Use Cloudflare R2 as the first production object-storage target, while keeping the adapter S3-compatible for future provider swaps.
 - Add documentation and guided setup steps for registering Cloudflare, creating an R2 bucket, generating credentials, configuring env vars, and validating uploads when this implementation step begins.
 - Add subscription plans and premium feature gates that can unlock advanced utilities and increase photo/video storage quota.
@@ -215,13 +230,15 @@ Status: Phase 7A implemented for MVP public discovery, social interactions, OAut
 - [NEW] Add value-added service gates for extra storage, custom domain, premium themes, watermark, online editing, AI classification/search/quality optimization, and advanced security.
 - [NEW] Add admin controls for global theme defaults and premium theme availability if not completed earlier.
 - [NEW] Add contextual theme and automated greeting foundations behind feature flags, with opt-out controls and safe fallbacks when location/weather data is unavailable.
-- Remaining before Phase 9 can be called production-complete: real MoMo checkout and signed webhook verification, signed URL/upload sessions, multipart uploads, local-to-R2 migration, CDN/public derivative delivery hardening, canonical public handle routes/redirects, full studio client workflow, watermark processing hook, AI tag adapter, and browser responsive smoke screenshots.
+- [NEW] Add realtime/event-webhook backbone so media processing, public social interactions, payments, entitlements, studio delivery, and admin operations can update without manual refresh.
+- Remaining before Phase 9 can be called production-complete: realtime event/webhook platform, real MoMo checkout and signed webhook verification, signed URL/upload sessions, multipart uploads, local-to-R2 migration, CDN/public derivative delivery hardening, canonical public handle routes/redirects, full studio client workflow, watermark processing hook, AI tag adapter, and browser responsive smoke screenshots.
 
 ## Post-MVP Growth Track [NEW]
 
 Status: planned after the core SaaS foundation is stable.
 
 - Rich B2B studio workspace: team members, client pipeline, approval/review flow, delivery status, and professional reporting.
+- Realtime live wedding wall, public-safe guestbook stream, webhook marketplace/integrations, and collaboration/presence for studio review.
 - Dynamic contextual themes: day/night, weather, season, holiday, festival, and event-aware presentation with reduced-motion support.
 - Automated greetings: birthdays, wedding anniversaries, Valentine, Tet, proposal anniversaries, and custom celebration rules.
 - Premium theme marketplace and seasonal theme packs.

@@ -1,4 +1,4 @@
-# Clean Architecture Rules
+﻿# Clean Architecture Rules
 
 ## Dependency Direction
 

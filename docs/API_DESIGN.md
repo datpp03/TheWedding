@@ -1,4 +1,4 @@
-# API Design
+﻿# API Design
 
 ## Versioning
 
@@ -39,8 +39,13 @@ All HTTP endpoints are under `/api/v1`.
 - `GET /api/v1/auth/capabilities`
 - `GET /api/v1/auth/csrf`
 - `POST /api/v1/auth/forgot-password`
+- `POST /api/v1/auth/resend-verification`
 - `POST /api/v1/auth/reset-password`
 - `POST /api/v1/auth/verify-email`
+- `POST /api/v1/auth/mfa/enrollment/start`
+- `POST /api/v1/auth/mfa/enrollment/verify`
+- `POST /api/v1/auth/mfa/challenge`
+- `DELETE /api/v1/auth/mfa`
 - `GET /api/v1/auth/me`
 - `GET /api/v1/auth/sessions`
 - `DELETE /api/v1/auth/sessions/:sessionId`
@@ -49,16 +54,22 @@ All HTTP endpoints are under `/api/v1`.
 - `GET /api/v1/auth/oauth/google/callback`
 - `GET /api/v1/auth/oauth/facebook`
 - `GET /api/v1/auth/oauth/facebook/callback`
+- `GET /api/v1/auth/oauth/link/google`
+- `GET /api/v1/auth/oauth/link/facebook`
+- `GET /api/v1/auth/oauth/linked/accounts`
+- `DELETE /api/v1/auth/oauth/linked/:provider`
 
 Implemented in Phase 2: register, login, logout, refresh, capabilities, CSRF token exchange, forgot password, reset password, verify email, me, sessions, revoke one session, revoke all sessions.
 
-Implemented in Phase 7A: Google/Facebook OAuth start and callback routes validate safe `returnTo` state and reject open redirects. Provider authorization redirects are available when client IDs are configured. Callback token exchange/account linking is intentionally held behind a `ServiceUnavailableException` until account-linking rules are confirmed.
+Implemented in Prompt 08A: Google/Facebook OAuth start and callback routes validate safe `returnTo`, use signed state, exchange provider codes for user profiles, require verified email, create new verified-email users when safe, require explicit settings-based linking for existing password accounts, and support unlinking with a last-login-method guard.
 
-Local development note: forgot password and register responses may include development-only reset/verification tokens while SMTP delivery is not wired. Production must deliver these tokens by email and must not return them in API payloads.
+Local development note: forgot password, register, and resend verification responses may include development-only reset/verification tokens for QA speed. Production sends tokens by email and must not return them in API payloads.
 
-Planned system parameter behavior: registration and login endpoints must check admin-managed runtime settings before performing mutations. When registration is disabled, `POST /api/v1/auth/register` returns a clear disabled-flow error. When login is disabled, authenticated entry points should be blocked and public/read-only browsing can remain available according to the configured mode.
+Runtime parameter behavior: registration, password login, and OAuth login check admin-managed runtime settings before performing mutations. When registration is disabled, new email/password registration and new OAuth user creation are blocked. When login is disabled, password/OAuth login is blocked while public/read-only browsing can remain available according to configured gallery settings.
 
-OAuth behavior [NEW]: Google and Facebook login routes reuse the existing auth module and validate `returnTo` as a relative same-origin path or an explicitly allowlisted app URL. Provider tokens, authorization codes, cookies, and secrets must never be returned in API payloads or audit metadata. Full provider callback exchange and account linking still need confirmation before activation.
+MFA behavior [NEW]: users start enrollment with `POST /auth/mfa/enrollment/start`, add the returned TOTP secret/URI to an authenticator app, and verify with `POST /auth/mfa/enrollment/verify`. Login/OAuth returns `{ mfaRequired: true }` and sets an HttpOnly `mfa_challenge` cookie when MFA is enabled; `POST /auth/mfa/challenge` verifies the OTP and only then sets full auth cookies. `DELETE /auth/mfa` requires a valid current OTP.
+
+OAuth behavior [NEW]: Google and Facebook login routes reuse the existing auth module and validate `returnTo` as a relative same-origin path or an explicitly allowlisted app URL. Provider tokens, authorization codes, cookies, and secrets are never returned in API payloads or audit metadata. Existing email/password accounts are not silently merged; linking must be initiated from authenticated account settings and provider email must match and be verified.
 
 ### User Profile and Handles
 
@@ -125,16 +136,18 @@ Implemented in Phase 7A: album visibility is explicit and uses `public`, `unlist
 
 ### Album Wishes And Reactions [NEW]
 
-- `GET /api/v1/public/albums/:albumId/wishes`
+- `GET /api/v1/public/albums/:albumIdOrSlug/wishes`
 - `POST /api/v1/albums/:albumId/wishes`
 - `DELETE /api/v1/albums/:albumId/wishes/:wishId`
-- `GET /api/v1/public/albums/:albumId/reactions`
-- `POST /api/v1/albums/:albumId/reactions`
+- `GET /api/v1/public/albums/:albumIdOrSlug/reactions`
+- `POST /api/v1/albums/:albumIdOrSlug/reactions`
 - `DELETE /api/v1/albums/:albumId/reactions/:reactionId`
 - `GET /api/v1/tenants/:tenantId/albums/:albumId/reaction-symbols`
 - `PATCH /api/v1/tenants/:tenantId/albums/:albumId/reaction-symbols`
 
-Implemented in Phase 7A: wish/reaction mutations require an authenticated user. Anonymous users are redirected to login with a safe `redirect=/albums/:albumId?intent=...` path and return to the same album after login. Reaction symbols are album-configured with safe defaults. The API validates symbol keys, applies route-level rate limits, enforces one active wish per user per album, enforces one reaction per user per symbol per album, and exposes only safe display data on public reads.
+Implemented in Phase 7A: wish/reaction mutations require an authenticated user. Anonymous users are redirected to login with a safe `redirect=/albums/:albumSlug?intent=...` path and return to the same album after login. Reaction symbols are album-configured with safe defaults. The API validates symbol keys, applies route-level rate limits, enforces one active wish per user per album, enforces one reaction per user per symbol per album, and exposes only safe display data on public reads.
+
+Public album detail now resolves either the legacy UUID or the readable album slug. Frontend public cards link to `/albums/{albumSlug}` and legacy `/albums/{albumId}` pages redirect to the slug when available.
 
 ### Themes
 
@@ -218,6 +231,19 @@ System parameters are stored under `runtime.system_parameters`, validated with a
 Implemented in Phase 9 foundation: B2C couple package catalog, B2B studio subscription catalog, add-on catalog, feature flag mapping, admin-granted entitlements, user public handles, tenant quota summaries, API-managed media upload gates based on active tenant/user plan plus entitlements, analytics events, greeting rule placeholder, and idempotent payment-event storage.
 
 Still gated/deferred: real MoMo checkout and signed webhook verification, customer self-service plan purchase, R2-backed direct upload sessions, and public route redirects to canonical handle URLs. Do not expose a public payment webhook until MoMo signature validation and replay protection are implemented.
+
+### Realtime And Webhooks [NEW]
+
+Planned API surface, to be implemented through `docs/REALTIME_WEBHOOK_PLAN.md`:
+
+- `GET /api/v1/realtime/user`: authenticated SSE stream for the current user's private dashboard/payment/notification events.
+- `GET /api/v1/realtime/tenants/:tenantId`: authenticated tenant stream for owner/member media, album, theme, quota, and entitlement events.
+- `GET /api/v1/realtime/public/albums/:albumIdOrSlug`: public-safe SSE stream for public album wish/reaction/media-ready updates only.
+- `GET /api/v1/realtime/admin/ops`: admin-only SSE stream for health, queue, webhook delivery, payment, storage, and failed-job alerts.
+- `POST /api/v1/webhooks/momo`: signed inbound MoMo webhook, disabled until provider signature verification, timestamp tolerance, replay protection, and idempotency are implemented.
+- `GET /api/v1/admin/webhook-endpoints`, `POST /api/v1/admin/webhook-endpoints`, `PATCH /api/v1/admin/webhook-endpoints/:id`, `POST /api/v1/admin/webhook-endpoints/:id/replay`: planned admin/studio outbound webhook management.
+
+Realtime payloads must use a shared event envelope with `type`, `version`, `visibility`, `correlationId`, and safe payload fields. Public streams must never expose private/unlisted albums, pending moderation content, signed media URLs, raw storage keys, provider payloads, payment/admin data, or secrets.
 
 ### Studio/B2B [NEW]
 

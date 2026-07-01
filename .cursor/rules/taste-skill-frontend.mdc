@@ -1,0 +1,57 @@
+---
+description: Apply The Wedding Taste Skill frontend design guidance for UI, layout, component, form, dashboard, admin, public page, and redesign tasks.
+globs:
+  - 'apps/web/**/*.{ts,tsx,css}'
+  - 'packages/ui/**/*.{ts,tsx,css}'
+  - 'docs/**/*.md'
+  - 'prompts/**/*.md'
+alwaysApply: false
+---
+
+# Taste Skill Frontend Rule
+
+When a task touches frontend, UI, layout, component, form, dashboard, admin screen, public page, page design, responsive QA, accessibility QA, or visual redesign, first read:
+
+- `docs/ai/taste-skill-integration.md`
+- `docs/UI_UX_DESIGN.md`
+- `docs/PRODUCT_PLAN.md`
+
+## Required Behavior
+
+- Apply Taste Skill as a design guidance layer, not as a reason to change business logic.
+- Audit the existing page/component before coding.
+- Preserve current data flow, props, state management, API contracts, routes, auth/session behavior, permission logic, feature gates, and validation.
+- Use existing project patterns and components before creating new abstractions.
+- Use the project's current styling approach and design system. Do not add animation/UI/icon/font libraries unless clearly needed and approved.
+- Keep all visible text in i18n keys for `vi`, `en`, and `ja`.
+- Keep loading, empty, error, success, disabled, hover, focus, and active states.
+- Make UI responsive and check small widths such as 320, 360, 390, 414, 768, 1024, and desktop.
+
+## Avoid
+
+- Generic AI UI: random purple gradients, glassmorphism everywhere, three equal cards everywhere, centered hero by default, fake screenshots, decorative labels without information.
+- Arbitrary colors, spacing, shadows, radius, or animation that do not fit the existing screen.
+- Changing backend, database, routing, API, auth, permissions, or tenant isolation for a UI-only task.
+- Turning dashboards/admin tools into marketing pages.
+- Adding new dependencies without checking `package.json` and getting approval when appropriate.
+
+## The Wedding Surface Rules
+
+- Public wedding pages can be more emotional, media-first, and expressive.
+- Owner dashboard pages should be friendly, scannable, and fast for repeated album/media/theme work.
+- Admin pages should be quiet, dense enough for operations, and clear for tables/forms/reports.
+- Studio/B2B future screens should feel professional, repeatable, and status-driven.
+
+## Pre-Flight Before Code
+
+- State the design read: page kind, audience, vibe, and design foundation.
+- Identify what must not change.
+- Identify current loading/empty/error/success paths.
+- Decide if the surface is public expressive UI or operational workflow UI.
+
+## Before Finishing
+
+- Verify no text overlap or horizontal overflow.
+- Verify i18n keys and responsive behavior.
+- Verify public pages do not expose private/unlisted/admin/auth/signed-media data.
+- Record a short design signoff in the final summary or development log.

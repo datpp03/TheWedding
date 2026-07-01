@@ -1,4 +1,4 @@
-# Database Design
+﻿# Database Design
 
 ## Technology
 
@@ -13,7 +13,7 @@ PostgreSQL is the primary database. TypeORM is used for migrations and infrastru
 - `password_reset_tokens`, `email_verification_tokens`: one-time hashed tokens.
 - `roles`, `permissions`, `user_roles`, `role_permissions`: RBAC and permission model.
 - `tenants`, `tenant_members`: wedding sites and membership.
-- `albums`: tenant album metadata, visibility, layout, cover, and user-facing slug.
+- `albums`: tenant album metadata, visibility, layout, cover, and user-facing slug. Public slug values use a readable title-derived prefix plus a short stable id suffix, for example `ceremony-5f9f9361`, so legacy id links can redirect to a less opaque URL without risking cross-tenant ambiguity.
 - `album_wishes`: authenticated user wishes/comments attached to an album, with moderation/status fields if public display requires review.
 - `album_reactions`: authenticated user reactions attached to an album and a validated album/theme symbol key.
 - `album_reaction_symbols`: optional album-level allowed symbol set when the default theme symbols are overridden.
@@ -28,6 +28,7 @@ PostgreSQL is the primary database. TypeORM is used for migrations and infrastru
 - `plans`, `plan_features`, `subscriptions`: plan catalog, premium feature gates, renewal state, and storage quota tiers.
 - `payments`, `payment_events`: provider-agnostic payment records and webhook/event history, starting with MoMo.
 - `entitlements`: admin-granted or subscription-granted feature unlocks and quota overrides for users or tenants.
+- `event_outbox`, `webhook_endpoints`, `webhook_deliveries`: planned realtime/webhook event backbone with retry, idempotency, and signed outbound delivery.
 
 ## Planned SaaS, Studio, And Automation Tables [NEW]
 
@@ -40,6 +41,9 @@ The following tables are planned for future phases and should be added only when
 - `contextual_theme_rules`: day/night, weather, season, holiday, festival, event, and location-aware theme rules.
 - `greeting_rules`: birthday, wedding anniversary, holiday, proposal anniversary, and custom greeting schedules.
 - `greeting_events`: generated greeting occurrences, delivery status, and audit/debug metadata.
+- `event_outbox`: domain event envelope, status, attempts, next attempt, dispatched timestamp, and redacted payload.
+- `webhook_endpoints`: outbound webhook subscriptions, event filters, endpoint status, and secret hash/encrypted secret reference.
+- `webhook_deliveries`: per-event outbound delivery attempts, response status, safe error summary, retry schedule, and dead-letter state.
 
 Design constraints:
 
@@ -84,7 +88,7 @@ Initial migration is located in `apps/api/src/database/migrations/1710000000000-
 
 ## Phase 8 Security Hardening Notes
 
-- `users.mfaEnabledAt`, `users.mfaMethod`, and `users.mfaSecretEncrypted` provide MFA-ready storage for a future TOTP enrollment and challenge flow. MFA secrets must be encrypted before persistence and must not be logged or included in audit metadata.
+- `users.mfaEnabledAt`, `users.mfaMethod`, and `users.mfaSecretEncrypted` store the active TOTP MFA enrollment. MFA secrets are encrypted before persistence and must not be logged or included in audit metadata.
 - Uploads enforce tenant quota checks before writing to storage. Phase 8 used `TENANT_STORAGE_QUOTA_BYTES` as the fallback ceiling; Phase 9 API-managed uploads now resolve active tenant/user plan limits plus admin entitlements for storage bytes, photo count, video count, file size, and video-upload access.
 - Audit metadata is redacted before it is saved so passwords, tokens, cookies, OTP/MFA values, OAuth authorization codes, provider secrets, and raw sensitive headers are not retained in `audit_logs.metadataJson`.
 
@@ -97,6 +101,7 @@ Initial migration is located in `apps/api/src/database/migrations/1710000000000-
 - Canonical public album URLs should include the user handle, for example `/@{userHandle}/{siteSlug}/albums/{albumSlugOrShortId}`, so two users can have albums with the same display name without URL ambiguity.
 - [NEW] B2C/B2B plans should distinguish couple packages, studio subscriptions, add-ons, and manually granted entitlements without hardcoding plan behavior into controllers.
 - [NEW] Admin theme controls, contextual theme rules, and automated greeting rules must write audit logs and have safe defaults when malformed or disabled.
+- [NEW] Realtime/webhook tables must use event ids and idempotency keys to avoid duplicate state changes or duplicate outbound delivery.
 
 ## Planned Public Album, OAuth, And Interaction Tables [NEW]
 
@@ -131,6 +136,14 @@ Audit log metadata for these features must not store passwords, raw tokens, cook
 - `studio_profiles` and `studio_clients` provide B2B client-management foundations without bypassing tenant isolation.
 - `analytics_events` stores safe gallery view/download facts and must not be used to expose private or unlisted albums.
 - `greeting_rules` stores global/tenant/user greeting rules with locale template keys, enable/disable state, and schedule fields.
+
+## Planned Realtime/Webhook Notes [NEW]
+
+- `event_outbox` should be written from application services after a business action succeeds, preferably in the same transaction where possible.
+- Event payloads must be redacted before persistence and delivery.
+- Browser realtime should read from safe event streams or dispatcher fan-out, not directly from provider webhook payloads.
+- Inbound provider webhooks such as MoMo should update provider-specific event history and then emit internal domain events.
+- Outbound webhook delivery must store enough status for admin replay/debugging without storing raw secrets or sensitive response bodies.
 
 ## Seeds
 

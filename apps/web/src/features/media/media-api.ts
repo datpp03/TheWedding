@@ -2,6 +2,7 @@ import { apiClient } from '@/lib/api-client';
 
 export type Album = {
   id: string;
+  slug: string;
   tenantId: string;
   title: string;
   description: string | null;

@@ -9,6 +9,7 @@ import { UserOrmEntity } from '../users/infrastructure/user.orm-entity';
 import { AuthService } from './application/auth.service';
 import { AuthMailService } from './application/auth-mail.service';
 import { AuthTokenService } from './application/auth-token.service';
+import { OAuthProviderService } from './application/oauth-provider.service';
 import { Argon2PasswordHasher } from './infrastructure/argon2-password-hasher';
 import { EmailVerificationTokenOrmEntity } from './infrastructure/email-verification-token.orm-entity';
 import { OAuthAccountOrmEntity } from './infrastructure/oauth-account.orm-entity';
@@ -38,6 +39,7 @@ import { AuthController } from './presentation/auth.controller';
     AuthService,
     AuthMailService,
     AuthTokenService,
+    OAuthProviderService,
     Argon2PasswordHasher,
     TypeOrmAuthRepository,
     {

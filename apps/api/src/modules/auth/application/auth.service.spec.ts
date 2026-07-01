@@ -7,14 +7,21 @@ import { ConfigService } from '@nestjs/config';
 import type { UserOrmEntity } from '../../users/infrastructure/user.orm-entity';
 import type { Argon2PasswordHasher } from '../infrastructure/argon2-password-hasher';
 import { AuthService } from './auth.service';
+import { createTotpCode, encryptMfaSecret, generateTotpSecret } from './mfa-totp';
+import type { OAuthProfile } from './oauth-provider.service';
 
 type MockRepository = {
   assignUserRole: jest.MockedFunction<(userId: string) => Promise<void>>;
+  createOAuthAccount: jest.MockedFunction<(input: unknown) => Promise<OAuthAccount>>;
   createEmailVerificationToken: jest.MockedFunction<(input: unknown) => Promise<{ id: string }>>;
   createPasswordResetToken: jest.MockedFunction<(input: unknown) => Promise<{ id: string }>>;
   createSession: jest.MockedFunction<(input: unknown) => Promise<{ id: string }>>;
   createUser: jest.MockedFunction<(input: unknown) => Promise<UserOrmEntity>>;
+  deleteOAuthAccount: jest.MockedFunction<(userId: string, provider: string) => Promise<void>>;
   findEmailVerificationTokenById: jest.MockedFunction<(id: string) => Promise<OneTimeToken | null>>;
+  findOAuthAccount: jest.MockedFunction<
+    (provider: string, providerSubject: string) => Promise<OAuthAccount | null>
+  >;
   findPasswordResetTokenById: jest.MockedFunction<(id: string) => Promise<OneTimeToken | null>>;
   findSessionById: jest.MockedFunction<(id: string) => Promise<Session | null>>;
   findUserByEmail: jest.MockedFunction<(email: string) => Promise<UserOrmEntity | null>>;
@@ -22,6 +29,7 @@ type MockRepository = {
   getPermissionCodes: jest.MockedFunction<(userId: string) => Promise<[]>>;
   getRoleCodes: jest.MockedFunction<(userId: string) => Promise<['USER']>>;
   getTenantIds: jest.MockedFunction<(userId: string) => Promise<[]>>;
+  listOAuthAccounts: jest.MockedFunction<(userId: string) => Promise<OAuthAccount[]>>;
   listSessions: jest.MockedFunction<(userId: string) => Promise<[]>>;
   markEmailVerificationTokenUsed: jest.MockedFunction<(id: string) => Promise<void>>;
   markPasswordResetTokenUsed: jest.MockedFunction<(id: string) => Promise<void>>;
@@ -33,7 +41,19 @@ type MockRepository = {
   rotateSession: jest.MockedFunction<
     (sessionId: string, refreshTokenHash: string, expiresAt: Date) => Promise<void>
   >;
+  updateUserMfa: jest.MockedFunction<(input: unknown) => Promise<UserOrmEntity | null>>;
   updateUserPassword: jest.MockedFunction<(userId: string, passwordHash: string) => Promise<void>>;
+};
+
+type OAuthAccount = {
+  id: string;
+  provider: string;
+  providerSubject: string;
+  userId: string;
+  verifiedEmail: string | null;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 type Session = {
@@ -63,10 +83,23 @@ type MockAuthMailService = {
   sendPasswordResetEmail: jest.MockedFunction<(email: string, token: string) => Promise<void>>;
 };
 
+type MockAuthTokenService = {
+  signAccessToken: jest.MockedFunction<() => Promise<string>>;
+  signMfaChallengeToken: jest.MockedFunction<(userId: string) => Promise<string>>;
+  signMfaEnrollmentToken: jest.MockedFunction<
+    (input: { secret: string; userId: string }) => Promise<string>
+  >;
+  verifyMfaChallengeToken: jest.MockedFunction<(token: string) => Promise<{ sub: string }>>;
+  verifyMfaEnrollmentToken: jest.MockedFunction<
+    (token: string) => Promise<{ secret: string; sub: string }>
+  >;
+};
+
 const context = {
   ipAddress: '127.0.0.1',
   userAgent: 'jest',
 };
+const TEST_COOKIE_SECRET = 'test-cookie-secret-with-at-least-32-characters';
 
 describe(AuthService.name, () => {
   it('registers a user, assigns USER role, and issues tokens', async () => {
@@ -169,6 +202,139 @@ describe(AuthService.name, () => {
         context,
       }),
     ).rejects.toBeInstanceOf(ServiceUnavailableException);
+  });
+
+  it('does not expose reset or verification dev tokens in production', async () => {
+    const user = createUser({ email: 'prod@example.com' });
+    const { repository, service } = createService({ nodeEnv: 'production' });
+
+    repository.findUserByEmail.mockResolvedValueOnce(null);
+    repository.createUser.mockResolvedValue(user);
+
+    const registerResult = await service.register({
+      email: 'prod@example.com',
+      password: 'ChangeMe!123456',
+      displayName: 'Prod',
+      context,
+    });
+
+    expect(registerResult.devEmailVerificationToken).toBeUndefined();
+
+    repository.findUserByEmail.mockResolvedValueOnce(user);
+    const forgotResult = await service.forgotPassword({ email: 'prod@example.com', context });
+
+    expect(forgotResult.devResetToken).toBeUndefined();
+  });
+
+  it('returns an MFA challenge instead of issuing a full session when MFA is enabled', async () => {
+    const user = createUser({
+      mfaEnabledAt: new Date(),
+      mfaMethod: 'totp',
+      mfaSecretEncrypted: 'encrypted-secret',
+    });
+    const { repository, service } = createService();
+
+    repository.findUserByEmail.mockResolvedValue(user);
+
+    const result = await service.login({
+      email: user.email,
+      password: 'ChangeMe!123456',
+      context,
+    });
+
+    expect(result).toEqual({
+      challengeExpiresInSeconds: 300,
+      challengeToken: 'mfa-challenge-token',
+      mfaRequired: true,
+    });
+    expect(repository.createSession).not.toHaveBeenCalled();
+  });
+
+  it('completes a valid MFA challenge and rejects invalid OTP codes', async () => {
+    const secret = generateTotpSecret();
+    const user = createUser({
+      mfaEnabledAt: new Date(),
+      mfaMethod: 'totp',
+      mfaSecretEncrypted: encryptMfaSecret(secret, TEST_COOKIE_SECRET),
+    });
+    const { repository, service } = createService();
+
+    repository.findUserById.mockResolvedValue(user);
+
+    await expect(
+      service.completeMfaChallenge({
+        challengeToken: 'mfa-challenge-token',
+        code: '000000',
+        context,
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+
+    const result = await service.completeMfaChallenge({
+      challengeToken: 'mfa-challenge-token',
+      code: createTotpCode(secret),
+      context,
+    });
+
+    expect(result.tokens.accessToken).toBe('access-token');
+    expect(repository.createSession).toHaveBeenCalled();
+  });
+
+  it('enables and disables TOTP MFA after valid OTP verification', async () => {
+    const user = createUser({ id: 'user-1' });
+    const { repository, service, tokenService } = createService();
+
+    repository.findUserById.mockResolvedValue(user);
+
+    const enrollment = await service.startMfaEnrollment(user.id, context);
+    tokenService.verifyMfaEnrollmentToken.mockResolvedValue({
+      secret: enrollment.secret,
+      sub: user.id,
+    });
+    repository.updateUserMfa.mockResolvedValue(
+      createUser({
+        ...user,
+        mfaEnabledAt: new Date(),
+        mfaMethod: 'totp',
+        mfaSecretEncrypted: encryptMfaSecret(enrollment.secret, TEST_COOKIE_SECRET),
+      }),
+    );
+
+    const enrolledUser = await service.verifyMfaEnrollment({
+      code: createTotpCode(enrollment.secret),
+      context,
+      enrollmentToken: enrollment.enrollmentToken,
+      userId: user.id,
+    });
+
+    expect(enrolledUser.mfaEnabled).toBe(true);
+    expect(repository.updateUserMfa).toHaveBeenCalledWith(
+      expect.objectContaining({ mfaMethod: 'totp', userId: user.id }),
+    );
+
+    const enabledUser = createUser({
+      ...user,
+      mfaEnabledAt: new Date(),
+      mfaMethod: 'totp',
+      mfaSecretEncrypted: encryptMfaSecret(enrollment.secret, TEST_COOKIE_SECRET),
+    });
+    repository.findUserById.mockResolvedValue(enabledUser);
+    repository.updateUserMfa.mockResolvedValue(createUser(user));
+
+    const disabledUser = await service.disableMfa({
+      code: createTotpCode(enrollment.secret),
+      context,
+      userId: user.id,
+    });
+
+    expect(disabledUser.mfaEnabled).toBe(false);
+    expect(repository.updateUserMfa).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        mfaEnabledAt: null,
+        mfaMethod: null,
+        mfaSecretEncrypted: null,
+        userId: user.id,
+      }),
+    );
   });
 
   it('rotates a valid refresh token and revokes the family on token reuse', async () => {
@@ -311,11 +477,117 @@ describe(AuthService.name, () => {
       }),
     ).rejects.toBeInstanceOf(UnauthorizedException);
   });
+
+  it('creates a verified OAuth user when no account exists for the provider email', async () => {
+    const user = createUser({
+      email: 'oauth@example.com',
+      emailVerifiedAt: new Date(),
+      status: 'active',
+    });
+    const { repository, service } = createService();
+
+    repository.findOAuthAccount.mockResolvedValue(null);
+    repository.findUserByEmail.mockResolvedValue(null);
+    repository.createUser.mockResolvedValue(user);
+    repository.createOAuthAccount.mockResolvedValue(
+      createOAuthAccount({ provider: 'google', userId: user.id }),
+    );
+
+    const result = await service.completeOAuthLogin({
+      context,
+      profile: createOAuthProfile({ email: 'oauth@example.com', provider: 'google' }),
+    });
+
+    expect(repository.createUser).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'oauth@example.com',
+        status: 'active',
+      }),
+    );
+    expect(repository.createOAuthAccount).toHaveBeenCalledWith(
+      expect.objectContaining({ provider: 'google', userId: user.id }),
+    );
+    if (result.mfaRequired) {
+      throw new Error('OAuth login unexpectedly required MFA for a new user');
+    }
+    expect(result.tokens.accessToken).toBe('access-token');
+  });
+
+  it('blocks OAuth login when provider email is unverified', async () => {
+    const { service } = createService();
+
+    await expect(
+      service.completeOAuthLogin({
+        context,
+        profile: createOAuthProfile({ emailVerified: false }),
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it('does not silently merge OAuth login into an existing password account', async () => {
+    const existingUser = createUser({ email: 'existing@example.com' });
+    const { repository, service } = createService();
+
+    repository.findOAuthAccount.mockResolvedValue(null);
+    repository.findUserByEmail.mockResolvedValue(existingUser);
+
+    await expect(
+      service.completeOAuthLogin({
+        context,
+        profile: createOAuthProfile({ email: 'existing@example.com' }),
+      }),
+    ).rejects.toBeInstanceOf(ConflictException);
+
+    expect(repository.createOAuthAccount).not.toHaveBeenCalled();
+  });
+
+  it('logs in with an already linked OAuth provider and requires MFA when enabled', async () => {
+    const user = createUser({
+      mfaEnabledAt: new Date(),
+      mfaMethod: 'totp',
+      mfaSecretEncrypted: 'encrypted-secret',
+    });
+    const { repository, service } = createService();
+
+    repository.findOAuthAccount.mockResolvedValue(createOAuthAccount({ userId: user.id }));
+    repository.findUserById.mockResolvedValue(user);
+
+    const result = await service.completeOAuthLogin({
+      context,
+      profile: createOAuthProfile(),
+    });
+
+    expect(result).toEqual({
+      challengeExpiresInSeconds: 300,
+      challengeToken: 'mfa-challenge-token',
+      mfaRequired: true,
+    });
+    expect(repository.createSession).not.toHaveBeenCalled();
+  });
+
+  it('prevents unlinking the last OAuth provider when no password login exists', async () => {
+    const user = createUser({ passwordHash: 'oauth-only:random' });
+    const { repository, service } = createService();
+
+    repository.findUserById.mockResolvedValue(user);
+    repository.listOAuthAccounts.mockResolvedValue([
+      createOAuthAccount({ provider: 'google', userId: user.id }),
+    ]);
+
+    await expect(
+      service.unlinkOAuthProvider({
+        context,
+        provider: 'google',
+        userId: user.id,
+      }),
+    ).rejects.toBeInstanceOf(ConflictException);
+  });
 });
 
-function createService() {
+function createService(options: { nodeEnv?: string } = {}) {
   const repository: MockRepository = {
     assignUserRole: jest.fn<Promise<void>, [string]>().mockResolvedValue(undefined),
+    createOAuthAccount: jest.fn<Promise<OAuthAccount>, [unknown]>(),
     createEmailVerificationToken: jest
       .fn<Promise<{ id: string }>, [unknown]>()
       .mockResolvedValue({ id: 'email-token-1' }),
@@ -326,7 +598,9 @@ function createService() {
       .fn<Promise<{ id: string }>, [unknown]>()
       .mockResolvedValue({ id: 'session-1' }),
     createUser: jest.fn<Promise<UserOrmEntity>, [unknown]>(),
+    deleteOAuthAccount: jest.fn<Promise<void>, [string, string]>().mockResolvedValue(undefined),
     findEmailVerificationTokenById: jest.fn<Promise<OneTimeToken | null>, [string]>(),
+    findOAuthAccount: jest.fn<Promise<OAuthAccount | null>, [string, string]>(),
     findPasswordResetTokenById: jest.fn<Promise<OneTimeToken | null>, [string]>(),
     findSessionById: jest.fn<Promise<Session | null>, [string]>(),
     findUserByEmail: jest.fn<Promise<UserOrmEntity | null>, [string]>(),
@@ -334,6 +608,7 @@ function createService() {
     getPermissionCodes: jest.fn<Promise<[]>, [string]>().mockResolvedValue([]),
     getRoleCodes: jest.fn<Promise<['USER']>, [string]>().mockResolvedValue(['USER']),
     getTenantIds: jest.fn<Promise<[]>, [string]>().mockResolvedValue([]),
+    listOAuthAccounts: jest.fn<Promise<OAuthAccount[]>, [string]>().mockResolvedValue([]),
     listSessions: jest.fn<Promise<[]>, [string]>().mockResolvedValue([]),
     markEmailVerificationTokenUsed: jest.fn<Promise<void>, [string]>().mockResolvedValue(undefined),
     markPasswordResetTokenUsed: jest.fn<Promise<void>, [string]>().mockResolvedValue(undefined),
@@ -343,6 +618,7 @@ function createService() {
     revokeSessionFamily: jest.fn<Promise<void>, [string]>().mockResolvedValue(undefined),
     revokeUserSessions: jest.fn<Promise<void>, [string]>().mockResolvedValue(undefined),
     rotateSession: jest.fn<Promise<void>, [string, string, Date]>().mockResolvedValue(undefined),
+    updateUserMfa: jest.fn<Promise<UserOrmEntity | null>, [unknown]>(),
     updateUserPassword: jest.fn<Promise<void>, [string, string]>().mockResolvedValue(undefined),
   };
   const passwordHasher: MockPasswordHasher = {
@@ -353,8 +629,20 @@ function createService() {
       .fn<Promise<boolean>, [string, string]>()
       .mockImplementation((hash, value) => Promise.resolve(hash === `hash:${value}`)),
   };
-  const tokenService = {
+  const tokenService: MockAuthTokenService = {
     signAccessToken: jest.fn<Promise<string>, []>().mockResolvedValue('access-token'),
+    signMfaChallengeToken: jest
+      .fn<Promise<string>, [string]>()
+      .mockResolvedValue('mfa-challenge-token'),
+    signMfaEnrollmentToken: jest
+      .fn<Promise<string>, [{ secret: string; userId: string }]>()
+      .mockResolvedValue('mfa-enrollment-token'),
+    verifyMfaChallengeToken: jest
+      .fn<Promise<{ sub: string }>, [string]>()
+      .mockResolvedValue({ sub: 'user-1' }),
+    verifyMfaEnrollmentToken: jest
+      .fn<Promise<{ secret: string; sub: string }>, [string]>()
+      .mockResolvedValue({ secret: 'secret', sub: 'user-1' }),
   };
   const authMail: MockAuthMailService = {
     sendEmailVerificationEmail: jest.fn<Promise<void>, [string, string]>().mockResolvedValue(),
@@ -365,11 +653,22 @@ function createService() {
       .fn<unknown, Parameters<ConfigService['get']>>()
       .mockImplementation((key: string, defaultValue?: unknown) => {
         if (key === 'NODE_ENV') {
-          return 'local';
+          return options.nodeEnv ?? 'local';
+        }
+
+        if (key === 'COOKIE_SECRET') {
+          return TEST_COOKIE_SECRET;
         }
 
         return defaultValue ?? '30d';
       }),
+    getOrThrow: jest.fn<unknown, [string]>().mockImplementation((key: string) => {
+      if (key === 'COOKIE_SECRET') {
+        return TEST_COOKIE_SECRET;
+      }
+
+      return 'test-secret-value-with-enough-length';
+    }),
   };
   const systemParameters = {
     assertLoginEnabled: jest.fn<Promise<void>, []>().mockResolvedValue(undefined),
@@ -384,7 +683,7 @@ function createService() {
     systemParameters as never,
   );
 
-  return { authMail, passwordHasher, repository, service, systemParameters };
+  return { authMail, passwordHasher, repository, service, systemParameters, tokenService };
 }
 
 function createOneTimeToken(overrides: Partial<OneTimeToken> = {}): OneTimeToken {
@@ -427,6 +726,32 @@ function createSession(overrides: Partial<Session> = {}): Session {
     refreshTokenFamilyId: 'family-1',
     expiresAt: new Date(Date.now() + 60_000),
     revokedAt: null,
+    ...overrides,
+  };
+}
+
+function createOAuthAccount(overrides: Partial<OAuthAccount> = {}): OAuthAccount {
+  return {
+    id: 'oauth-account-1',
+    provider: 'google',
+    providerSubject: 'provider-subject-1',
+    userId: 'user-1',
+    verifiedEmail: 'user@example.com',
+    status: 'active',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  };
+}
+
+function createOAuthProfile(overrides: Partial<OAuthProfile> = {}): OAuthProfile {
+  return {
+    avatarUrl: null,
+    displayName: 'OAuth User',
+    email: 'user@example.com',
+    emailVerified: true,
+    provider: 'google',
+    providerSubject: 'provider-subject-1',
     ...overrides,
   };
 }

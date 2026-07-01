@@ -20,6 +20,17 @@ Required signoff checks:
 - Text length is considered for Vietnamese, English, and Japanese.
 - All interactive and async states are defined.
 
+## Taste Skill Frontend Rule [NEW]
+
+Every frontend, UI, layout, component, form, dashboard, admin, public page, or redesign task must apply `docs/ai/taste-skill-integration.md` before implementation.
+
+- Write a short design read for the current surface before changing code: audience, intent, first-look hierarchy, data density, motion level, and what must stay stable.
+- Use the rule contextually: public wedding pages can be warmer, richer, and media-first; owner dashboards should be friendly and action-oriented; admin screens should stay quiet, dense, and operational.
+- Avoid generic AI UI defaults such as decorative gradient-only hero sections, random glass cards, vague badges, or ornamental motion that does not support the task.
+- Preserve API contracts, auth/permission behavior, routes, props, state shape, feature gates, and backend logic when the task is UI-only.
+- Prefer existing components, tokens, i18n keys, responsive constraints, accessible controls, and complete loading/empty/error/success states.
+- Do not add new UI libraries, animation systems, or design-system dependencies without explicit approval.
+
 ## Visual Direction
 
 - Use a fresh, dynamic color palette with bright accent colors, soft neutrals, and strong contrast for important actions.

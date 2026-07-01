@@ -7,6 +7,7 @@ export type SafeUser = {
   avatarUrl: string | null;
   status: string;
   emailVerifiedAt: Date | null;
+  mfaEnabled: boolean;
   roles: RoleCode[];
   permissions: PermissionCode[];
 };
@@ -21,11 +22,20 @@ export type AuthTokens = {
   refreshToken: string;
 };
 
-export type AuthResult = {
+export type AuthenticatedResult = {
+  mfaRequired?: false;
   user: SafeUser;
   tokens: AuthTokens;
   devEmailVerificationToken?: string;
 };
+
+export type MfaRequiredResult = {
+  challengeExpiresInSeconds: number;
+  challengeToken: string;
+  mfaRequired: true;
+};
+
+export type AuthResult = AuthenticatedResult | MfaRequiredResult;
 
 export type ForgotPasswordResult = {
   message: string;
@@ -39,4 +49,15 @@ export type AccessTokenPayload = {
   roles: RoleCode[];
   permissions: PermissionCode[];
   tenantIds: string[];
+};
+
+export type MfaChallengeTokenPayload = {
+  purpose: 'mfa_challenge';
+  sub: string;
+};
+
+export type MfaEnrollmentTokenPayload = {
+  purpose: 'mfa_enrollment';
+  secret: string;
+  sub: string;
 };

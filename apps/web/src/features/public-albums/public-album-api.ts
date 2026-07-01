@@ -3,6 +3,7 @@ import type { MediaItem } from '@/features/media/media-api';
 
 export type PublicAlbumCard = {
   id: string;
+  slug: string;
   tenantId: string;
   tenantSlug: string;
   title: string;

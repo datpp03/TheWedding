@@ -1,4 +1,4 @@
-# GitHub Flow
+﻿# GitHub Flow
 
 ## Branching
 

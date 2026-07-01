@@ -1,4 +1,4 @@
-# Hướng Dẫn Cấu Hình Lại Khi Di Dời Host, Database Và Nơi Lưu Trữ Ảnh
+﻿# Hướng Dẫn Cấu Hình Lại Khi Di Dời Host, Database Và Nơi Lưu Trữ Ảnh
 
 Tài liệu này dùng mỗi khi cần chuyển The Wedding sang host/VPS mới, đổi database, đổi nơi lưu trữ ảnh, hoặc khôi phục hệ thống trên một môi trường mới.
 

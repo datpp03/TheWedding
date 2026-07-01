@@ -113,8 +113,8 @@ export class PublicAlbumsService {
     return this.toPublicCards(sorted.slice(0, limit), 'algorithm');
   }
 
-  async getPublicAlbum(albumId: string) {
-    const album = await this.findPublicOrUnlistedAlbum(albumId);
+  async getPublicAlbum(albumIdOrSlug: string) {
+    const album = await this.findPublicOrUnlistedAlbum(albumIdOrSlug);
     return this.toAlbumDetail(album);
   }
 
@@ -181,12 +181,12 @@ export class PublicAlbumsService {
     return this.toPublicCards(albums, 'search');
   }
 
-  async listWishes(albumId: string) {
-    await this.findPublicOrUnlistedAlbum(albumId);
+  async listWishes(albumIdOrSlug: string) {
+    const album = await this.findPublicOrUnlistedAlbum(albumIdOrSlug);
     const rows = await this.wishes.find({
       order: { createdAt: 'DESC' },
       take: 50,
-      where: { albumId, status: 'visible' },
+      where: { albumId: album.id, status: 'visible' },
     });
     return rows.map((wish) => ({
       id: wish.id,
@@ -197,16 +197,18 @@ export class PublicAlbumsService {
     }));
   }
 
-  async createWish(albumId: string, input: CreateWishDto, context: PublicAlbumContext) {
-    const album = await this.findPublicOrUnlistedAlbum(albumId);
-    const existing = await this.wishes.findOne({ where: { albumId, userId: context.actorUserId } });
+  async createWish(albumIdOrSlug: string, input: CreateWishDto, context: PublicAlbumContext) {
+    const album = await this.findPublicOrUnlistedAlbum(albumIdOrSlug);
+    const existing = await this.wishes.findOne({
+      where: { albumId: album.id, userId: context.actorUserId },
+    });
     if (existing) {
       throw new ConflictException('You have already sent a wish for this album');
     }
     const user = await this.users.findOne({ where: { id: context.actorUserId } });
     const wish = await this.wishes.save(
       this.wishes.create({
-        albumId,
+        albumId: album.id,
         displayNameSnapshot: user?.displayName ?? context.email ?? 'Guest',
         message: input.message.trim(),
         status: 'visible',
@@ -217,18 +219,18 @@ export class PublicAlbumsService {
     await this.audit(album, 'album.wish.created', context, wish.id);
     return {
       id: wish.id,
-      albumId,
+      albumId: album.id,
       displayName: wish.displayNameSnapshot,
       message: wish.message,
       createdAt: wish.createdAt,
     };
   }
 
-  async listReactionSummary(albumId: string) {
-    const album = await this.findPublicOrUnlistedAlbum(albumId);
+  async listReactionSummary(albumIdOrSlug: string) {
+    const album = await this.findPublicOrUnlistedAlbum(albumIdOrSlug);
     const [symbols, reactions] = await Promise.all([
       this.listReactionSymbols(album.tenantId, album.id),
-      this.reactions.find({ where: { albumId } }),
+      this.reactions.find({ where: { albumId: album.id } }),
     ]);
     return symbols.map((symbol) => ({
       ...symbol,
@@ -236,8 +238,12 @@ export class PublicAlbumsService {
     }));
   }
 
-  async createReaction(albumId: string, input: CreateReactionDto, context: PublicAlbumContext) {
-    const album = await this.findPublicOrUnlistedAlbum(albumId);
+  async createReaction(
+    albumIdOrSlug: string,
+    input: CreateReactionDto,
+    context: PublicAlbumContext,
+  ) {
+    const album = await this.findPublicOrUnlistedAlbum(albumIdOrSlug);
     const symbols = await this.listReactionSymbols(album.tenantId, album.id);
     if (!symbols.some((symbol) => symbol.symbolKey === input.symbolKey)) {
       await this.audit(album, 'album.reaction.suspicious_symbol', context, undefined, {
@@ -246,14 +252,14 @@ export class PublicAlbumsService {
       throw new BadRequestException('Reaction symbol is not allowed for this album');
     }
     const existing = await this.reactions.findOne({
-      where: { albumId, symbolKey: input.symbolKey, userId: context.actorUserId },
+      where: { albumId: album.id, symbolKey: input.symbolKey, userId: context.actorUserId },
     });
     if (existing) {
       throw new ConflictException('You have already reacted with this symbol');
     }
     const reaction = await this.reactions.save(
       this.reactions.create({
-        albumId,
+        albumId: album.id,
         symbolKey: input.symbolKey,
         tenantId: album.tenantId,
         userId: context.actorUserId,
@@ -262,7 +268,7 @@ export class PublicAlbumsService {
     await this.audit(album, 'album.reaction.created', context, reaction.id, {
       symbolKey: input.symbolKey,
     });
-    return this.listReactionSummary(albumId);
+    return this.listReactionSummary(album.id);
   }
 
   async getReactionSymbols(tenantId: string, albumId: string, context: PublicAlbumContext) {
@@ -304,8 +310,8 @@ export class PublicAlbumsService {
     return rows.map((row) => ({ glyph: row.glyph, symbolKey: row.symbolKey }));
   }
 
-  private async findPublicOrUnlistedAlbum(albumId: string) {
-    const album = await this.albums.findOne({ where: { id: albumId } });
+  private async findPublicOrUnlistedAlbum(albumIdOrSlug: string) {
+    const album = await this.findAlbumByIdOrSlug(albumIdOrSlug);
     if (!album || album.visibility === ALBUM_VISIBILITY.PRIVATE) {
       throw new NotFoundException('Album not found');
     }
@@ -320,6 +326,14 @@ export class PublicAlbumsService {
       throw new NotFoundException('Album not found');
     }
     return album;
+  }
+
+  private async findAlbumByIdOrSlug(albumIdOrSlug: string) {
+    if (isUuid(albumIdOrSlug)) {
+      const album = await this.albums.findOne({ where: { id: albumIdOrSlug } });
+      if (album) return album;
+    }
+    return this.albums.findOne({ where: { slug: albumIdOrSlug } });
   }
 
   private async findOwnedAlbum(tenantId: string, albumId: string) {
@@ -358,6 +372,7 @@ export class PublicAlbumsService {
     ]);
     return {
       id: album.id,
+      slug: album.slug,
       tenantId: album.tenantId,
       tenantSlug: tenant?.slug ?? '',
       title: album.title,
@@ -463,4 +478,8 @@ function resolvePublicMediaUrl(media: MediaOrmEntity, preferred: 'gallery' | 'th
     return `/api/v1/public/tenants/${media.tenantId}/media/${media.id}/file`;
   }
   return null;
+}
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }

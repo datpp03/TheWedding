@@ -16,20 +16,37 @@ import type { Request, Response } from 'express';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Public } from '../../../common/decorators/public.decorator';
 import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
-import { AuthService, REFRESH_TOKEN_COOKIE } from '../application/auth.service';
+import {
+  ACCESS_TOKEN_COOKIE,
+  AuthService,
+  MFA_CHALLENGE_COOKIE,
+  REFRESH_TOKEN_COOKIE,
+} from '../application/auth.service';
 import type { RequestContext } from '../application/auth.types';
+import { AuthTokenService } from '../application/auth-token.service';
+import { OAuthProviderService } from '../application/oauth-provider.service';
 import {
   decodeOAuthState,
   encodeOAuthState,
   validateReturnTo,
 } from '../application/oauth-return-to';
-import { clearAuthCookies, setAuthCookies, setCsrfCookie } from './auth-cookie.presenter';
 import {
+  clearAuthCookies,
+  clearMfaChallengeCookie,
+  setAuthCookies,
+  setCsrfCookie,
+  setMfaChallengeCookie,
+} from './auth-cookie.presenter';
+import {
+  DisableMfaDto,
   ForgotPasswordDto,
   LoginDto,
+  MfaChallengeDto,
   RefreshDto,
   RegisterDto,
+  ResendVerificationDto,
   ResetPasswordDto,
+  VerifyMfaEnrollmentDto,
   VerifyEmailDto,
 } from './auth.dto';
 
@@ -37,7 +54,9 @@ import {
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly authTokenService: AuthTokenService,
     private readonly config: ConfigService,
+    private readonly oauthProviders: OAuthProviderService,
   ) {}
 
   @Public()
@@ -49,14 +68,19 @@ export class AuthController {
       capabilities: [
         'register',
         'login',
+        'mfa-totp',
+        'oauth-google',
+        'oauth-facebook',
         'logout',
         'refresh',
         'forgot-password',
+        'resend-verification',
         'reset-password',
         'verify-email',
         'csrf',
         'sessions',
       ],
+      oauthProviders: this.oauthProviders.getEnabledProviders(),
     };
   }
 
@@ -85,6 +109,7 @@ export class AuthController {
     });
 
     setAuthCookies(response, result.tokens, this.config);
+    setCsrfCookie(response, this.authService.createCsrfToken(), this.config);
 
     return {
       devEmailVerificationToken: result.devEmailVerificationToken,
@@ -125,6 +150,16 @@ export class AuthController {
   }
 
   @Public()
+  @Post('resend-verification')
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
+  resendVerification(@Body() body: ResendVerificationDto, @Req() request: Request) {
+    return this.authService.resendEmailVerification({
+      email: body.email,
+      context: getRequestContext(request),
+    });
+  }
+
+  @Public()
   @Post('login')
   @Throttle({ default: { limit: 8, ttl: 60_000 } })
   async login(
@@ -138,7 +173,16 @@ export class AuthController {
       context: getRequestContext(request),
     });
 
+    if (isMfaRequired(result)) {
+      setMfaChallengeCookie(response, result.challengeToken, this.config);
+      return {
+        challengeExpiresInSeconds: result.challengeExpiresInSeconds,
+        mfaRequired: true,
+      };
+    }
+
     setAuthCookies(response, result.tokens, this.config);
+    setCsrfCookie(response, this.authService.createCsrfToken(), this.config);
 
     return {
       user: result.user,
@@ -147,31 +191,114 @@ export class AuthController {
 
   @Public()
   @Get('oauth/:provider')
-  oauthStart(
+  async oauthStart(
     @Param('provider') provider: string,
     @Query('returnTo') returnTo: string | undefined,
+    @Req() request: Request,
     @Res() response: Response,
   ) {
+    if (!this.oauthProviders.isSupportedProvider(provider)) {
+      throw new ServiceUnavailableException('OAuth provider is not supported');
+    }
+
     const safeReturnTo = validateReturnTo(returnTo, this.config.getOrThrow<string>('APP_URL'));
-    const redirectUrl = this.buildOAuthRedirectUrl(provider, safeReturnTo);
+    await this.authService.recordOAuthStart({
+      context: getRequestContext(request),
+      mode: 'login',
+      provider,
+      returnTo: safeReturnTo,
+    });
+    const redirectUrl = this.buildOAuthRedirectUrl(provider, safeReturnTo, 'login');
+    return response.redirect(redirectUrl);
+  }
+
+  @Get('oauth/link/:provider')
+  async oauthLinkStart(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('provider') provider: string,
+    @Query('returnTo') returnTo: string | undefined,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    if (!this.oauthProviders.isSupportedProvider(provider)) {
+      throw new ServiceUnavailableException('OAuth provider is not supported');
+    }
+
+    const safeReturnTo = validateReturnTo(
+      returnTo ?? '/dashboard/settings',
+      this.config.getOrThrow<string>('APP_URL'),
+    );
+    await this.authService.recordOAuthStart({
+      actorUserId: user.id,
+      context: getRequestContext(request),
+      mode: 'link',
+      provider,
+      returnTo: safeReturnTo,
+    });
+    const redirectUrl = this.buildOAuthRedirectUrl(provider, safeReturnTo, 'link', user.id);
     return response.redirect(redirectUrl);
   }
 
   @Public()
   @Get('oauth/:provider/callback')
-  oauthCallback(
+  async oauthCallback(
     @Param('provider') provider: string,
     @Query('state') state: string | undefined,
     @Query('code') code: string | undefined,
+    @Req() request: Request,
+    @Res() response: Response,
   ) {
-    const decoded = decodeOAuthState(state, this.config.getOrThrow<string>('APP_URL'));
+    if (!this.oauthProviders.isSupportedProvider(provider)) {
+      throw new ServiceUnavailableException('OAuth provider is not supported');
+    }
+
+    const decoded = decodeOAuthState(
+      state,
+      this.config.getOrThrow<string>('APP_URL'),
+      this.getOAuthStateSecret(),
+    );
     if (decoded.provider !== provider || !code) {
       throw new ServiceUnavailableException('OAuth login could not be completed');
     }
 
-    throw new ServiceUnavailableException(
-      'OAuth provider credentials are configured, but account linking needs product confirmation before enabling callback exchange',
-    );
+    const redirectUri = this.buildOAuthCallbackUrl(provider);
+    const profile = await this.oauthProviders.exchangeCodeForProfile({
+      code,
+      provider,
+      redirectUri,
+    });
+
+    if (decoded.mode === 'link') {
+      const authenticatedUser = await this.readUserFromAccessCookie(request);
+      if (!decoded.userId || authenticatedUser.id !== decoded.userId) {
+        throw new ServiceUnavailableException('OAuth account linking session expired');
+      }
+
+      await this.authService.linkOAuthProvider({
+        context: getRequestContext(request),
+        profile,
+        userId: authenticatedUser.id,
+      });
+
+      return response.redirect(this.buildAppRedirectUrl(decoded.returnTo));
+    }
+
+    const result = await this.authService.completeOAuthLogin({
+      context: getRequestContext(request),
+      profile,
+    });
+
+    if (isMfaRequired(result)) {
+      setMfaChallengeCookie(response, result.challengeToken, this.config);
+      const loginUrl = new URL('/login', this.config.getOrThrow<string>('APP_URL'));
+      loginUrl.searchParams.set('mfa', 'required');
+      loginUrl.searchParams.set('redirect', decoded.returnTo);
+      return response.redirect(loginUrl.toString());
+    }
+
+    setAuthCookies(response, result.tokens, this.config);
+    setCsrfCookie(response, this.authService.createCsrfToken(), this.config);
+    return response.redirect(this.buildAppRedirectUrl(decoded.returnTo));
   }
 
   @Public()
@@ -188,45 +315,127 @@ export class AuthController {
     );
 
     setAuthCookies(response, result.tokens, this.config);
+    setCsrfCookie(response, this.authService.createCsrfToken(), this.config);
 
     return {
       user: result.user,
     };
   }
 
-  private buildOAuthRedirectUrl(provider: string, returnTo: string) {
-    const state = encodeOAuthState({ provider, returnTo });
+  private buildOAuthRedirectUrl(
+    provider: 'facebook' | 'google',
+    returnTo: string,
+    mode: 'link' | 'login',
+    userId?: string,
+  ) {
+    const state = encodeOAuthState(
+      { mode, provider, returnTo, userId },
+      this.getOAuthStateSecret(),
+    );
+
+    return this.oauthProviders.buildAuthorizationUrl({
+      provider,
+      redirectUri: this.buildOAuthCallbackUrl(provider),
+      state,
+    });
+  }
+
+  private buildOAuthCallbackUrl(provider: 'facebook' | 'google') {
     const apiUrl = this.config.getOrThrow<string>('API_URL');
+    return `${apiUrl}/api/v1/auth/oauth/${provider}/callback`;
+  }
 
-    if (provider === 'google') {
-      const clientId = this.config.get<string>('GOOGLE_OAUTH_CLIENT_ID', '');
-      if (!clientId) {
-        throw new ServiceUnavailableException('Google OAuth is not configured');
-      }
-      const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-      url.searchParams.set('client_id', clientId);
-      url.searchParams.set('redirect_uri', `${apiUrl}/api/v1/auth/oauth/google/callback`);
-      url.searchParams.set('response_type', 'code');
-      url.searchParams.set('scope', 'openid email profile');
-      url.searchParams.set('state', state);
-      return url.toString();
+  private getOAuthStateSecret() {
+    return this.config.getOrThrow<string>('COOKIE_SECRET');
+  }
+
+  private buildAppRedirectUrl(returnTo: string) {
+    return new URL(returnTo, this.config.getOrThrow<string>('APP_URL')).toString();
+  }
+
+  private async readUserFromAccessCookie(request: Request): Promise<AuthenticatedUser> {
+    const cookies = request.cookies as Record<string, string | undefined> | undefined;
+    return this.authTokenService.verifyAccessToken(cookies?.[ACCESS_TOKEN_COOKIE] ?? '');
+  }
+
+  @Post('mfa/enrollment/start')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  startMfaEnrollment(@CurrentUser() user: AuthenticatedUser, @Req() request: Request) {
+    return this.authService.startMfaEnrollment(user.id, getRequestContext(request));
+  }
+
+  @Post('mfa/enrollment/verify')
+  @Throttle({ default: { limit: 8, ttl: 60_000 } })
+  verifyMfaEnrollment(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: VerifyMfaEnrollmentDto,
+    @Req() request: Request,
+  ) {
+    return this.authService.verifyMfaEnrollment({
+      code: body.code,
+      context: getRequestContext(request),
+      enrollmentToken: body.enrollmentToken,
+      userId: user.id,
+    });
+  }
+
+  @Public()
+  @Post('mfa/challenge')
+  @Throttle({ default: { limit: 8, ttl: 60_000 } })
+  async completeMfaChallenge(
+    @Body() body: MfaChallengeDto,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.authService.completeMfaChallenge({
+      challengeToken: readMfaChallengeToken(request, body.challengeToken),
+      code: body.code,
+      context: getRequestContext(request),
+    });
+
+    clearMfaChallengeCookie(response, this.config);
+    setAuthCookies(response, result.tokens, this.config);
+    setCsrfCookie(response, this.authService.createCsrfToken(), this.config);
+
+    return {
+      user: result.user,
+    };
+  }
+
+  @Delete('mfa')
+  @Throttle({ default: { limit: 8, ttl: 60_000 } })
+  disableMfa(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: DisableMfaDto,
+    @Req() request: Request,
+  ) {
+    return this.authService.disableMfa({
+      code: body.code,
+      context: getRequestContext(request),
+      userId: user.id,
+    });
+  }
+
+  @Get('oauth/linked/accounts')
+  oauthAccounts(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.listOAuthAccounts(user.id);
+  }
+
+  @Delete('oauth/linked/:provider')
+  unlinkOAuthProvider(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('provider') provider: string,
+    @Req() request: Request,
+  ) {
+    if (!this.oauthProviders.isSupportedProvider(provider)) {
+      throw new ServiceUnavailableException('OAuth provider is not supported');
     }
 
-    if (provider === 'facebook') {
-      const clientId = this.config.get<string>('FACEBOOK_OAUTH_CLIENT_ID', '');
-      if (!clientId) {
-        throw new ServiceUnavailableException('Facebook OAuth is not configured');
-      }
-      const url = new URL('https://www.facebook.com/v19.0/dialog/oauth');
-      url.searchParams.set('client_id', clientId);
-      url.searchParams.set('redirect_uri', `${apiUrl}/api/v1/auth/oauth/facebook/callback`);
-      url.searchParams.set('response_type', 'code');
-      url.searchParams.set('scope', 'email,public_profile');
-      url.searchParams.set('state', state);
-      return url.toString();
-    }
-
-    throw new ServiceUnavailableException('OAuth provider is not supported');
+    return this.authService.unlinkOAuthProvider({
+      context: getRequestContext(request),
+      provider,
+      userId: user.id,
+    });
   }
 
   @Public()
@@ -288,4 +497,21 @@ function getRequestContext(request: Request): RequestContext {
 function readRefreshToken(request: Request, fallback?: string) {
   const cookies = request.cookies as Record<string, string | undefined> | undefined;
   return cookies?.[REFRESH_TOKEN_COOKIE] ?? fallback;
+}
+
+function readMfaChallengeToken(request: Request, fallback?: string) {
+  const cookies = request.cookies as Record<string, string | undefined> | undefined;
+  return cookies?.[MFA_CHALLENGE_COOKIE] ?? fallback;
+}
+
+function isMfaRequired(result: {
+  challengeExpiresInSeconds?: number;
+  challengeToken?: string;
+  mfaRequired?: boolean;
+}): result is {
+  challengeExpiresInSeconds: number;
+  challengeToken: string;
+  mfaRequired: true;
+} {
+  return result.mfaRequired === true;
 }

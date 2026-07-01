@@ -52,8 +52,17 @@ const envSchema = z.object({
   SMTP_USER: z.string().optional().default(''),
   SMTP_PASSWORD: z.string().optional().default(''),
   SMTP_FROM: z.string().optional().default('TheWedding <no-reply@localhost>'),
+  SMTP_REPLY_TO: z.string().optional().default(''),
+  GOOGLE_OAUTH_ENABLED: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
   GOOGLE_OAUTH_CLIENT_ID: z.string().optional().default(''),
   GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional().default(''),
+  FACEBOOK_OAUTH_ENABLED: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
   FACEBOOK_OAUTH_CLIENT_ID: z.string().optional().default(''),
   FACEBOOK_OAUTH_CLIENT_SECRET: z.string().optional().default(''),
   MOMO_PARTNER_CODE: z.string().optional().default(''),

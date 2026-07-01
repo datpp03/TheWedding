@@ -18,6 +18,9 @@ export class AlbumOrmEntity {
   @Column({ length: 200 })
   title!: string;
 
+  @Column({ length: 220 })
+  slug!: string;
+
   @Column({ nullable: true, type: 'text' })
   description!: string | null;
 

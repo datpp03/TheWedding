@@ -1,8 +1,12 @@
+'use client';
+
 import Link from 'next/link';
 import type { Route } from 'next';
 import type { ReactNode } from 'react';
 import { AuthStatus } from '@/features/auth/auth-status';
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { t } from '@/lib/i18n/locales';
+import { useLocale } from '@/lib/i18n/locale-provider';
 import { dashboardNavItems } from '@/lib/navigation';
 
 export function AppShell({
@@ -12,6 +16,7 @@ export function AppShell({
   children: ReactNode;
   section: 'dashboard' | 'admin';
 }) {
+  const { locale } = useLocale();
   const navItems =
     section === 'dashboard'
       ? dashboardNavItems.filter((item) => !('admin' in item))
@@ -30,10 +35,11 @@ export function AppShell({
               href={item.href as Route}
               className="rounded-md px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
             >
-              {t(item.labelKey)}
+              {t(item.labelKey, locale)}
             </Link>
           ))}
         </nav>
+        <LanguageSwitcher />
         <AuthStatus />
       </aside>
       <main className="lg:pl-64">

@@ -56,3 +56,39 @@ export class VerifyEmailDto {
   @MinLength(1)
   token!: string;
 }
+
+export class ResendVerificationDto {
+  @IsEmail()
+  @MaxLength(320)
+  email!: string;
+}
+
+export class VerifyMfaEnrollmentDto {
+  @IsString()
+  @MinLength(1)
+  enrollmentToken!: string;
+
+  @IsString()
+  @MinLength(6)
+  @MaxLength(32)
+  code!: string;
+}
+
+export class MfaChallengeDto {
+  @IsString()
+  @MinLength(6)
+  @MaxLength(32)
+  code!: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  challengeToken?: string;
+}
+
+export class DisableMfaDto {
+  @IsString()
+  @MinLength(6)
+  @MaxLength(32)
+  code!: string;
+}

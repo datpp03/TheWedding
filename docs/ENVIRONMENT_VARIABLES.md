@@ -1,4 +1,4 @@
-# Environment Variables
+﻿# Environment Variables
 
 Use `.env.example` as the template. Do not commit `.env` files.
 
@@ -7,6 +7,8 @@ Use `.env.example` as the template. Do not commit `.env` files.
 - `NODE_ENV`: `local`, `development`, `staging`, `production`, or `test`.
 - `APP_URL`: frontend base URL.
 - `API_URL`: backend base URL.
+- `NEXT_PUBLIC_APP_URL`: frontend public base URL used by the Next.js app for canonical URLs, `robots.txt`, and `sitemap.xml`. Set this to the deployed web origin, for example `https://thewedding.d-ajt.app`.
+- `NEXT_PUBLIC_API_URL`: backend public base URL used by the Next.js app when calling the API.
 - `CORS_ORIGINS`: comma-separated allowed origins.
 
 ## Database
@@ -29,7 +31,7 @@ The default local setup uses Docker Compose service `postgres`, database `the_we
 - `REFRESH_TOKEN_EXPIRES_IN`: refresh token TTL.
 - `PASSWORD_RESET_TOKEN_EXPIRES_IN`: password reset token TTL.
 - `EMAIL_VERIFICATION_TOKEN_EXPIRES_IN`: email verification token TTL.
-- `COOKIE_SECRET`: cookie signing/encryption secret.
+- `COOKIE_SECRET`: cookie signing/encryption secret. Also used as server-side key material for MFA secret encryption and OAuth state signing; keep it strong and rotate carefully.
 
 ## Storage
 
@@ -54,17 +56,25 @@ MoMo variables are optional placeholders for the Phase 9 payment adapter foundat
 
 Do not commit real payment credentials. The current API stores idempotent admin-entered payment events only; real checkout and public webhook signature verification remain deferred.
 
+## Realtime And Webhooks [NEW]
+
+No realtime/webhook env is active yet. When `prompts/08g_realtime_webhook_event_platform.md` is implemented, expected future env may include feature flags/system parameters for SSE/webhook enablement, webhook signing secrets or secret encryption keys, inbound provider signature config, and delivery retry limits.
+
+Do not expose public provider webhook URLs until signature verification, replay protection, idempotency, safe logging, and smoke tests pass. See `docs/REALTIME_WEBHOOK_PLAN.md`.
+
 ## Queue and Mail
 
 - `REDIS_URL`: BullMQ/Redis connection.
 - `MEDIA_PROCESSING_CONCURRENCY`: number of BullMQ media jobs a worker handles concurrently. Default: `2`.
 - `MAIL_PROVIDER`: mail provider key. Use `smtp` for Brevo/SendGrid/Mailgun-compatible SMTP delivery.
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`: SMTP settings for password reset and email verification delivery. For Brevo port `587`, use `SMTP_SECURE=false`; keep `SMTP_PASSWORD` only in local `.env` or host secrets.
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_REPLY_TO`: SMTP settings for password reset and email verification delivery. For Brevo port `587`, use `SMTP_SECURE=false`; keep `SMTP_PASSWORD` only in local `.env` or host secrets. Local dev SMTP can omit user/password when using MailHog/Mailpit.
 
 ## OAuth
 
-- `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`: Google OAuth credentials. Client ID enables provider redirect; callback exchange remains disabled until account-linking rules are confirmed.
-- `FACEBOOK_OAUTH_CLIENT_ID`, `FACEBOOK_OAUTH_CLIENT_SECRET`: Facebook OAuth credentials. Client ID enables provider redirect; callback exchange remains disabled until account-linking rules are confirmed.
+- `GOOGLE_OAUTH_ENABLED`: set `true` only when Google client ID/secret and callback URL are configured.
+- `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`: Google OAuth credentials for authorization URL, callback code exchange, and verified-email profile fetch.
+- `FACEBOOK_OAUTH_ENABLED`: set `true` only when Facebook app ID/secret and callback URL are configured.
+- `FACEBOOK_OAUTH_CLIENT_ID`, `FACEBOOK_OAUTH_CLIENT_SECRET`: Facebook OAuth credentials for authorization URL, callback code exchange, and verified-email profile fetch.
 
 ## Bootstrap
 

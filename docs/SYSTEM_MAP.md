@@ -22,13 +22,16 @@ packages/shared Types/constants/utils dùng chung cho api + web
 packages/ui     React UI primitives dùng chung
 packages/config eslint / tsconfig dùng chung
 docs            Tài liệu sản phẩm + kỹ thuật (nguồn sự thật)
+docs/ai         Tài liệu dành cho AI agent/rule nội bộ, gồm Taste Skill frontend integration
 docker          Dockerfile + env mẫu cho runtime/production
 scripts         Helper vận hành (PowerShell)
+RUN_LOCAL_CONTROL.cmd  Nút double-click mở local control panel (API/Web/logs/checks)
 prompts         Prompt gửi cho Codex theo từng phase
+.cursor/rules   Rule cho Cursor/agent, hiện có Taste Skill frontend rule
 .github         CI workflows, PR/issue templates
 AGENTS.md       Role/quy tắc bắt buộc cho agent (đọc đầu tiên)
-VIEC_CAN_LAM.md         Việc người dùng cần làm (do agent ghi sau mỗi prompt)
-Y_TUONG_NANG_CAP.md     Ý tưởng nâng cấp/mở rộng (do agent đề xuất)
+viec-can-lam    Việc người dùng cần làm theo file nhỏ; README là mục lục, task file chia theo mức độ
+y-tuong-nang-cap Ý tưởng nâng cấp/mở rộng theo file nhỏ; README là mục lục theo nhóm ý tưởng
 sieu_prompt_agent_web_anh_cuoi.md  Super prompt gốc định hướng toàn dự án
 ```
 
@@ -49,21 +52,21 @@ Quy tắc: controller KHÔNG chứa business logic, KHÔNG gọi DB trực tiế
 
 Modules hiện có (`apps/api/src/modules/`):
 
-| Module          | Chức năng                                                                                                                                                                                                 | Trạng thái chính                                                                                              |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `auth`          | Đăng ký/đăng nhập/refresh/logout, session, forgot/reset, verify email, CSRF, OAuth (start + returnTo), MFA-ready                                                                                          | OAuth callback exchange & MFA enrollment CHƯA xong                                                            |
-| `users`         | Domain user, MFA types, ORM entity                                                                                                                                                                        | MVP                                                                                                           |
-| `tenants`       | Site/tenant CRUD, membership, public site, visibility                                                                                                                                                     | MVP done                                                                                                      |
-| `albums`        | Album CRUD, cover, visibility, allow-download                                                                                                                                                             | MVP done                                                                                                      |
-| `media`         | Upload, list, reorder, move, delete, serve, processing pipeline (Sharp + BullMQ)                                                                                                                          | Video preview metadata-only; malware scan & signed URL chưa có                                                |
-| `public-albums` | Public home, featured, wishes, reactions, reaction symbols, search metadata                                                                                                                               | Featured curation/wish moderation/search consent chưa hoàn chỉnh                                              |
-| `themes`        | Theme preset, màu, layout, preview/activate/clone/reset                                                                                                                                                   | MVP done                                                                                                      |
-| `admin`         | Stats, quản lý user/tenant/media, audit, settings, feature flag, system parameters                                                                                                                        | MVP; monitoring/role editor/report nâng cao chưa có                                                           |
-| `audit-logs`    | Ghi & đọc audit, redaction metadata nhạy cảm                                                                                                                                                              | Done; export/filter nâng cao chưa có                                                                          |
-| `permissions`   | Role + permission ORM entity                                                                                                                                                                              | MVP                                                                                                           |
-| `settings`      | System setting, feature flag, system parameters service                                                                                                                                                   | MVP                                                                                                           |
-| `storage`       | `StorageService` adapter, local filesystem, S3-compatible/R2 object storage, local storage controller                                                                                                     | R2 adapter có cho API-managed upload; signed URL/direct upload/multipart chưa có                              |
-| `scale`         | Phase 9 SaaS scale foundation: B2C/B2B plan catalog, add-ons, entitlements, user handles, tenant quota summaries, analytics events, payment-event idempotency, custom-domain/studio/greeting placeholders | Foundation done; real MoMo checkout/webhook, direct upload sessions, canonical public handle routes chưa xong |
+| Module          | Chức năng                                                                                                                                                                                                              | Trạng thái chính                                                                                              |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `auth`          | Đăng ký/đăng nhập/refresh/logout, persistent refresh session, forgot/reset/verify/resend email qua SMTP, CSRF, MFA/TOTP enrollment/challenge/disable, Google/Facebook OAuth callback exchange + account linking/unlink | Prompt 08A done; recovery/backup code và OAuth provider sandbox QA còn cần môi trường thật                    |
+| `users`         | Domain user, MFA types, ORM entity                                                                                                                                                                                     | MVP                                                                                                           |
+| `tenants`       | Site/tenant CRUD, membership, public site, visibility                                                                                                                                                                  | MVP done                                                                                                      |
+| `albums`        | Album CRUD, cover, visibility, allow-download                                                                                                                                                                          | MVP done                                                                                                      |
+| `media`         | Upload, list, reorder, move, delete, serve, processing pipeline (Sharp + BullMQ)                                                                                                                                       | Video preview metadata-only; malware scan & signed URL chưa có                                                |
+| `public-albums` | Public home, featured, wishes, reactions, reaction symbols, search metadata                                                                                                                                            | Featured curation/wish moderation/search consent chưa hoàn chỉnh                                              |
+| `themes`        | Theme preset, màu, layout, preview/activate/clone/reset                                                                                                                                                                | MVP done                                                                                                      |
+| `admin`         | Stats, quản lý user/tenant/media, audit, settings, feature flag, system parameters                                                                                                                                     | MVP; monitoring/role editor/report nâng cao chưa có                                                           |
+| `audit-logs`    | Ghi & đọc audit, redaction metadata nhạy cảm                                                                                                                                                                           | Done; export/filter nâng cao chưa có                                                                          |
+| `permissions`   | Role + permission ORM entity                                                                                                                                                                                           | MVP                                                                                                           |
+| `settings`      | System setting, feature flag, system parameters service                                                                                                                                                                | MVP                                                                                                           |
+| `storage`       | `StorageService` adapter, local filesystem, S3-compatible/R2 object storage, local storage controller                                                                                                                  | R2 adapter có cho API-managed upload; signed URL/direct upload/multipart chưa có                              |
+| `scale`         | Phase 9 SaaS scale foundation: B2C/B2B plan catalog, add-ons, entitlements, user handles, tenant quota summaries, analytics events, payment-event idempotency, custom-domain/studio/greeting placeholders              | Foundation done; real MoMo checkout/webhook, direct upload sessions, canonical public handle routes chưa xong |
 
 Hạ tầng chung (`apps/api/src/`):
 
@@ -91,19 +94,27 @@ app/(public)/                Trang chủ public + site công khai
   (public)/[siteSlug]/       Public wedding site theo slug
   (public)/albums/[albumId]/ Public album detail + social panel
 app/(auth)/                  login, register, forgot-password, reset-password, verify-email
+app/(auth)/layout.tsx        noindex metadata cho auth/reset/verify routes
 app/(dashboard)/dashboard/   Owner: albums, media, themes, settings
+app/(dashboard)/layout.tsx   noindex metadata cho private dashboard routes
 app/(admin)/admin/           Admin: users, tenants, media, audit-logs, settings
+app/(admin)/layout.tsx       noindex metadata cho admin routes
 app/(admin)/admin/scale      Admin Scale: plans/add-ons/feature gates/entitlement unlock foundation
 app/layout.tsx, globals.css  Layout gốc + style
+app/robots.ts                Robots policy: allow public pages, disallow API/auth/dashboard/admin/payment/realtime/webhook/storage paths
+app/sitemap.ts               Sitemap metadata route: root + public/indexable featured album URLs only
 middleware.ts                Bảo vệ route dashboard/admin
 components/                  app-shell, page-header, metric-card (UI dùng lại nội bộ web)
 features/<domain>/           Logic + API client + component theo domain
   auth/, media/, themes/, tenants/, admin/, public-albums/
+  auth/account-security-panel.tsx  MFA + OAuth linked account UI trong dashboard settings
+  auth/public-home-auth-nav.tsx    Silent session restore/signed-in nav trên public home
   scale/                      Phase 9 admin scale API client + dashboard
   *-api.ts                   Gọi API backend
   *.tsx                      Component feature
 lib/api-client.ts            Fetch wrapper + CSRF
 lib/i18n/locales.ts          Từ điển i18n (vi, en, ja) — KHÔNG hard-code text UI
+lib/seo.ts                   Helper URL canonical/API/media dùng cho metadata, robots, sitemap
 lib/navigation.ts            Route constants
 stores/, hooks/, types/      State, hooks, type FE
 ```
@@ -129,34 +140,36 @@ Khi thêm type/constant dùng cho cả api + web: đặt ở `packages/shared/sr
 
 ## 6. Docs Index (`docs/`)
 
-| File                          | Dùng để                                                                                                                          | Cập nhật khi                                                     |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `PRODUCT_PLAN.md`             | Business model, gói B2C/B2B, add-on, design gate                                                                                 | Thêm/sửa feature liên quan business/UX                           |
-| `PROJECT_OVERVIEW.md`         | Tóm tắt sản phẩm, user, định hướng                                                                                               | Đổi định hướng sản phẩm                                          |
-| `ARCHITECTURE.md`             | Kiến trúc tổng thể, boundary                                                                                                     | Đổi kiến trúc/integration                                        |
-| `CLEAN_ARCHITECTURE_RULES.md` | Quy tắc tầng backend                                                                                                             | Đổi quy ước tầng                                                 |
-| `DATABASE_DESIGN.md`          | Schema, bảng, migration                                                                                                          | Thêm/sửa bảng/migration                                          |
-| `API_DESIGN.md`               | Hợp đồng REST `/api/v1`                                                                                                          | Thêm/sửa endpoint                                                |
-| `AUTH_SECURITY.md`            | Auth/security model                                                                                                              | Đổi auth/security                                                |
-| `ROLE_PERMISSION.md`          | RBAC, role, permission                                                                                                           | Thêm/sửa role/permission                                         |
-| `STORAGE_STRATEGY.md`         | Storage local/R2/CDN/signed URL                                                                                                  | Đổi storage/media delivery                                       |
-| `SEO_GEO_GUIDELINES.md`       | Quy tắc SEO + Generative Engine Optimization, robots, sitemap, canonical, structured data, AI crawler policy, privacy index gate | Đổi public route/content/metadata/custom domain/discovery/prompt |
-| `UI_UX_DESIGN.md`             | Hướng dẫn UI/UX + design gate                                                                                                    | Thêm/sửa UI                                                      |
-| `TESTING_STRATEGY.md`         | Chiến lược test                                                                                                                  | Thêm loại test                                                   |
-| `ENVIRONMENT_VARIABLES.md`    | Biến môi trường                                                                                                                  | Thêm/sửa env                                                     |
-| `DEPLOYMENT.md`               | Deploy Vercel/Render/Neon + VPS                                                                                                  | Đổi deploy                                                       |
-| `ROADMAP.md`                  | Trạng thái phase (done/planned)                                                                                                  | Sau mỗi phase                                                    |
-| `CHANGELOG.md`                | Lịch sử thay đổi                                                                                                                 | Mỗi thay đổi                                                     |
-| `DEVELOPMENT_LOG.md`          | Nhật ký chi tiết (đã làm/thiếu/file/risk)                                                                                        | Mỗi phase                                                        |
-| `HUONG_DAN_SU_DUNG.md`        | Hướng dẫn dùng (tiếng Việt)                                                                                                      | Đổi hành vi người dùng                                           |
-| `TROUBLESHOOTING.md`          | Lỗi thường gặp                                                                                                                   | Phát hiện lỗi/cách xử lý                                         |
-| `GITHUB_FLOW.md`              | Quy trình Git/PR                                                                                                                 | Đổi quy trình                                                    |
-| `guides/`                     | Hướng dẫn vận hành (CI/CD, free hosting, di dời host)                                                                            | Đổi vận hành                                                     |
+| File                            | Dùng để                                                                                                                          | Cập nhật khi                                                       |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `PRODUCT_PLAN.md`               | Business model, gói B2C/B2B, add-on, design gate                                                                                 | Thêm/sửa feature liên quan business/UX                             |
+| `PROJECT_OVERVIEW.md`           | Tóm tắt sản phẩm, user, định hướng                                                                                               | Đổi định hướng sản phẩm                                            |
+| `ai/taste-skill-integration.md` | Rule tích hợp Taste Skill cho frontend/design agents: khi áp dụng, khi không áp dụng, checklist trước/sau UI work                | Đổi workflow frontend/design/prompt/agent rule                     |
+| `ARCHITECTURE.md`               | Kiến trúc tổng thể, boundary                                                                                                     | Đổi kiến trúc/integration                                          |
+| `CLEAN_ARCHITECTURE_RULES.md`   | Quy tắc tầng backend                                                                                                             | Đổi quy ước tầng                                                   |
+| `DATABASE_DESIGN.md`            | Schema, bảng, migration                                                                                                          | Thêm/sửa bảng/migration                                            |
+| `API_DESIGN.md`                 | Hợp đồng REST `/api/v1`                                                                                                          | Thêm/sửa endpoint                                                  |
+| `AUTH_SECURITY.md`              | Auth/security model                                                                                                              | Đổi auth/security                                                  |
+| `ROLE_PERMISSION.md`            | RBAC, role, permission                                                                                                           | Thêm/sửa role/permission                                           |
+| `STORAGE_STRATEGY.md`           | Storage local/R2/CDN/signed URL                                                                                                  | Đổi storage/media delivery                                         |
+| `SEO_GEO_GUIDELINES.md`         | Quy tắc SEO + Generative Engine Optimization, robots, sitemap, canonical, structured data, AI crawler policy, privacy index gate | Đổi public route/content/metadata/custom domain/discovery/prompt   |
+| `REALTIME_WEBHOOK_PLAN.md`      | Event backbone, webhook inbound/outbound, SSE/WebSocket direction, event payload privacy, retry/idempotency                      | Thêm/sửa realtime, webhook, event outbox, notification/integration |
+| `UI_UX_DESIGN.md`               | Hướng dẫn UI/UX + design gate                                                                                                    | Thêm/sửa UI                                                        |
+| `TESTING_STRATEGY.md`           | Chiến lược test                                                                                                                  | Thêm loại test                                                     |
+| `ENVIRONMENT_VARIABLES.md`      | Biến môi trường                                                                                                                  | Thêm/sửa env                                                       |
+| `DEPLOYMENT.md`                 | Deploy Vercel/Render/Neon + VPS                                                                                                  | Đổi deploy                                                         |
+| `ROADMAP.md`                    | Trạng thái phase (done/planned)                                                                                                  | Sau mỗi phase                                                      |
+| `CHANGELOG.md`                  | Lịch sử thay đổi                                                                                                                 | Mỗi thay đổi                                                       |
+| `DEVELOPMENT_LOG.md`            | Nhật ký chi tiết (đã làm/thiếu/file/risk)                                                                                        | Mỗi phase                                                          |
+| `HUONG_DAN_SU_DUNG.md`          | Hướng dẫn dùng (tiếng Việt)                                                                                                      | Đổi hành vi người dùng                                             |
+| `TROUBLESHOOTING.md`            | Lỗi thường gặp                                                                                                                   | Phát hiện lỗi/cách xử lý                                           |
+| `GITHUB_FLOW.md`                | Quy trình Git/PR                                                                                                                 | Đổi quy trình                                                      |
+| `guides/`                       | Hướng dẫn vận hành (CI/CD, free hosting, di dời host)                                                                            | Đổi vận hành                                                       |
 
 ## 7. Prompts (`prompts/`)
 
 - `README.md`: thứ tự chạy + nguyên tắc chung + workflow bàn giao.
-- `08a..08e`: các slice hoàn thiện (auth/email/MFA/OAuth; public discovery/moderation/audit; i18n/a11y/UI QA; media security/delivery; admin ops/monitoring/reports).
+- `08a..08g`: các slice hoàn thiện (auth/email/MFA/OAuth; public discovery/moderation/audit; i18n/a11y/UI QA; media security/delivery; admin ops/monitoring/reports; public wedding site visual redesign; realtime webhook/event platform).
 - `08_phase_9_scale_features.md`: payment/plan/B2B/R2/theme automation/greeting.
 - `09_final_release_qa.md`: QA cuối + cleanup.
 - `10_phase_10_cicd_docker_vps.md`: CI/CD Docker VPS (tùy chọn).
@@ -168,6 +181,7 @@ Khi thêm type/constant dùng cho cả api + web: đặt ở `packages/shared/sr
 - Bảng DB mới → ORM entity ở `infrastructure/<entity>.orm-entity.ts` + migration mới ở `database/migrations/`; cập nhật `docs/DATABASE_DESIGN.md`.
 - Type/constant dùng chung api+web → `packages/shared/src` + export `index.ts`.
 - Trang web mới → route group đúng `(public|auth|dashboard|admin)` trong `apps/web/src/app`, logic ở `features/<domain>`, text qua `lib/i18n/locales.ts`.
+- Frontend/UI/layout/redesign → đọc `docs/ai/taste-skill-integration.md` + `docs/UI_UX_DESIGN.md`, audit màn hình hiện tại, giữ nguyên API/props/state/permission/route nếu task chỉ yêu cầu UI.
 - Permission/role mới → `packages/shared/src/permissions.ts|roles.ts` + seed `database/seeds/seed-roles-permissions.ts` + `docs/ROLE_PERMISSION.md`.
 - Env mới → `apps/api/src/config/env.validation.ts` + `.env.example` + `docs/ENVIRONMENT_VARIABLES.md`.
 - Provider ngoài (mail/storage/scanner/oauth) → adapter sau interface trong `infrastructure/`, không leak secret, có flag bật/tắt.

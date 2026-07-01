@@ -1,4 +1,4 @@
-# Hướng Dẫn Sử Dụng App The Wedding
+﻿# Hướng Dẫn Sử Dụng App The Wedding
 
 ## Phase 7A: Public Home, Album Noi Bat, Loi Chuc Va Reaction
 
@@ -9,12 +9,12 @@ Checklist kiem thu nhanh:
 1. Mo `http://localhost:3000`.
 2. Kiem tra hai khu vuc `Featured today` va `Featured this week`.
 3. Chi album co visibility `public` duoc hien trong hai khu vuc nay.
-4. Album `unlisted` khong hien o home/search, nhung co the xem bang link truc tiep `/albums/{albumId}`.
+4. Album `unlisted` khong hien o home/search, nhung co the xem bang link truc tiep `/albums/{albumSlug}`.
 5. Album `private` khong xem duoc tren public detail.
-6. Mo mot album public, bam reaction hoac gui wish khi chua dang nhap. App phai dua ve `/login` va sau dang nhap quay lai dung `/albums/{albumId}?intent=...`.
+6. Mo mot album public, bam reaction hoac gui wish khi chua dang nhap. App phai dua ve `/login` va sau dang nhap quay lai dung `/albums/{albumSlug}?intent=...`.
 7. Sau khi dang nhap, moi user chi gui duoc mot wish active cho moi album.
 8. Reaction chi chap nhan symbol key da cau hinh cho album hoac default safe symbols.
-9. OAuth Google/Facebook hien moi bat dau redirect an toan neu co client ID; callback exchange/link account con can xac nhan product rule.
+9. OAuth Google/Facebook co the dang nhap that neu da bat env provider va co client secret/callback URL hop le. Existing email/password account khong bi merge ngam; hay dang nhap roi link provider trong Settings.
 10. Search album sau dang nhap goi API `/api/v1/albums/search` va khong tra album private/unlisted.
 
 Tài liệu này dành cho người kiểm thử và người dùng nội bộ khi chạy app ở môi trường local. Mỗi khi hoàn thành một chức năng mới, hãy cập nhật file này để phản ánh đúng UI/API hiện tại.
@@ -31,9 +31,36 @@ Tài liệu này dành cho người kiểm thử và người dùng nội bộ k
 - Cài đặt wedding site: `http://localhost:3000/dashboard/settings`
 - Admin: `http://localhost:3000/admin`
 - Public site: `http://localhost:3000/{siteSlug}`
-- Public album direct link: `http://localhost:3000/albums/{albumId}`
+- Public album direct link: `http://localhost:3000/albums/{albumSlug}`
 - Production dashboard media: `https://thewedding.d-ajt.app/dashboard/media`
-- Production public album direct link: `https://thewedding.d-ajt.app/albums/{albumId}`
+- Production public album direct link: `https://thewedding.d-ajt.app/albums/{albumSlug}`
+
+## Chạy Local Bằng Control Panel
+
+Có thể mở bảng điều khiển local bằng một trong hai cách:
+
+1. Double-click `RUN_LOCAL_CONTROL.cmd` ở thư mục gốc repo.
+2. Hoặc chạy command:
+
+```powershell
+pnpm local:control
+```
+
+Menu hỗ trợ:
+
+1. Start/stop API local.
+2. Start/stop Web local; khi chọn Web, app tự clear cache `.next` và mở `http://localhost:3000` bằng trình duyệt mặc định.
+3. Start cả API + Web.
+4. Xem trạng thái process đang chạy.
+5. Xem log gần nhất hoặc follow live log.
+6. Lọc nhanh dòng lỗi/cảnh báo trong log.
+7. Health check `http://localhost:3000` và `http://localhost:4000/api/v1`.
+8. Mở nhanh các URL local thường dùng.
+9. Chạy `format:check`, `lint`, `typecheck`, `test`, `build`.
+10. Clear Web `.next` cache bằng mục `18` nếu Next dev báo thiếu chunk/module.
+11. Chạy API migration bằng mục `19` nếu API báo thiếu cột/bảng mới.
+
+Log và state runtime nằm trong `.local-control/` và không được commit vào git.
 
 ## Tài Khoản Local Để Kiểm Thử
 
@@ -52,7 +79,54 @@ Nếu reset database local, hãy chạy lại seed để tạo super admin. Vớ
 2. Đăng nhập bằng tài khoản user thường hoặc admin ở bảng trên.
 3. Sau khi đăng nhập, dashboard sẽ hiển thị trạng thái tài khoản.
 4. Có thể đăng xuất từ khu vực auth status trong dashboard.
-5. Nếu quên mật khẩu ở local, dùng màn Forgot Password. Vì SMTP chưa wired, API có thể trả dev reset token để mở link reset.
+5. Nếu quên mật khẩu ở local, dùng màn Forgot Password. Khi SMTP/MailHog/Mailpit/Brevo được cấu hình, email reset sẽ được gửi thật; môi trường local có thể hiện dev reset token để QA nhanh, production thì không.
+6. Đóng/mở browser hoặc hard refresh vẫn giữ đăng nhập nếu refresh cookie còn hạn và chưa bị revoke; access token vẫn ngắn hạn và app tự refresh khi cần.
+
+## MFA, OAuth Và Bảo Mật Tài Khoản
+
+1. Đăng nhập rồi mở `http://localhost:3000/dashboard/settings`.
+2. Khu `Bảo mật tài khoản` hiển thị trạng thái MFA và Google/Facebook đã liên kết.
+3. Để bật MFA:
+   - bấm `Bật MFA`;
+   - copy secret hoặc mở URI trong app authenticator;
+   - nhập mã 6 chữ số;
+   - bấm xác minh. Lần đăng nhập sau app sẽ yêu cầu OTP trước khi cấp session đầy đủ.
+4. Để tắt MFA, nhập mã OTP hiện tại rồi bấm `Tắt MFA`.
+5. Để dùng OAuth:
+   - cấu hình `GOOGLE_OAUTH_ENABLED=true` hoặc `FACEBOOK_OAUTH_ENABLED=true` cùng client ID/secret ở API env;
+   - đăng ký callback URL trong dashboard provider: `${API_URL}/api/v1/auth/oauth/google/callback` hoặc `${API_URL}/api/v1/auth/oauth/facebook/callback`;
+   - mở `/login`, nút provider chỉ hiện khi provider được bật;
+   - nếu email provider đã verify và chưa có user, app tạo user mới đã verify;
+   - nếu email đã tồn tại, app yêu cầu đăng nhập bằng password rồi link provider trong Settings.
+6. Không thể unlink provider cuối cùng nếu tài khoản không có password hoặc phương thức đăng nhập thay thế.
+7. Nếu `disableLogin` đang bật trong admin system parameters, password/OAuth login đều bị chặn; public home vẫn có thể xem theo policy public gallery.
+
+## Chuyển Ngôn Ngữ Dashboard
+
+1. Đăng nhập và mở bất kỳ trang dashboard/admin nào có sidebar, ví dụ `http://localhost:3000/dashboard/themes`.
+2. Ở sidebar bên trái, dưới nhóm menu chính, chọn dropdown `Ngôn ngữ`.
+3. Chọn `Tiếng Việt`, `English`, hoặc `日本語`.
+4. App lưu lựa chọn trên trình duyệt hiện tại, các nhãn sidebar và màn `/dashboard/themes` đổi theo ngôn ngữ đã chọn.
+5. Nếu không thấy dropdown, kiểm tra lại build mới nhất và refresh trình duyệt. Ở màn nhỏ hơn breakpoint `lg`, sidebar hiện vẫn được ẩn theo shell hiện tại nên cần kiểm tra bằng desktop/tablet rộng hoặc bổ sung mobile drawer ở prompt sau.
+
+## Kiểm Tra SEO/GEO Public Trước Release
+
+Các bước này dành cho QA trước khi public launch hoặc sau mỗi lần đổi public route/metadata:
+
+1. Đảm bảo web host đã set `NEXT_PUBLIC_APP_URL` đúng domain public, ví dụ `https://thewedding.d-ajt.app`.
+2. Mở `https://thewedding.d-ajt.app/robots.txt`.
+3. Xác nhận robots cho phép `/` nhưng chặn `/api/`, `/admin`, `/dashboard`, auth routes, payment, realtime, webhook, storage/raw media paths.
+4. Mở `https://thewedding.d-ajt.app/sitemap.xml`.
+5. Xác nhận sitemap chỉ có public home và album public/indexable; không có album `private`, `unlisted`, dashboard, admin, auth, callback, API hoặc signed/raw media URL.
+6. Mở public home và một album public, xem source hoặc DevTools Elements để kiểm tra canonical/Open Graph/JSON-LD khớp nội dung nhìn thấy.
+7. Mở album `unlisted` bằng direct link nếu có. Album vẫn xem được bằng link nhưng không được nằm trong sitemap và metadata phải theo policy noindex khi route không public-indexable.
+8. Kiểm tra title/description không chứa dữ liệu private, EXIF/location, token, storage key hoặc thông tin chưa được owner cho phép public.
+
+Ghi chú i18n/l10n:
+
+- Locale hiện hỗ trợ `vi`, `en`, `ja` trong dictionary `apps/web/src/lib/i18n/locales.ts`.
+- Public home/card/social copy mới có key đủ ba ngôn ngữ; một số màn cũ trong dashboard/auth/tenant/media vẫn còn cần audit i18n toàn app trước public launch.
+- Nếu key thiếu, app fallback sang English rồi raw key để dễ phát hiện trong QA, không fallback thành chuỗi rỗng.
 
 ## Tạo Và Quản Lý Wedding Site
 
@@ -81,7 +155,7 @@ Nếu reset database local, hãy chạy lại seed để tạo super admin. Vớ
    - sắp xếp bằng Up/Down;
    - xóa album.
 6. Cover album được chọn từ màn Media sau khi upload ảnh.
-7. Để xem album bằng link trực tiếp, mở `http://localhost:3000/albums/{albumId}` hoặc production `https://thewedding.d-ajt.app/albums/{albumId}`. Album `public` và `unlisted` xem được bằng link, album `private` sẽ không hiện ở public detail.
+7. Để xem album bằng link trực tiếp, mở `http://localhost:3000/albums/{albumSlug}` hoặc production `https://thewedding.d-ajt.app/albums/{albumSlug}`. Link UUID cũ `/albums/{albumId}` vẫn được hỗ trợ và sẽ chuyển về slug khi album có slug. Album `public` và `unlisted` xem được bằng link, album `private` sẽ không hiện ở public detail.
 
 ## Upload Và Quản Lý Media
 
@@ -256,8 +330,8 @@ Nhung thay doi Phase 8 chu yeu nam o backend, nhung nguoi kiem thu can biet cac 
 4. Phase 9 da dung policy theo goi dich vu/entitlement cho API-managed upload. `TENANT_STORAGE_QUOTA_BYTES` chi con la bien fallback/lich su cho cac tai lieu Phase 8, khong phai cach mo khoa quota chinh.
 5. Neu upload bao "File extension does not match MIME type", hay export/doi file dung dinh dang that truoc khi thu lai.
 6. Neu upload bao "Tenant storage quota exceeded", hay xoa bot media hoac vao `/admin/scale` cap storage entitlement cho tenant/user; khong chi tang env quota.
-7. MFA hien moi co nen schema/model de trien khai TOTP sau nay; chua co man enrollment hoac buoc nhap OTP khi dang nhap.
-8. Audit log tu redaction cac truong nhay cam nhu password, token, cookie, OTP/MFA, OAuth code, provider secret va header nhay cam.
+7. MFA/TOTP đã có enrollment trong `/dashboard/settings` và bước OTP khi login; mã OTP/secret không được log.
+8. Audit log tự redaction các trường nhạy cảm như password, token, cookie, OTP/MFA, OAuth code, provider secret và header nhạy cảm.
 
 Checklist backup/restore truoc release:
 
@@ -268,7 +342,7 @@ Checklist backup/restore truoc release:
 
 ## Phase 9: Goi Dich Vu, Entitlement, Handle Va Scale Foundation
 
-Phase 9 hien moi mo nen tang an toan cho goi dich vu va tinh nang scale. R2 adapter da co cho API-managed upload, nhung thanh toan that, direct upload, multipart upload, migration tool va CDN toi uu van chua hoan tat.
+Phase 9 chot huong release voi nen tang an toan va cac tinh nang chua xong duoc gate/placeholder. R2 adapter da duoc tich hop vao phan mem cho API-managed upload, nhung can cau hinh Cloudflare bucket/access key, env tren host, redeploy va smoke test truoc khi coi production upload on dinh. Thanh toan MoMo that, direct upload, multipart upload, migration tool va CDN toi uu van chua hoan tat.
 
 ### Admin xem catalog goi va unlock thu cong
 
@@ -307,6 +381,6 @@ Route public moi va redirect tu route cu chua duoc expose tren UI; tiep tuc dung
 ### MoMo va Cloudflare R2
 
 - MoMo hien chi co env optional va bang `payment_events` idempotent cho admin placeholder. Chua co checkout that, webhook public, hoac verify chu ky MoMo.
-- Cloudflare R2 da co adapter cho API-managed upload. Can tao bucket/access key tren Cloudflare, cau hinh Render env, redeploy va smoke test truoc khi coi production upload on dinh.
+- Cloudflare R2 da duoc tich hop adapter cho API-managed upload. Can tao bucket/access key tren Cloudflare, cau hinh Render env, redeploy va smoke test truoc khi coi production upload on dinh.
 - Signed upload session, multipart upload, local-to-R2 migration va CDN-first delivery van la viec sau.
 - Nguoi dung can merchant credentials MoMo va tai khoan Cloudflare/R2 that truoc khi bat cac tinh nang production nay.

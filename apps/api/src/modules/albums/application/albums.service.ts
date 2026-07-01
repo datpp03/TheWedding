@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import {
   BadRequestException,
   ForbiddenException,
@@ -46,11 +47,14 @@ export class AlbumsService {
   async create(tenantId: string, input: CreateAlbumDto, context: AlbumContext) {
     this.assertTenantAccess(tenantId, context);
     const count = await this.albums.count({ where: { tenantId } });
+    const id = randomUUID();
     const album = await this.albums.save(
       this.albums.create({
         allowDownload: Boolean(input.allowDownload),
         description: cleanNullable(input.description) ?? null,
+        id,
         layoutType: 'grid',
+        slug: await this.createUniqueSlug(tenantId, input.title, id),
         sortOrder: count,
         tenantId,
         title: input.title.trim(),
@@ -131,6 +135,17 @@ export class AlbumsService {
     return album;
   }
 
+  private async createUniqueSlug(tenantId: string, title: string, albumId: string) {
+    const base = slugify(title);
+    const shortId = albumId.slice(0, 8);
+    const preferred = `${base}-${shortId}`;
+    const existing = await this.albums.findOne({
+      where: { slug: preferred, tenantId },
+      withDeleted: true,
+    });
+    return existing ? `${base}-${shortId}-${Date.now().toString(36)}` : preferred;
+  }
+
   private async toAlbumDto(album: AlbumOrmEntity) {
     const mediaCount = await this.media.count({
       where: { albumId: album.id, tenantId: album.tenantId },
@@ -176,4 +191,16 @@ function cleanNullable(value: string | null | undefined) {
   if (value === undefined) return undefined;
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
+}
+
+function slugify(value: string) {
+  const slug = value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 180);
+  return slug || 'album';
 }

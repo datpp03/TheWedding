@@ -3,6 +3,7 @@ import { decodeOAuthState, encodeOAuthState, validateReturnTo } from './oauth-re
 
 describe('OAuth returnTo validation', () => {
   const appUrl = 'https://thewedding.d-ajt.app';
+  const secret = 'test-oauth-state-secret-with-enough-length';
 
   it('allows relative same-origin paths', () => {
     expect(validateReturnTo('/albums/album-1?intent=wish', appUrl)).toBe(
@@ -24,11 +25,38 @@ describe('OAuth returnTo validation', () => {
   });
 
   it('round-trips safe OAuth state', () => {
-    const state = encodeOAuthState({ provider: 'google', returnTo: '/albums/album-1' });
+    const state = encodeOAuthState({ provider: 'google', returnTo: '/albums/album-1' }, secret);
 
-    expect(decodeOAuthState(state, appUrl)).toEqual({
-      provider: 'google',
-      returnTo: '/albums/album-1',
-    });
+    expect(decodeOAuthState(state, appUrl, secret)).toEqual(
+      expect.objectContaining({
+        mode: 'login',
+        provider: 'google',
+        returnTo: '/albums/album-1',
+      }),
+    );
+  });
+
+  it('rejects tampered OAuth state', () => {
+    const state = encodeOAuthState({ provider: 'google', returnTo: '/albums/album-1' }, secret);
+    const [payload] = state.split('.');
+    const tampered = `${payload}.bad-signature`;
+
+    expect(() => decodeOAuthState(tampered, appUrl, secret)).toThrow(BadRequestException);
+  });
+
+  it('round-trips account linking state', () => {
+    const state = encodeOAuthState(
+      { mode: 'link', provider: 'facebook', returnTo: '/dashboard/settings', userId: 'user-1' },
+      secret,
+    );
+
+    expect(decodeOAuthState(state, appUrl, secret)).toEqual(
+      expect.objectContaining({
+        mode: 'link',
+        provider: 'facebook',
+        returnTo: '/dashboard/settings',
+        userId: 'user-1',
+      }),
+    );
   });
 });

@@ -1,5 +1,275 @@
 # Development Log
 
+## 2026-07-02 - Prompt 09 Final Release QA
+
+### Completed
+
+- Ran final automated release verification locally: format, lint, typecheck, tests, and build all passed.
+- Added `apps/web/src/app/robots.ts` and `apps/web/src/app/sitemap.ts` so the web app exposes an explicit SEO/GEO crawler policy and a privacy-filtered sitemap surface.
+- Added `apps/web/src/lib/seo.ts` for canonical app/API/media URL generation and wired `NEXT_PUBLIC_APP_URL` into README/env/deployment docs.
+- Added canonical/Open Graph/noindex metadata for public home, public site, and public album routes. Public album JSON-LD is emitted only for `public` albums; unavailable/password/non-public fallbacks are noindex.
+- Moved newly touched public home/card/social-panel copy into i18n keys with `vi`, `en`, and `ja` coverage.
+- Smoke-tested the built Next app on `http://localhost:3100`: `/` returned `200`, `/robots.txt` rendered the private-route disallow policy, and `/sitemap.xml` returned only the public root while the API was not running.
+
+### UI/UX Signoff
+
+- Surface: public discovery/site/album release hardening.
+- Emotion: warm, guest-facing, and privacy-trustworthy without redesigning the current visual structure.
+- First-look hierarchy: public discovery and album title/media stay primary; SEO metadata changes are invisible and do not change interaction flow.
+- Accent/state plan: existing rose/teal/amber accents remain; no white/gray-only new surface was introduced.
+- Responsive/i18n risk: new public copy uses wrapping text and `vi`, `en`, `ja` keys; full screenshot matrix remains a manual QA task.
+
+### Tests and Checks
+
+- `pnpm.cmd typecheck`: pass.
+- `pnpm.cmd lint`: pass.
+- `pnpm.cmd test`: pass, 15 API suites / 79 tests and 2 web suites / 6 tests.
+- `pnpm.cmd format:check`: pass.
+- `pnpm.cmd build`: pass with the existing non-fatal Next standalone symlink-name warning on Windows.
+- Web smoke via `pnpm.cmd --dir apps/web exec next start --port 3100`: `/` 200, `/robots.txt` content verified, `/sitemap.xml` content verified.
+
+### Remaining / Needs Real Environment
+
+- Docker is not available in this Codex environment, so clean local PostgreSQL migration run was not performed.
+- API/Web end-to-end smoke with a real database, authenticated browser flows, responsive screenshots, production OAuth/SMTP/R2 checks, and payment/realtime/provider checks remain in `viec-can-lam/`.
+- App-wide i18n audit is not complete; this pass localized newly touched public release surfaces and documented the remaining audit.
+
+## 2026-07-02 - R2 Key Rotation Follow-Up
+
+### Completed
+
+- Cập nhật task R2 khẩn cấp theo xác nhận của người dùng: access key mới đã được tạo và backend đã redeploy.
+- Sau xác nhận bổ sung của người dùng, đánh dấu smoke test upload R2 pass, kiểm tra không lộ secret mới, và chuyển task sang `viec-can-lam/99_da_xu_ly/004_rotate-r2-access-key-done.md`.
+
+### Tests and Checks
+
+- Documentation/task-only change; no code verification commands were run.
+
+## 2026-07-02 - Phase 9 Release Scope Decision
+
+### Completed
+
+- Chốt hướng B cho Final Release QA: release với Phase 9 ở trạng thái foundation an toàn, còn các phần chưa production-ready giữ gated/placeholder/follow-up.
+- Cập nhật `docs/ROADMAP.md`, `docs/PRODUCT_PLAN.md`, `docs/HUONG_DAN_SU_DUNG.md`, `docs/CHANGELOG.md`, `prompts/09_final_release_qa.md`, `prompts/README.md`, và task `viec-can-lam/00_khan_cap/001_phase-9-release-scope.md`.
+- Ghi rõ Cloudflare R2 đã được tích hợp cho API-managed upload qua `StorageService`; production vẫn cần bucket/access key/env/redeploy/smoke test trước khi dựa vào R2.
+
+### Tests and Checks
+
+- Documentation-only change; no code verification commands were run.
+
+## 2026-07-02 - Taste Skill Frontend Design Integration
+
+### Completed
+
+- Added `docs/ai/taste-skill-integration.md` as the local Taste Skill guidance layer for frontend/design agents.
+- Added `.cursor/rules/taste-skill-frontend.mdc` so Cursor-style agents can discover the rule during UI, layout, component, dashboard, admin, public page, redesign, accessibility, and responsive QA work.
+- Updated AGENTS, README, system map, product plan, UI/UX design rules, roadmap, project overview, changelog, and prompt workflow references so future prompts read the rule before frontend implementation.
+
+### Tests and Checks
+
+- `pnpm.cmd format:check`: pass.
+- `pnpm.cmd exec prettier --check .cursor/rules/taste-skill-frontend.mdc --parser markdown`: pass.
+- `git diff --check`: pass.
+
+## 2026-07-02 - Split Upgrade Ideas Into Files And Remove Root Handoff Files
+
+### Completed
+
+- Added `y-tuong-nang-cap/` with grouped idea files for guest interaction, media experience, product/revenue, and operations/quality.
+- Added `y-tuong-nang-cap/_TEMPLATE.md` and `y-tuong-nang-cap/README.md` so future prompts create one file per idea and keep only an index in the README.
+- Promoted `viec-can-lam/README.md` to the canonical task index.
+- Removed root handoff files after updating AGENTS, prompt workflow, docs, and system map to point at the structured folders.
+
+### Tests and Checks
+
+- Verified all `viec-can-lam/README.md` and `y-tuong-nang-cap/README.md` links point to existing files.
+- `pnpm.cmd format:check`: pass.
+- `git diff --check`: pass.
+
+## 2026-07-01 - Split Việc Cần Làm Into Task Files
+
+### Completed
+
+- Added `viec-can-lam/` with priority folders for urgent work, priority work, deferred work, product decisions, and completed references.
+- Split the existing handoff runbooks into focused task files with goals, prerequisites, steps, verification, related docs, and prompt notes.
+- Converted `viec-can-lam/README.md` into a short index that links to task files and keeps status visible without duplicating long instructions.
+- Updated `AGENTS.md`, `prompts/README.md`, active prompt handoff sections, and `docs/SYSTEM_MAP.md` so future prompts create/update task files in `viec-can-lam/`.
+
+### Tests and Checks
+
+- Verified all `viec-can-lam/README.md` task links point to existing files.
+- `pnpm.cmd format:check`: pass.
+- `git diff --check`: pass.
+
+## 2026-07-01 - Prompt 08A Auth Email, MFA, And OAuth Completion
+
+### Completed
+
+- Implemented persistent session restoration without making access tokens long-lived: auth cookies now read TTL from `ACCESS_TOKEN_EXPIRES_IN` and `REFRESH_TOKEN_EXPIRES_IN`, middleware allows protected routes through when a refresh cookie exists, and the web API client silently refreshes once after `401`.
+- Completed SMTP auth email behavior with `SMTP_REPLY_TO`, unauthenticated local SMTP relay support, and production-safe reset/verification token hiding.
+- Added TOTP MFA enrollment, verification, login challenge, challenge completion, and disable flow using encrypted `users.mfaSecretEncrypted`; full session cookies are not issued before valid OTP.
+- Completed Google/Facebook OAuth callback exchange through provider adapters, signed OAuth state, verified-email-only profile acceptance, safe new user creation, no-silent-merge guard for existing password accounts, account linking from settings, unlink guard, and return-to-album redirect preservation.
+- Added account security UI in `/dashboard/settings` for MFA and linked OAuth providers, plus public-home signed-in navigation that does not redirect away from discovery.
+- Added noindex route-group metadata for auth, dashboard, and admin surfaces.
+
+### UI/UX Signoff
+
+- Emotion: calm and security-focused, with rose primary actions and teal safety surfaces.
+- First-look hierarchy: account security panel appears above site settings; MFA status badge and provider cards are immediately visible.
+- States: loading, success, error, enabled/disabled provider, MFA enrolled/not enrolled, and OTP challenge states are represented.
+- Responsive/i18n: controls use wrapping grid layouts, stable 44px inputs/buttons, and new `vi`, `en`, `ja` locale keys.
+
+### Files Created or Updated
+
+- `apps/api/src/modules/auth/application/mfa-totp.ts`
+- `apps/api/src/modules/auth/application/oauth-provider.service.ts`
+- `apps/api/src/modules/auth/application/auth.service.ts`
+- `apps/api/src/modules/auth/presentation/auth.controller.ts`
+- `apps/api/src/modules/auth/presentation/auth-cookie.presenter.ts`
+- `apps/api/src/modules/auth/presentation/auth.dto.ts`
+- `apps/web/src/features/auth/account-security-panel.tsx`
+- `apps/web/src/features/auth/public-home-auth-nav.tsx`
+- `apps/web/src/features/auth/login-form.tsx`
+- `apps/web/src/lib/api-client.ts`
+- `apps/web/src/middleware.ts`
+- `apps/web/src/app/(auth)/layout.tsx`
+- `apps/web/src/app/(dashboard)/layout.tsx`
+- `apps/web/src/app/(admin)/layout.tsx`
+- Auth/security/API/env/deploy/testing/SEO/roadmap/user-guide/system-map docs.
+
+### Tests and Checks
+
+- `pnpm.cmd format:check`: pass.
+- `pnpm.cmd lint`: pass.
+- `pnpm.cmd typecheck`: pass.
+- `pnpm.cmd test`: pass.
+- `pnpm.cmd build`: pass, with existing Next.js ESLint-plugin warning and standalone symlink-name warning only.
+- `git diff --check`: pass.
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass.
+- `pnpm.cmd --filter @the-wedding/web typecheck`: pass.
+- `pnpm.cmd --filter @the-wedding/api test`: pass, 15 suites / 79 tests.
+- `pnpm.cmd --filter @the-wedding/web test`: pass, 2 suites / 6 tests.
+
+### Remaining / Needs Real Environment
+
+- Google/Facebook OAuth requires provider client ID/secret and registered callback URLs before production smoke test.
+- SMTP production delivery requires real provider credentials and inbox smoke test.
+- MFA recovery/backup codes are not implemented yet; users should keep at least one valid login method.
+- Full browser responsive screenshot matrix still needs running app and authenticated test accounts.
+
+## 2026-07-01 - Realtime Webhook/Event Platform Planning
+
+### Completed
+
+- Added `docs/REALTIME_WEBHOOK_PLAN.md` to define the realtime/event/webhook architecture, security model, event catalog, channels, rollout slices, tests, and expansion ideas.
+- Added `prompts/08g_realtime_webhook_event_platform.md` as a focused implementation prompt before broad Phase 9 scale work.
+- Updated product plan, roadmap, architecture, API/database docs, prompt workflow, and final QA prompts so realtime/webhook work is treated as a first-class platform capability.
+
+### Design Notes
+
+- Browser realtime should start with authorized SSE channels and reconnect cursors.
+- Webhooks are server-to-server: inbound provider callbacks must be signed/idempotent, and outbound integration webhooks must be signed, retried, observable, and gated.
+- Public realtime payloads must remain `public_safe` and never expose private/unlisted/admin/payment/signed-media data.
+
+### Tests and Checks
+
+- `pnpm.cmd format:check`: pass after formatting `docs/SYSTEM_MAP.md`.
+- `git diff --check`: pass.
+
+## 2026-07-01 - Public Site Visual Redesign Prompt
+
+### Completed
+
+- Added `prompts/08f_public_site_visual_redesign_ui_qa.md` to capture a focused redesign plan for the public wedding site at `/{siteSlug}`.
+- The prompt documents the current screenshot issues, target public-site design direction, responsive QA matrix, accessibility expectations, SEO/GEO privacy gate, verification commands, and required handoff docs.
+- Updated `prompts/README.md` and `docs/SYSTEM_MAP.md` so the prompt workflow includes the new `08F` pass before Phase 9 scale features.
+
+### Tests and Checks
+
+- `pnpm.cmd format:check`: pass.
+- `git diff --check`: pass.
+
+## 2026-06-30 - Local Control Panel
+
+### Completed
+
+- Added `RUN_LOCAL_CONTROL.cmd` as a root double-click launcher for local development.
+- Added `scripts/local-control.ps1` with menu actions to start/stop API, start/stop Web, start both, show status, tail logs, filter error/warning lines, run local health checks, open local URLs, and run format/lint/typecheck/test/build.
+- Starting Web from the menu now opens `http://localhost:3000` in the default browser.
+- Starting Web from the menu now clears stale `apps/web/.next` first, and menu item `18` clears the Web cache manually when Web is stopped.
+- Menu item `19` now runs API migrations from the control panel for local database drift fixes.
+- Stored local runtime state and logs under `.local-control/`, now ignored by git.
+- Documented the helper in `scripts/README.md`, `README.md`, `docs/SYSTEM_MAP.md`, and `docs/HUONG_DAN_SU_DUNG.md`.
+
+### Tests and Checks
+
+- `cmd.exe /c "echo 0|powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\local-control.ps1"`: pass; menu exits cleanly.
+- Automated terminal smoke test `Start Web -> Status -> Stop Web -> Exit`: pass.
+- Checked `.local-control/logs/web.log` output is readable after switching service redirection to `cmd.exe`.
+- Confirmed no API/Web dev process remained running after stop.
+- Reset a corrupted Next dev cache that produced `Cannot find module './913.js'`; after stopping Web, deleting `apps/web/.next`, and restarting Web, `http://localhost:3000` returned `200`.
+
+## 2026-06-30 - Public Album Slug URLs
+
+### Completed
+
+- Added album `slug` persistence with migration backfill for existing albums.
+- Generated new album slugs from the title plus a short stable id suffix, for example `ceremony-5f9f9361`, to avoid ambiguous public URLs.
+- Updated public album detail API to resolve either legacy UUID or readable slug.
+- Updated public album cards to link to `/albums/{albumSlug}`.
+- Added redirect from legacy `/albums/{albumId}` page URLs to the slug URL when the album has a slug.
+- Kept social wish/reaction mutations using internal album UUIDs after resolving public slugs, so public-friendly URLs do not leak into relational `albumId` fields.
+
+### SEO/GEO Notes
+
+- Route remains public-facing but privacy policy is unchanged: only public/unlisted albums owned by active public tenants resolve; private albums and non-public tenants still return not found.
+- This is an interim slug route. The long-term canonical handle route remains `/@{userHandle}/{siteSlug}/albums/{albumSlugOrShortId}`.
+
+### Tests and Checks
+
+- `pnpm.cmd --filter @the-wedding/api test -- --runTestsByPath src/modules/public-albums/application/public-albums.service.spec.ts`: pass.
+- `pnpm.cmd --filter @the-wedding/api typecheck`: pass.
+- `pnpm.cmd --filter @the-wedding/web typecheck`: pass.
+- `pnpm.cmd format:check`: pass.
+
+### Follow-Up Fix
+
+- Investigated `requestId=0e4aaf7b-7c7f-4072-93c8-ee8190e9c8a2`; root cause was local DB drift after the album slug entity change: `column AlbumOrmEntity.slug does not exist`.
+- Ran `pnpm.cmd --filter @the-wedding/api migration:run` locally; API public home returned `200` afterward.
+- Added an extra migration to normalize Vietnamese album titles into readable slug values for already-created albums.
+
+## 2026-06-30 - Dashboard Themes Responsive And Locale Switcher
+
+### Design Gate
+
+- Changed screen: `/dashboard/themes` plus the shared dashboard/admin sidebar.
+- Emotion: operational, compact, and predictable for dashboard work instead of marketing-style layout.
+- First-look hierarchy: theme form controls remain readable beside the sidebar; the live preview remains below the editor.
+- Accent color/state plan: reused the existing rose accent for the language switcher and kept neutral dashboard panels.
+- Responsive and i18n risk: moved the theme editor two-column split to wider screens and replaced the hard-coded theme dashboard locale with the selected `vi`/`en`/`ja` locale.
+
+### Completed
+
+- Added a client locale provider with localStorage persistence and `document.documentElement.lang` updates.
+- Added a dashboard sidebar language switcher for Vietnamese, English, and Japanese.
+- Localized sidebar navigation labels and the `/dashboard/themes` page header from the selected locale.
+- Updated the theme dashboard and preview to use the selected locale instead of always using Vietnamese.
+- Adjusted the `/dashboard/themes` form layout so color/style controls do not squeeze into two columns at narrower dashboard widths.
+
+### Deferred / Carryover
+
+- Authenticated visual responsive screenshots could not be captured in this local tool session because the in-app browser was unavailable and no Chrome/Playwright browser runtime was installed in PATH.
+- The dashboard shell still has no dedicated mobile drawer/top navigation; on sub-`lg` widths the existing sidebar remains hidden, so a mobile navigation pass is still recommended before release.
+
+### Tests and Checks
+
+- Authenticated HTML smoke check confirmed `/dashboard/themes` renders the new language switcher before the local dev/build cache conflict was cleaned up.
+- `pnpm.cmd --filter @the-wedding/web typecheck`: pass.
+- `pnpm.cmd --filter @the-wedding/web lint`: pass.
+- `pnpm.cmd --filter @the-wedding/web test`: pass.
+- `pnpm.cmd --filter @the-wedding/web build`: pass after stopping the local dev server that was sharing `.next`.
+- `pnpm.cmd format:check`: pass.
+
 ## 2026-06-29 - Phase 9 Plan-Aware Media Upload Gates
 
 ### Design Gate
@@ -1148,13 +1418,13 @@
 
 - Documentation/prompt-only update; ran Prettier check on changed markdown files.
 
-## 2026-06-18 - VIEC_CAN_LAM Detailed Handoff Rule
+## 2026-06-18 - Legacy Detailed Handoff Rule
 
 ### Completed
 
-- Updated `AGENTS.md` so every future `VIEC_CAN_LAM.md` item must include detailed execution guidance, not only a task title.
-- Updated `prompts/README.md` and all active prompts (`08a` through `10`) so prompt handoff requires mini-runbooks in `VIEC_CAN_LAM.md`.
-- Added a concrete writing template to `VIEC_CAN_LAM.md` covering preparation, steps, configuration/check locations, completion criteria, and related docs.
+- Updated `AGENTS.md` so every future handoff task must include detailed execution guidance, not only a task title.
+- Updated `prompts/README.md` and all active prompts (`08a` through `10`) so prompt handoff requires mini-runbooks.
+- Added a concrete writing template covering preparation, steps, configuration/check locations, completion criteria, and related docs.
 
 ### Tests and Checks
 

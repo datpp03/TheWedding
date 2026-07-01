@@ -50,14 +50,12 @@ export class AuthMailService {
         host: this.config.get<string>('SMTP_HOST', 'localhost'),
         port: this.config.get<number>('SMTP_PORT', 1025),
         secure: this.config.get<boolean>('SMTP_SECURE', false),
-        auth: {
-          user: this.config.get<string>('SMTP_USER', ''),
-          pass: this.config.get<string>('SMTP_PASSWORD', ''),
-        },
+        auth: this.getSmtpAuth(),
       });
 
       await transporter.sendMail({
         from: this.config.get<string>('SMTP_FROM', 'TheWedding <no-reply@localhost>'),
+        replyTo: this.config.get<string>('SMTP_REPLY_TO', '') || undefined,
         to: input.email,
         subject: input.subject,
         text: [
@@ -88,9 +86,19 @@ export class AuthMailService {
     return (
       this.config.get<string>('MAIL_PROVIDER', 'smtp') === 'smtp' &&
       Boolean(this.config.get<string>('SMTP_HOST')) &&
-      Boolean(this.config.get<string>('SMTP_USER')) &&
-      Boolean(this.config.get<string>('SMTP_PASSWORD'))
+      Boolean(this.config.get<string>('SMTP_FROM'))
     );
+  }
+
+  private getSmtpAuth() {
+    const user = this.config.get<string>('SMTP_USER', '');
+    const pass = this.config.get<string>('SMTP_PASSWORD', '');
+
+    if (!user || !pass) {
+      return undefined;
+    }
+
+    return { pass, user };
   }
 
   private buildAppUrl(pathname: string, token: string): string {

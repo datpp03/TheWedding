@@ -62,8 +62,19 @@ Future add-ons can increase average revenue per account:
 - Watermarking.
 - Online photo/video editing tools.
 - AI classification, search, highlight selection, and image quality optimization.
+- Realtime live gallery, live moderation, studio automation webhooks, and operational notifications.
 
 Phase 9 foundation status: implemented as a gated add-on catalog and admin entitlement unlocks for storage, custom domain, premium themes, security, watermark, AI tools, and online editing placeholders.
+
+### Phase 9 Release Scope Decision [NEW]
+
+Final release QA should proceed with Phase 9 as a safe foundation release, not as a production-complete scale release.
+
+- Release now with implemented foundation pieces and clearly gated placeholders.
+- Treat the Cloudflare R2/S3-compatible adapter as integrated for API-managed uploads; production enablement still requires bucket/access key setup, host env configuration, redeploy, and smoke tests.
+- Keep real MoMo checkout/webhook, realtime/webhook platform, direct upload sessions, multipart upload, canonical handle album routes, full B2B studio delivery, custom-domain DNS verification, watermark processing, AI tagging, contextual themes, and greeting scheduler as follow-up work until each has tests, docs, and production smoke evidence.
+- Self-service paid upgrades and risky premium add-ons must stay behind feature flags, plan gates, entitlement gates, admin-only controls, or system parameters until verified.
+- Prompt 09 final QA should verify that unfinished Phase 9 surfaces are not accidentally exposed as production-ready features.
 
 ## 4. Product Workflows
 
@@ -79,6 +90,7 @@ Phase 9 foundation status: implemented as a gated add-on catalog and admin entit
 8. Share the link with guests.
 9. Review views, downloads, wishes, and upgrade prompts when relevant.
 10. Choose the album reaction symbol set when reactions are enabled, such as heart, star, cherry blossom, leaf, fish, or a theme-specific icon.
+11. See upload, processing, wish, reaction, payment, and entitlement changes update without manual refresh when realtime is enabled.
 
 ### Guest Workflow
 
@@ -89,6 +101,7 @@ Phase 9 foundation status: implemented as a gated add-on catalog and admin entit
 5. Watch videos and download when allowed.
 6. Sign in before sending wishes or reactions.
 7. Return to the same album after successful login when the action started from an unauthenticated state.
+8. See public-safe live updates for newly approved wishes, reactions, and ready media on public albums when enabled.
 
 ### Studio/Photographer Workflow [NEW]
 
@@ -99,6 +112,7 @@ Phase 9 foundation status: implemented as a gated add-on catalog and admin entit
 5. Apply a studio-approved theme/branding preset.
 6. Share a review or delivery link.
 7. Track client status, quota usage, and delivery progress.
+8. Configure outbound webhooks or automation integrations for delivery, review, and media-ready events when the studio plan allows it.
 
 ### Admin Workflow [NEW]
 
@@ -108,6 +122,7 @@ Phase 9 foundation status: implemented as a gated add-on catalog and admin entit
 4. Moderate media and inspect audit logs.
 5. Monitor storage, usage, payments, and operational health.
 6. Configure seasonal/contextual experiences and automated greetings when those modules exist.
+7. Monitor realtime event delivery, inbound webhook health, outbound webhook failures, and dead-letter queues without exposing provider secrets.
 
 ## 5. UI/UX Execution Workflow
 
@@ -148,6 +163,19 @@ The signoff checklist must confirm:
 - Mobile and desktop layouts are explicitly planned.
 - Interactive states are defined.
 - i18n/l10n text length risk is considered for Vietnamese, English, and Japanese.
+
+### Taste Skill Frontend Design Integration
+
+Taste Skill is a frontend design guidance layer for agents. It improves visual judgment, layout quality, spacing, hierarchy, motion discipline, and anti-generic UI checks. It does not replace business logic, product rules, API contracts, authentication, permissions, feature gates, or the existing design direction of The Wedding.
+
+Rules for future frontend tasks:
+
+- Read `docs/ai/taste-skill-integration.md` before coding any UI, layout, component, form, dashboard, admin page, public page, or redesign.
+- Treat Taste Skill as contextual. Pull only the rules that fit the surface: public wedding pages may be expressive and media-first; dashboard/admin pages must stay clear, efficient, and scannable.
+- Audit the current screen before redesigning it: data flow, props, state, API calls, permissions, loading, empty, error, success, and responsive behavior.
+- Keep backend logic, database schema, API contracts, auth/session behavior, routing, feature gates, permissions, and tenant isolation unchanged unless the task explicitly asks for those changes.
+- Prefer existing project patterns, Tailwind/CSS conventions, shared UI primitives, and i18n keys before adding new abstractions or dependencies.
+- When redesigning, prioritize consistency, maintainability, accessibility, responsive behavior, and the existing design system over novelty.
 
 ## 6. UI Requirements
 
@@ -195,6 +223,28 @@ Cards should not be flat blocks with equal-weight content. Album cards, plan car
 - Theme customization.
 - Admin dashboard.
 - Runtime system parameters and feature flags.
+
+### Realtime Webhook And Event Platform [NEW]
+
+Realtime must be built as an event platform, not as ad hoc polling or a single provider callback.
+
+Implementation notes:
+
+- Follow `docs/REALTIME_WEBHOOK_PLAN.md` before implementing realtime or webhook behavior.
+- Use a stable event envelope and transactional outbox so events are not lost when business mutations succeed.
+- Browser realtime should start with authorized SSE channels; WebSocket can be added later for collaborative editing or bidirectional review.
+- Inbound webhooks such as MoMo must verify signatures, timestamp tolerance, replay protection, and provider-event idempotency before changing state.
+- Outbound webhooks for studios/automation must be HMAC-signed, retried with backoff, observable, and gated by plan/feature flag.
+- Public album realtime may only send `public_safe` fields and must never expose private, unlisted, pending moderation, signed-media, payment, admin, or provider payload data.
+- Realtime surfaces need connection states: connected, reconnecting, offline/fallback, and error.
+- Suggested MVP events: media upload/processing, wish/reaction lifecycle, payment status, entitlement grant/revoke, theme update, custom-domain verification, studio delivery, and admin health alerts.
+
+Product mapping:
+
+- Couple paid plans can unlock live upload status, live wishes/reactions, and event wall experiences.
+- Studio plans can unlock outbound webhooks, delivery automation, and client-review notifications.
+- Admin/support realtime operations are internal and should be available behind `admin.access`.
+- All external webhook/integration features remain gated until signature, idempotency, retry, and privacy tests pass.
 
 ### SEO/GEO Discoverability [NEW]
 
@@ -260,11 +310,11 @@ Implementation notes:
 - `returnTo` must be same-origin or an allowlisted relative path to prevent open redirect vulnerabilities.
 - Tokens, provider secrets, authorization codes, cookies, and OTP-like values must never be logged or stored in audit metadata.
 
-Phase 7A implementation status:
+Phase 7A/Prompt 08A implementation status:
 
 - OAuth routes validate and preserve safe `returnTo` state and reject open redirects.
 - Provider start redirects are available when client IDs are configured.
-- Provider callback token exchange and verified-email account linking remain disabled until product rules are confirmed.
+- Provider callback token exchange, verified-email new-user creation, explicit settings-based linking, unlink guard, MFA challenge handoff, and no-silent-merge behavior are implemented behind provider-enabled env flags.
 
 ### Personal Custom Theme [NEW]
 
@@ -356,6 +406,7 @@ Future implementation should follow this sequence for efficient delivery.
 - Define permissions, tenant isolation, audit logs, and privacy/security constraints.
 - Define i18n keys for every visible string.
 - Define analytics/usage events where meaningful.
+- Define realtime/domain events, webhook payloads, channel authorization, outbox/retry behavior, and redaction rules when the feature changes state asynchronously.
 - Define canonical URL, robots policy, sitemap behavior, Open Graph/Twitter metadata, structured data, `hreflang`/locale metadata, and noindex/privacy rules for public-facing routes.
 
 ### 4. Implementation Slices [NEW]
@@ -397,6 +448,7 @@ Each feature must check:
 - [NEW] Public Album Expansion Track: security/scalability foundations, public home and featured albums, wishes/reactions, OAuth login with return-to-album, advanced album search, and audit/admin activity tracing.
 - Phase 8: security, reliability, responsive QA, i18n/l10n hardening, and UI polish.
 - Phase 9: SaaS plans, payments, entitlements, storage/CDN, custom domain, analytics, user handles, AI foundations, and premium feature gates.
+- [NEW] Realtime/Webhook Track: event outbox, browser realtime, inbound provider webhooks, outbound signed webhooks, event delivery observability, and privacy-safe public channels.
 - [NEW] Post-MVP Growth: B2B studio workspaces, contextual themes, automated greetings, advanced online editing, premium theme marketplace, and deeper AI utilities.
 
 ## 10. Needs Confirmation [NEW]
@@ -405,4 +457,7 @@ Each feature must check:
 - Whether featured albums are selected by algorithm, admin curation, owner opt-in, or a hybrid ranking.
 - Whether each user may send one reaction per album, one reaction per symbol, or multiple reactions over time.
 - Whether album wishes need owner moderation before public display.
-- Whether Google/Facebook OAuth should support account linking for existing email/password users in the first implementation slice.
+- Whether Google/Facebook OAuth account linking should later add a richer confirmation screen beyond the current authenticated settings-based flow.
+- Whether the first realtime browser transport should remain SSE-only or include WebSocket from day one.
+- Which plans should include outbound webhooks, live public event wall, and studio automation integrations.
+- Which external automation targets matter first: Zapier, Make, n8n, custom studio CRM, or all via generic signed webhooks.

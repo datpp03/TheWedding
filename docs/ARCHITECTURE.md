@@ -1,4 +1,4 @@
-# Architecture
+﻿# Architecture
 
 ## Style
 
@@ -45,6 +45,7 @@ Controllers must not contain business logic or direct database access.
 - Queue: BullMQ/Redis powers Phase 7 media processing. `REDIS_URL` enables the real queue/worker path; local development without Redis falls back to an inline async processor through the same `MediaProcessingService` interface.
 - Mail: provider interface for verification and password reset flows.
 - Payments: provider adapter planned with MoMo first, keeping checkout/webhook logic outside subscription domain rules.
+- Realtime/webhooks: planned event backbone with transactional outbox, signed inbound provider webhooks, authorized SSE browser channels, and signed outbound webhooks. See `docs/REALTIME_WEBHOOK_PLAN.md`.
 - Scale foundation: `apps/api/src/modules/scale` owns plan catalog exposure, user public handles, tenant usage summaries, admin entitlements, payment-event idempotency, custom-domain/studio/greeting placeholders, and analytics events. Business rules that are shared with web live in `packages/shared/src/scale.ts`.
 - OAuth: Google and Facebook login should extend the existing auth/session boundary with provider adapters and validated return paths.
 - Runtime settings: admin-managed system parameters and feature flags should be read through an application service with caching, invalidation, permission checks, and audit logging.
@@ -70,3 +71,5 @@ Image processing uses Sharp today. Video preview is currently metadata-only unle
 The scale module is a foundation layer, not a fully enabled commerce system. It resolves plan limits and feature access through shared catalog constants, active feature flags, and admin-granted entitlements. Controllers expose only safe public reads, authenticated user handle/tenant summaries, and admin-only mutation endpoints.
 
 Production providers remain gated for payment and advanced media delivery: MoMo checkout/webhook signature verification, signed upload/download URL endpoints, multipart mobile uploads, CDN-first public derivative delivery, and local-to-object migration are still separate provider implementations behind existing boundaries. The S3-compatible/R2 storage adapter is available for API-managed uploads.
+
+Realtime/event delivery remains planned until the event backbone is implemented. Browser realtime should start with authorized SSE channels and a reconnect cursor; outbound webhooks should stay disabled until endpoint signing, retry, dead-letter, replay, and privacy tests exist.

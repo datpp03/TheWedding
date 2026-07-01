@@ -1,5 +1,6 @@
 import { AppShell } from '@/components/app-shell';
-import { PageHeader } from '@/components/page-header';
+import { LocalizedPageHeader } from '@/components/localized-page-header';
+import { AccountSecurityPanel } from '@/features/auth/account-security-panel';
 import { TenantSettingsPanel } from '@/features/tenants/tenant-settings-panel';
 
 type PageProps = {
@@ -13,11 +14,14 @@ export default async function SettingsPage({ searchParams }: PageProps) {
 
   return (
     <AppShell section="dashboard">
-      <PageHeader
-        title="Settings"
-        description="Configure site identity, visibility, SEO, sharing, and download rules."
+      <LocalizedPageHeader
+        titleKey="dashboard.settings.title"
+        descriptionKey="dashboard.settings.description"
       />
-      <TenantSettingsPanel tenantId={tenantId} />
+      <div className="grid gap-6">
+        <AccountSecurityPanel />
+        <TenantSettingsPanel tenantId={tenantId} />
+      </div>
     </AppShell>
   );
 }

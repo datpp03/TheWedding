@@ -6,6 +6,18 @@ const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 let csrfToken: string | null = null;
 
 export async function apiClient<TData>(path: string, init?: RequestInit): Promise<TData> {
+  return requestApi<TData>(path, init, true);
+}
+
+export function getApiBaseUrl() {
+  return apiUrl;
+}
+
+async function requestApi<TData>(
+  path: string,
+  init: RequestInit | undefined,
+  canRefresh: boolean,
+): Promise<TData> {
   const method = init?.method?.toUpperCase() ?? 'GET';
   const headers = new Headers(init?.headers);
 
@@ -25,10 +37,31 @@ export async function apiClient<TData>(path: string, init?: RequestInit): Promis
   const payload = (await response.json()) as ApiResponse<TData>;
 
   if (payload.success === false) {
+    if (response.status === 401 && canRefresh && path !== '/auth/refresh') {
+      await refreshAccessToken();
+      return requestApi<TData>(path, init, false);
+    }
+
     throw new Error(payload.error.message);
   }
 
   return payload.data;
+}
+
+async function refreshAccessToken() {
+  const response = await fetch(`${apiUrl}/api/v1/auth/refresh`, {
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': await getCsrfToken(),
+    },
+    method: 'POST',
+  });
+  const payload = (await response.json()) as ApiResponse<{ user: unknown }>;
+
+  if (payload.success === false) {
+    throw new Error(payload.error.message);
+  }
 }
 
 async function getCsrfToken() {

@@ -3,19 +3,24 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getCurrentUser } from '@/features/auth/auth-api';
+import { useLocale } from '@/lib/i18n/locale-provider';
+import { t } from '@/lib/i18n/locales';
 import { createReaction, createWish, type ReactionSummary, type Wish } from './public-album-api';
 
 export function AlbumSocialPanel({
   albumId,
+  albumPath,
   initialReactions,
   initialWishes,
   symbols,
 }: {
   albumId: string;
+  albumPath: string;
   initialReactions: ReactionSummary[];
   initialWishes: Wish[];
   symbols: Array<Pick<ReactionSummary, 'glyph' | 'symbolKey'>>;
 }) {
+  const { locale } = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -38,7 +43,7 @@ export function AlbumSocialPanel({
   }, [searchParams]);
 
   function requireLogin(intent: 'wish' | 'reaction') {
-    const returnTo = `/albums/${albumId}?intent=${intent}`;
+    const returnTo = `${albumPath}?intent=${intent}`;
     router.push(`/login?redirect=${encodeURIComponent(returnTo)}`);
   }
 
@@ -48,14 +53,14 @@ export function AlbumSocialPanel({
       requireLogin('wish');
       return;
     }
-    setStatus('Sending wish...');
+    setStatus(t('social.sendingWish', locale));
     try {
       const wish = await createWish(albumId, message);
       setWishes([wish, ...wishes]);
       setMessage('');
-      setStatus('Wish sent.');
+      setStatus(t('social.wishSent', locale));
     } catch (caught) {
-      setStatus(caught instanceof Error ? caught.message : 'Could not send wish.');
+      setStatus(caught instanceof Error ? caught.message : t('social.wishError', locale));
     }
   }
 
@@ -64,23 +69,23 @@ export function AlbumSocialPanel({
       requireLogin('reaction');
       return;
     }
-    setStatus('Adding reaction...');
+    setStatus(t('social.addingReaction', locale));
     try {
       setReactions(await createReaction(albumId, symbolKey));
-      setStatus('Reaction added.');
+      setStatus(t('social.reactionAdded', locale));
     } catch (caught) {
-      setStatus(caught instanceof Error ? caught.message : 'Could not add reaction.');
+      setStatus(caught instanceof Error ? caught.message : t('social.reactionError', locale));
     }
   }
 
   return (
     <section className="grid gap-6 rounded-md border border-teal-100 bg-white p-4 shadow-sm sm:p-5">
       <div>
-        <p className="text-sm font-semibold uppercase text-teal-700">Guest love</p>
-        <h2 className="mt-1 text-2xl font-semibold text-ink">Wishes and reactions</h2>
-        <p className="mt-2 text-sm leading-6 text-neutral-600">
-          Sign in to leave a wish or react. We will bring you right back to this album.
+        <p className="text-sm font-semibold uppercase text-teal-700">
+          {t('social.guestLove', locale)}
         </p>
+        <h2 className="mt-1 text-2xl font-semibold text-ink">{t('social.title', locale)}</h2>
+        <p className="mt-2 text-sm leading-6 text-neutral-600">{t('social.description', locale)}</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -108,13 +113,13 @@ export function AlbumSocialPanel({
         onSubmit={(event) => void submitWish(event)}
       >
         <label className="grid gap-2 text-sm font-semibold text-neutral-700">
-          Leave a wish
+          {t('social.leaveWish', locale)}
           <textarea
             className="min-h-28 rounded-md border border-neutral-300 p-3 text-sm font-normal focus:border-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-100"
             maxLength={500}
             value={message}
             onChange={(event) => setMessage(event.target.value)}
-            placeholder="Write something warm for the couple"
+            placeholder={t('social.placeholder', locale)}
             required
           />
         </label>
@@ -123,7 +128,7 @@ export function AlbumSocialPanel({
           type="submit"
           disabled={isLoggedIn === null}
         >
-          {isLoggedIn ? 'Send wish' : 'Sign in to send'}
+          {isLoggedIn ? t('social.sendWish', locale) : t('social.signInToSend', locale)}
         </button>
         {status ? (
           <p className="rounded-md bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
@@ -142,7 +147,7 @@ export function AlbumSocialPanel({
           ))
         ) : (
           <div className="rounded-md border border-dashed border-neutral-300 p-4 text-sm text-neutral-600">
-            No wishes yet. Be the first guest to leave one.
+            {t('social.emptyWishes', locale)}
           </div>
         )}
       </div>

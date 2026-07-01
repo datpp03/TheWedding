@@ -1,45 +1,71 @@
 import type { ApiResponse } from '@the-wedding/shared';
+import type { Metadata } from 'next';
 import Link from 'next/link';
+import { PublicHomeAuthNav } from '@/features/auth/public-home-auth-nav';
 import { PublicAlbumCard } from '@/features/public-albums/public-album-card';
 import type { PublicHome } from '@/features/public-albums/public-album-api';
+import { t } from '@/lib/i18n/locales';
+import { absoluteAppUrl, getApiBaseUrl } from '@/lib/seo';
+
+export const metadata: Metadata = {
+  title: t('public.home.metaTitle'),
+  description: t('public.home.metaDescription'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: t('public.home.metaTitle'),
+    description: t('public.home.metaDescription'),
+    type: 'website',
+    url: '/',
+  },
+  robots: {
+    follow: true,
+    index: true,
+    googleBot: {
+      follow: true,
+      index: true,
+      'max-image-preview': 'large',
+    },
+  },
+};
 
 export default async function HomePage() {
   const home = await fetchPublicHome();
+  const websiteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    description: t('public.home.metaDescription'),
+    name: 'The Wedding',
+    url: absoluteAppUrl('/'),
+  };
 
   return (
     <main className="min-h-screen bg-pearl">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
       <section className="px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link className="text-lg font-semibold text-ink" href="/">
             The Wedding
           </Link>
-          <div className="flex gap-2">
-            <Link
-              className="rounded-md px-3 py-2 text-sm font-semibold text-neutral-700"
-              href="/login"
-            >
-              Sign in
-            </Link>
-            <Link
-              className="rounded-md bg-ink px-3 py-2 text-sm font-semibold text-white"
-              href="/register"
-            >
-              Create site
-            </Link>
-          </div>
+          <PublicHomeAuthNav />
         </div>
       </section>
 
       <section className="px-4 pb-10 pt-4 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-6">
           <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase text-rose-700">Public albums</p>
+            <p className="text-sm font-semibold uppercase text-rose-700">
+              {t('public.home.kicker')}
+            </p>
             <h1 className="mt-3 text-4xl font-semibold leading-tight text-ink sm:text-6xl">
-              Browse real wedding moments before you sign in.
+              {t('public.home.title')}
             </h1>
             <p className="mt-4 text-base leading-7 text-neutral-600">
-              Featured albums only include public albums. Private and unlisted memories stay out of
-              discovery.
+              {t('public.home.description')}
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -47,20 +73,28 @@ export default async function HomePage() {
               className="rounded-md bg-rose-600 px-5 py-3 text-sm font-semibold text-white"
               href="#today"
             >
-              Today
+              {t('public.home.todayCta')}
             </Link>
             <Link
               className="rounded-md border border-teal-200 bg-white px-5 py-3 text-sm font-semibold text-teal-800"
               href="#week"
             >
-              This week
+              {t('public.home.weekCta')}
             </Link>
           </div>
         </div>
       </section>
 
-      <FeaturedSection id="today" title="Featured today" albums={home?.featuredToday ?? []} />
-      <FeaturedSection id="week" title="Featured this week" albums={home?.featuredWeek ?? []} />
+      <FeaturedSection
+        id="today"
+        title={t('public.home.todayTitle')}
+        albums={home?.featuredToday ?? []}
+      />
+      <FeaturedSection
+        id="week"
+        title={t('public.home.weekTitle')}
+        albums={home?.featuredWeek ?? []}
+      />
     </main>
   );
 }
@@ -79,7 +113,9 @@ function FeaturedSection({
       <div className="mx-auto grid max-w-6xl gap-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold uppercase text-teal-700">Safe discovery</p>
+            <p className="text-sm font-semibold uppercase text-teal-700">
+              {t('public.home.sectionEyebrow')}
+            </p>
             <h2 className="mt-1 text-2xl font-semibold text-ink">{title}</h2>
           </div>
         </div>
@@ -91,10 +127,8 @@ function FeaturedSection({
           </div>
         ) : (
           <div className="rounded-md border border-dashed border-rose-200 bg-white p-8 text-center shadow-sm">
-            <h3 className="text-lg font-semibold text-ink">No public albums yet</h3>
-            <p className="mt-2 text-sm text-neutral-600">
-              Public albums will appear here after couples publish them.
-            </p>
+            <h3 className="text-lg font-semibold text-ink">{t('public.home.emptyTitle')}</h3>
+            <p className="mt-2 text-sm text-neutral-600">{t('public.home.emptyDescription')}</p>
           </div>
         )}
       </div>
@@ -103,10 +137,9 @@ function FeaturedSection({
 }
 
 async function fetchPublicHome() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-  const response = await fetch(`${apiUrl}/api/v1/public/home`, { cache: 'no-store' }).catch(
-    () => null,
-  );
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/public/home`, {
+    cache: 'no-store',
+  }).catch(() => null);
   if (!response?.ok) {
     return null;
   }

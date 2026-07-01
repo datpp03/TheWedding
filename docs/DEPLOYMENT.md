@@ -1,4 +1,4 @@
-# Deployment
+﻿# Deployment
 
 ## Local
 
@@ -50,9 +50,31 @@ The repo includes `.github/workflows/deploy-docker-vps.yml`, `docker-compose.pro
 - Production should run Redis and keep original media private. Only optimized derivatives should be exposed to normal gallery/lightbox display.
 - Video preview extraction is metadata-only until the production worker image includes ffmpeg or another approved media extraction backend.
 
+## Realtime/Webhook Deployment [NEW]
+
+- Realtime/event delivery remains planned in `docs/REALTIME_WEBHOOK_PLAN.md`.
+- Prefer authorized SSE streams first; verify the production host/proxy supports long-lived HTTP responses before enabling.
+- Use Redis/BullMQ for dispatcher/retry fan-out when available, with a safe local fallback for development.
+- Do not expose inbound provider webhooks publicly until signature verification, timestamp tolerance, replay protection, idempotency, redacted logging, and smoke tests pass.
+- Outbound webhook delivery must use signed payloads, bounded retries, dead-letter/disabled endpoint states, and admin/studio replay only after audit logging is in place.
+
+## Auth, SMTP, MFA, And OAuth Deployment
+
+- Configure SMTP before production password reset/email verification QA. Required variables are `MAIL_PROVIDER=smtp`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_FROM`, and provider credentials when the SMTP service requires auth. Optional `SMTP_REPLY_TO` can point to support.
+- Production password reset, email verification, and resend verification must send email and must not return raw tokens in API payloads.
+- Keep `ACCESS_TOKEN_EXPIRES_IN` short, for example `15m`, and set `REFRESH_TOKEN_EXPIRES_IN` to the desired persistent session duration, for example `30d`.
+- If web and API are on sibling subdomains, set `COOKIE_DOMAIN` to the shared parent domain, for example `.d-ajt.app`, so refresh/session cookies work across OAuth callback and app navigation.
+- Register OAuth callback URLs in provider dashboards:
+  - Google: `${API_URL}/api/v1/auth/oauth/google/callback`
+  - Facebook: `${API_URL}/api/v1/auth/oauth/facebook/callback`
+- Set `GOOGLE_OAUTH_ENABLED=true` or `FACEBOOK_OAUTH_ENABLED=true` only after client ID/secret and callback URLs are correct. Leave the flags `false` to hide provider buttons and avoid startup/runtime failures when secrets are missing.
+- MFA/TOTP has no third-party provider requirement. QA with Google Authenticator, Microsoft Authenticator, 1Password, or an equivalent TOTP app.
+
 ## Production Notes
 
 - Use managed PostgreSQL for production; Neon is the current free-tier target for early usage.
+- Set `NEXT_PUBLIC_APP_URL` on the web host to the canonical web origin before building/deploying, for example `https://thewedding.d-ajt.app`. `robots.txt`, `sitemap.xml`, canonical links, and Open Graph URLs use this value.
+- Set `NEXT_PUBLIC_API_URL` on the web host to the public API origin, for example `https://thewedding-api.d-ajt.app`.
 - Before public launch, verify SEO/GEO deployment basics from `docs/SEO_GEO_GUIDELINES.md`: HTTPS canonical domain, redirects between default/custom domains, `robots.txt`, `sitemap.xml`, noindex for auth/admin/dashboard/private routes, Open Graph image reachability, and cache rules that do not expose private/API/signed-media responses.
 - Use Cloudflare R2 through the S3-compatible storage adapter as the first production object-storage target. The adapter supports API-managed uploads now; direct upload sessions and multipart uploads remain follow-up work.
 - Put CDN in front of public optimized media only.

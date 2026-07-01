@@ -1,4 +1,4 @@
-# Storage Strategy
+﻿# Storage Strategy
 
 ## Decision
 

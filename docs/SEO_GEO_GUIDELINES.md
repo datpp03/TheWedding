@@ -1,4 +1,4 @@
-# SEO/GEO Guidelines
+﻿# SEO/GEO Guidelines
 
 > Mục tiêu: mọi thay đổi public-facing của The Wedding phải giúp search engines và AI answer engines hiểu đúng nội dung công khai, đồng thời không làm lộ album riêng tư, album chỉ có link, dữ liệu cá nhân, token, storage key, hoặc nội dung chưa được owner đồng ý public.
 
@@ -18,6 +18,7 @@ Trong tài liệu này:
 7. **AI crawler policy có chủ đích**: robots.txt phải định nghĩa chính sách cho Googlebot/Bingbot và AI crawlers như `OAI-SearchBot`/`GPTBot` theo quyết định sản phẩm. Nếu chưa chốt, allow public marketing/discovery pages và disallow private/app/API/signed paths.
 8. **Performance là SEO/GEO input**: public pages phải giữ Core Web Vitals tốt bằng optimized images, stable layout, cache/CDN cho derivatives public, và không block first render bởi effects/contextual themes.
 9. **Audit được quyết định index**: khi admin/owner bật featured, public discovery, custom domain hoặc public metadata, cần audit log nếu dữ liệu đó ảnh hưởng khả năng được index/discover.
+10. **Realtime/webhook không phải feed public mặc định**: SSE/WebSocket/debug/webhook routes phải noindex và không vào sitemap; chỉ public-safe album events mới được hiển thị trên public page đã indexable.
 
 ## Checklist Cho Mỗi Public Route
 
@@ -32,6 +33,7 @@ Trong tài liệu này:
 - Có robots controls phù hợp: `noindex,nofollow` cho auth/admin/dashboard/private routes; `max-image-preview:large` cho public gallery nếu owner cho phép preview ảnh.
 - Sitemap chỉ include public/indexable canonical URLs.
 - Không include private/unlisted album trong public home, sitemap, structured data, search endpoint, AI summary hoặc feed.
+- Không include private/unlisted/admin/payment/signed-media/provider payload trong realtime public streams hoặc webhook debug pages.
 - Có alt text/caption an toàn; nếu user-generated caption thiếu, fallback mô tả generic không suy đoán nhạy cảm.
 - Có smoke test metadata bằng view-source/build output hoặc test helper.
 
@@ -56,17 +58,41 @@ Trong tài liệu này:
 - `robots.txt` không thay thế authorization. Private data phải bị chặn bằng auth/permission, không chỉ dựa vào robots.
 - Default đề xuất:
   - Allow: public home, public site, public album canonical, public guide/marketing pages.
-  - Disallow: `/api/`, `/admin`, `/dashboard`, `/login`, `/register`, `/reset-password`, `/verify-email`, OAuth callback, payment callback, signed media, private storage paths.
+  - Disallow: `/api/`, `/admin`, `/dashboard`, `/login`, `/register`, `/forgot-password`, `/reset-password`, `/verify-email`, MFA challenge/enrollment/account settings routes, OAuth callback/linking/error callback routes, payment callback, realtime/SSE/WebSocket endpoints, webhook endpoints/debug pages, signed media, private storage paths.
   - AI crawlers: cấu hình rõ `OAI-SearchBot` và `GPTBot`; nếu chưa có quyết định pháp lý/sản phẩm, chỉ allow public/indexable pages và disallow app/private/API paths.
 - Sitemap phải tạo từ dữ liệu public/indexable đã được permission-check, không query thẳng toàn bộ album.
+
+## Auth/OAuth/MFA Noindex Policy
+
+- App Router route groups `(auth)`, `(dashboard)`, and `(admin)` are private/noindex surfaces. Login, register, forgot-password, reset-password, verify-email, MFA challenge, OAuth linking/account settings, dashboard, and admin pages must not be included in sitemap.
+- OAuth callback URLs live on the API and redirect back to the app after exchange. They must never render authorization `code`, signed `state`, provider errors, MFA challenge tokens, reset tokens, verification tokens, cookies, or provider payloads in title, description, Open Graph, structured data, visible copy, logs, or analytics.
+- Public home remains indexable/public discovery. When a signed-in session is restored on public home, the UI may show signed-in navigation only; it must not render private tenant/admin data into indexable HTML.
 
 ## Verification Bắt Buộc
 
 - Unit/integration tests cho function tạo canonical URL, robots policy, sitemap filtering, structured data builder.
 - Tests privacy: private/unlisted/admin/auth/payment/signed URLs không xuất hiện trong sitemap hoặc metadata indexable.
+- Tests privacy: realtime/webhook routes are noindex/no sitemap, and public event streams do not expose private/unlisted/admin/payment/signed-media data.
 - Build/smoke check cho metadata của public home, public site, public album, custom domain nếu implemented.
 - Lighthouse hoặc browser smoke cho Core Web Vitals quan trọng khi route public thay đổi.
 - Manual QA sau deploy: Google/Bing URL inspection nếu có quyền, kiểm tra robots.txt, sitemap.xml, canonical, Open Graph preview.
+
+## Prompt 09 Release Status
+
+Implemented:
+
+- `apps/web/src/app/robots.ts` renders `robots.txt` with public root allowed and API/auth/dashboard/admin/payment/realtime/webhook/storage/raw-media paths disallowed.
+- `apps/web/src/app/sitemap.ts` renders `sitemap.xml` with the public root and public featured album URLs only when the public-home API is reachable.
+- Public home, public site, and public album routes define canonical/Open Graph metadata.
+- Public album route emits `ImageGallery` JSON-LD only for `public` albums.
+- Public site and album metadata returns noindex for unavailable, password-gated, or non-public-indexable states.
+
+Remaining follow-up:
+
+- Canonical handle route `/@{userHandle}/{siteSlug}/albums/{albumSlugOrShortId}` and redirect/canonical migration.
+- Full sitemap source for all owner-approved public sites/albums, beyond the current featured public album feed.
+- Locale route/hreflang implementation if the product later adds locale-prefixed public URLs.
+- Production Open Graph image QA with real public-safe images and custom domains.
 
 ## Nguồn Tham Chiếu Chính Thức
 

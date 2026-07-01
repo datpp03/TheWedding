@@ -9,7 +9,8 @@ import {
   normalizeTheme,
   type WeddingTheme,
 } from '@the-wedding/shared';
-import { t } from '@/lib/i18n/locales';
+import { t, type Locale } from '@/lib/i18n/locales';
+import { useLocale } from '@/lib/i18n/locale-provider';
 import { listTenants, type Tenant } from '@/features/tenants/tenant-api';
 import {
   activateTheme,
@@ -28,9 +29,8 @@ import {
 
 type Message = { tone: 'error' | 'neutral' | 'success'; text: string };
 
-const locale = 'vi';
-
 export function ThemeDashboard() {
+  const { locale } = useLocale();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [tenantId, setTenantId] = useState('');
   const [themes, setThemes] = useState<Theme[]>([]);
@@ -262,7 +262,7 @@ export function ThemeDashboard() {
           </div>
         </section>
 
-        <section className="grid gap-4 rounded-md border border-neutral-200 bg-white p-4 shadow-sm lg:grid-cols-2">
+        <section className="grid gap-5 rounded-md border border-neutral-200 bg-white p-4 shadow-sm 2xl:grid-cols-2">
           <div className="grid gap-4">
             <h2 className="text-lg font-semibold text-ink">
               {t('themes.sections.colors', locale)}
@@ -395,7 +395,7 @@ export function ThemeDashboard() {
         <section className="rounded-md border border-neutral-200 bg-white p-4 shadow-sm">
           <h2 className="text-lg font-semibold text-ink">{t('themes.sections.preview', locale)}</h2>
           <div className="mt-4">
-            <ThemePreview theme={draft} />
+            <ThemePreview theme={draft} locale={locale} />
           </div>
         </section>
       </aside>
@@ -417,7 +417,7 @@ const fontOptions = ['Inter', 'Arial', 'Georgia', 'Trebuchet MS'].map((font) => 
   value: font,
 }));
 
-function ThemePreview({ theme }: { theme: WeddingTheme }) {
+function ThemePreview({ locale, theme }: { locale: Locale; theme: WeddingTheme }) {
   const radius = `${theme.config.borderRadius}px`;
   return (
     <div

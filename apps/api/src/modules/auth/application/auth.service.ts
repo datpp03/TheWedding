@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -16,15 +17,32 @@ import { SystemParametersService } from '../../settings/application/system-param
 import { Argon2PasswordHasher } from '../infrastructure/argon2-password-hasher';
 import { TypeOrmAuthRepository } from '../infrastructure/typeorm-auth.repository';
 import type { UserOrmEntity } from '../../users/infrastructure/user.orm-entity';
-import type { AuthResult, ForgotPasswordResult, RequestContext, SafeUser } from './auth.types';
+import type {
+  AuthenticatedResult,
+  AuthResult,
+  ForgotPasswordResult,
+  RequestContext,
+  SafeUser,
+} from './auth.types';
 import { AuthMailService } from './auth-mail.service';
 import { AuthTokenService } from './auth-token.service';
+import {
+  buildTotpUri,
+  decryptMfaSecret,
+  encryptMfaSecret,
+  generateTotpSecret,
+  verifyTotpCode,
+} from './mfa-totp';
+import type { OAuthProfile, OAuthProvider } from './oauth-provider.service';
 
 const ACCESS_TOKEN_COOKIE = 'access_token';
 const REFRESH_TOKEN_COOKIE = 'refresh_token';
 const CSRF_TOKEN_COOKIE = 'csrf_token';
+const MFA_CHALLENGE_COOKIE = 'mfa_challenge';
+const MFA_CHALLENGE_EXPIRES_IN_SECONDS = 5 * 60;
+const OAUTH_ONLY_PASSWORD_HASH_PREFIX = 'oauth-only:';
 
-export { ACCESS_TOKEN_COOKIE, CSRF_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE };
+export { ACCESS_TOKEN_COOKIE, CSRF_TOKEN_COOKIE, MFA_CHALLENGE_COOKIE, REFRESH_TOKEN_COOKIE };
 
 @Injectable()
 export class AuthService {
@@ -45,7 +63,7 @@ export class AuthService {
     password: string;
     displayName: string;
     context: RequestContext;
-  }): Promise<AuthResult> {
+  }): Promise<AuthenticatedResult> {
     await this.systemParameters.assertRegistrationEnabled();
     const email = normalizeEmail(input.email);
     const existingUser = await this.authRepository.findUserByEmail(email);
@@ -104,6 +122,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    if (!hasUsablePassword(user)) {
+      await this.recordFailedLogin(email, user.id, 'password_not_available', input.context);
+      throw new UnauthorizedException('Use a connected OAuth provider to sign in');
+    }
+
     const validPassword = await this.passwordHasher.verify(user.passwordHash, input.password);
 
     if (!validPassword) {
@@ -111,20 +134,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    await this.authRepository.recordLogin({
-      userId: user.id,
-      email,
-      success: true,
-      ipAddress: input.context.ipAddress,
-      userAgent: input.context.userAgent,
-    });
-    await this.recordAudit({
-      action: 'auth.login',
-      actorUserId: user.id,
-      context: input.context,
-      entityId: user.id,
-    });
+    if (isMfaEnabled(user)) {
+      return this.createMfaChallenge(user, input.context);
+    }
 
+    await this.recordSuccessfulLogin(user, input.context);
     return this.issueAuthResult(user, input.context);
   }
 
@@ -232,11 +246,397 @@ export class AuthService {
     return this.toSafeUser(user);
   }
 
+  async resendEmailVerification(input: {
+    email: string;
+    context: RequestContext;
+  }): Promise<{ devEmailVerificationToken?: string; message: string }> {
+    const email = normalizeEmail(input.email);
+    const user = await this.authRepository.findUserByEmail(email);
+    let devEmailVerificationToken: string | undefined;
+
+    if (user && !user.emailVerifiedAt && canUserLogin(user)) {
+      devEmailVerificationToken = await this.createEmailVerificationToken(user.id);
+      await this.authMail.sendEmailVerificationEmail(email, devEmailVerificationToken);
+      await this.recordAudit({
+        action: 'auth.email_verification_requested',
+        actorUserId: user.id,
+        context: input.context,
+        entityId: user.id,
+      });
+    }
+
+    return {
+      devEmailVerificationToken: this.canReturnDevTokens() ? devEmailVerificationToken : undefined,
+      message: 'If this account needs verification, a new email will be sent.',
+    };
+  }
+
+  async startMfaEnrollment(userId: string, context: RequestContext) {
+    const user = await this.authRepository.findUserById(userId);
+
+    if (!user || !canUserLogin(user)) {
+      throw new UnauthorizedException('Authentication required');
+    }
+
+    if (isMfaEnabled(user)) {
+      throw new ConflictException('MFA is already enabled');
+    }
+
+    const secret = generateTotpSecret();
+    const enrollmentToken = await this.tokenService.signMfaEnrollmentToken({ secret, userId });
+
+    await this.recordAudit({
+      action: 'auth.mfa_enrollment_started',
+      actorUserId: user.id,
+      context,
+      entityId: user.id,
+    });
+
+    return {
+      enrollmentToken,
+      method: 'totp',
+      otpauthUri: buildTotpUri({
+        accountName: user.email,
+        issuer: 'The Wedding',
+        secret,
+      }),
+      secret,
+    };
+  }
+
+  async verifyMfaEnrollment(input: {
+    code: string;
+    enrollmentToken: string;
+    userId: string;
+    context: RequestContext;
+  }): Promise<SafeUser> {
+    const payload = await this.tokenService.verifyMfaEnrollmentToken(input.enrollmentToken);
+
+    if (payload.sub !== input.userId) {
+      throw new UnauthorizedException('MFA enrollment is invalid');
+    }
+
+    const user = await this.authRepository.findUserById(input.userId);
+
+    if (!user || !canUserLogin(user)) {
+      throw new UnauthorizedException('Authentication required');
+    }
+
+    if (!verifyTotpCode({ code: input.code, secret: payload.secret })) {
+      await this.recordAudit({
+        action: 'auth.mfa_enrollment_failed',
+        actorUserId: user.id,
+        context: input.context,
+        entityId: user.id,
+      });
+      throw new UnauthorizedException('Invalid MFA code');
+    }
+
+    const updatedUser = await this.authRepository.updateUserMfa({
+      mfaEnabledAt: new Date(),
+      mfaMethod: 'totp',
+      mfaSecretEncrypted: encryptMfaSecret(payload.secret, this.getMfaEncryptionKey()),
+      userId: user.id,
+    });
+
+    if (!updatedUser) {
+      throw new UnauthorizedException('Authentication required');
+    }
+
+    await this.recordAudit({
+      action: 'auth.mfa_enabled',
+      actorUserId: user.id,
+      context: input.context,
+      entityId: user.id,
+    });
+
+    return this.toSafeUser(updatedUser);
+  }
+
+  async disableMfa(input: {
+    code: string;
+    context: RequestContext;
+    userId: string;
+  }): Promise<SafeUser> {
+    const user = await this.authRepository.findUserById(input.userId);
+
+    if (!user || !canUserLogin(user)) {
+      throw new UnauthorizedException('Authentication required');
+    }
+
+    if (!isMfaEnabled(user)) {
+      return this.toSafeUser(user);
+    }
+
+    if (!this.verifyUserTotp(user, input.code)) {
+      await this.recordAudit({
+        action: 'auth.mfa_disable_failed',
+        actorUserId: user.id,
+        context: input.context,
+        entityId: user.id,
+      });
+      throw new UnauthorizedException('Invalid MFA code');
+    }
+
+    const updatedUser = await this.authRepository.updateUserMfa({
+      mfaEnabledAt: null,
+      mfaMethod: null,
+      mfaSecretEncrypted: null,
+      userId: user.id,
+    });
+
+    if (!updatedUser) {
+      throw new UnauthorizedException('Authentication required');
+    }
+
+    await this.recordAudit({
+      action: 'auth.mfa_disabled',
+      actorUserId: user.id,
+      context: input.context,
+      entityId: user.id,
+    });
+
+    return this.toSafeUser(updatedUser);
+  }
+
+  async completeMfaChallenge(input: {
+    challengeToken: string | undefined;
+    code: string;
+    context: RequestContext;
+  }): Promise<AuthenticatedResult> {
+    if (!input.challengeToken) {
+      throw new UnauthorizedException('MFA challenge is required');
+    }
+
+    const payload = await this.tokenService.verifyMfaChallengeToken(input.challengeToken);
+    const user = await this.authRepository.findUserById(payload.sub);
+
+    if (!user || !canUserLogin(user) || !isMfaEnabled(user)) {
+      throw new UnauthorizedException('MFA challenge has expired or is invalid');
+    }
+
+    if (!this.verifyUserTotp(user, input.code)) {
+      await this.recordAudit({
+        action: 'auth.mfa_challenge_failed',
+        actorUserId: user.id,
+        context: input.context,
+        entityId: user.id,
+      });
+      throw new UnauthorizedException('Invalid MFA code');
+    }
+
+    await this.recordSuccessfulLogin(user, input.context);
+    await this.recordAudit({
+      action: 'auth.mfa_challenge_completed',
+      actorUserId: user.id,
+      context: input.context,
+      entityId: user.id,
+    });
+
+    return this.issueAuthResult(user, input.context);
+  }
+
+  async completeOAuthLogin(input: {
+    context: RequestContext;
+    profile: OAuthProfile;
+  }): Promise<AuthResult> {
+    await this.systemParameters.assertLoginEnabled();
+    const profile = this.validateOAuthProfile(input.profile);
+    const linkedAccount = await this.authRepository.findOAuthAccount(
+      profile.provider,
+      profile.providerSubject,
+    );
+
+    if (linkedAccount) {
+      const linkedUser = await this.authRepository.findUserById(linkedAccount.userId);
+      if (!linkedUser || !canUserLogin(linkedUser)) {
+        throw new UnauthorizedException('OAuth account is not available');
+      }
+
+      await this.recordAudit({
+        action: 'auth.oauth_login_completed',
+        actorUserId: linkedUser.id,
+        context: input.context,
+        entityId: linkedAccount.id,
+        metadata: { provider: profile.provider },
+      });
+
+      if (isMfaEnabled(linkedUser)) {
+        return this.createMfaChallenge(linkedUser, input.context);
+      }
+
+      await this.recordSuccessfulLogin(linkedUser, input.context);
+      return this.issueAuthResult(linkedUser, input.context);
+    }
+
+    const existingUser = await this.authRepository.findUserByEmail(profile.email);
+    if (existingUser) {
+      await this.recordAudit({
+        action: 'auth.oauth_login_failed',
+        actorUserId: existingUser.id,
+        context: input.context,
+        entityId: existingUser.id,
+        metadata: { provider: profile.provider, reason: 'existing_email_requires_link' },
+      });
+      throw new ConflictException(
+        'This email already has an account. Sign in with your password, then link this provider in settings.',
+      );
+    }
+
+    await this.systemParameters.assertRegistrationEnabled();
+    const user = await this.authRepository.createUser({
+      avatarUrl: profile.avatarUrl,
+      displayName: profile.displayName,
+      email: profile.email,
+      emailVerifiedAt: new Date(),
+      passwordHash: createOAuthOnlyPasswordHash(),
+      status: 'active',
+    });
+
+    await this.authRepository.assignUserRole(user.id);
+    const account = await this.authRepository.createOAuthAccount({
+      provider: profile.provider,
+      providerSubject: profile.providerSubject,
+      userId: user.id,
+      verifiedEmail: profile.email,
+    });
+
+    await this.recordAudit({
+      action: 'auth.oauth_login_completed',
+      actorUserId: user.id,
+      context: input.context,
+      entityId: account.id,
+      metadata: { provider: profile.provider, registration: 'oauth' },
+    });
+
+    await this.recordSuccessfulLogin(user, input.context);
+    return this.issueAuthResult(user, input.context);
+  }
+
+  async linkOAuthProvider(input: {
+    context: RequestContext;
+    profile: OAuthProfile;
+    userId: string;
+  }): Promise<{ linked: true; provider: OAuthProvider }> {
+    const profile = this.validateOAuthProfile(input.profile);
+    const user = await this.authRepository.findUserById(input.userId);
+
+    if (!user || !canUserLogin(user)) {
+      throw new UnauthorizedException('Authentication required');
+    }
+
+    if (normalizeEmail(user.email) !== profile.email) {
+      await this.recordAudit({
+        action: 'auth.oauth_link_failed',
+        actorUserId: user.id,
+        context: input.context,
+        entityId: user.id,
+        metadata: { provider: profile.provider, reason: 'email_mismatch' },
+      });
+      throw new BadRequestException('The provider email must match your account email');
+    }
+
+    const existingAccount = await this.authRepository.findOAuthAccount(
+      profile.provider,
+      profile.providerSubject,
+    );
+    if (existingAccount && existingAccount.userId !== user.id) {
+      throw new ConflictException('This provider account is already linked to another user');
+    }
+
+    const linkedAccounts = await this.authRepository.listOAuthAccounts(user.id);
+    if (!linkedAccounts.some((account) => account.provider === profile.provider)) {
+      const account = await this.authRepository.createOAuthAccount({
+        provider: profile.provider,
+        providerSubject: profile.providerSubject,
+        userId: user.id,
+        verifiedEmail: profile.email,
+      });
+      await this.recordAudit({
+        action: 'auth.oauth_link_completed',
+        actorUserId: user.id,
+        context: input.context,
+        entityId: account.id,
+        metadata: { provider: profile.provider },
+      });
+    }
+
+    return { linked: true, provider: profile.provider };
+  }
+
+  listOAuthAccounts(userId: string) {
+    return this.authRepository.listOAuthAccounts(userId).then((accounts) =>
+      accounts.map((account) => ({
+        connectedAt: account.createdAt,
+        provider: account.provider,
+        verifiedEmail: account.verifiedEmail,
+      })),
+    );
+  }
+
+  async unlinkOAuthProvider(input: {
+    context: RequestContext;
+    provider: OAuthProvider;
+    userId: string;
+  }): Promise<{ provider: OAuthProvider; unlinked: true }> {
+    const user = await this.authRepository.findUserById(input.userId);
+
+    if (!user || !canUserLogin(user)) {
+      throw new UnauthorizedException('Authentication required');
+    }
+
+    const linkedAccounts = await this.authRepository.listOAuthAccounts(user.id);
+    const hasProvider = linkedAccounts.some((account) => account.provider === input.provider);
+
+    if (!hasProvider) {
+      throw new UnprocessableEntityException('Provider is not linked');
+    }
+
+    if (!hasUsablePassword(user) && linkedAccounts.length <= 1) {
+      throw new ConflictException(
+        'Add a password or another provider before unlinking this provider',
+      );
+    }
+
+    await this.authRepository.deleteOAuthAccount(user.id, input.provider);
+    await this.recordAudit({
+      action: 'auth.oauth_unlinked',
+      actorUserId: user.id,
+      context: input.context,
+      entityId: user.id,
+      metadata: { provider: input.provider },
+    });
+
+    return { provider: input.provider, unlinked: true };
+  }
+
+  async recordOAuthStart(input: {
+    actorUserId?: string;
+    context: RequestContext;
+    mode: 'link' | 'login';
+    provider: OAuthProvider;
+    returnTo: string;
+  }): Promise<void> {
+    await this.recordAudit({
+      action: input.mode === 'link' ? 'auth.oauth_link_started' : 'auth.oauth_login_started',
+      actorUserId: input.actorUserId,
+      context: input.context,
+      entityId: input.actorUserId,
+      metadata: {
+        provider: input.provider,
+        returnTo: input.returnTo,
+      },
+    });
+  }
+
   createCsrfToken() {
     return createTokenSecret(32);
   }
 
-  async refresh(refreshToken: string | undefined, context: RequestContext): Promise<AuthResult> {
+  async refresh(
+    refreshToken: string | undefined,
+    context: RequestContext,
+  ): Promise<AuthenticatedResult> {
     const parsedToken = parseRefreshToken(refreshToken);
     const session = await this.authRepository.findSessionById(parsedToken.sessionId);
 
@@ -369,12 +769,16 @@ export class AuthService {
       avatarUrl: user.avatarUrl,
       status: user.status,
       emailVerifiedAt: user.emailVerifiedAt,
+      mfaEnabled: isMfaEnabled(user),
       roles,
       permissions,
     };
   }
 
-  private async issueAuthResult(user: UserOrmEntity, context: RequestContext): Promise<AuthResult> {
+  private async issueAuthResult(
+    user: UserOrmEntity,
+    context: RequestContext,
+  ): Promise<AuthenticatedResult> {
     const refreshSecret = createRefreshSecret();
     const refreshTokenHash = await this.passwordHasher.hash(refreshSecret);
     const session = await this.authRepository.createSession({
@@ -429,6 +833,68 @@ export class AuthService {
       ipAddress: context.ipAddress,
       userAgent: context.userAgent,
     });
+  }
+
+  private async recordSuccessfulLogin(user: UserOrmEntity, context: RequestContext) {
+    await this.authRepository.recordLogin({
+      userId: user.id,
+      email: user.email,
+      success: true,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+    });
+    await this.recordAudit({
+      action: 'auth.login',
+      actorUserId: user.id,
+      context,
+      entityId: user.id,
+    });
+  }
+
+  private async createMfaChallenge(
+    user: UserOrmEntity,
+    context: RequestContext,
+  ): Promise<AuthResult> {
+    await this.recordAudit({
+      action: 'auth.mfa_challenge_created',
+      actorUserId: user.id,
+      context,
+      entityId: user.id,
+    });
+
+    return {
+      challengeExpiresInSeconds: MFA_CHALLENGE_EXPIRES_IN_SECONDS,
+      challengeToken: await this.tokenService.signMfaChallengeToken(user.id),
+      mfaRequired: true,
+    };
+  }
+
+  private validateOAuthProfile(profile: OAuthProfile): OAuthProfile & { email: string } {
+    if (!profile.email || !profile.emailVerified) {
+      throw new UnauthorizedException('OAuth provider did not return a verified email');
+    }
+
+    return {
+      ...profile,
+      email: normalizeEmail(profile.email),
+    };
+  }
+
+  private verifyUserTotp(user: UserOrmEntity, code: string) {
+    if (!isMfaEnabled(user) || !user.mfaSecretEncrypted) {
+      return false;
+    }
+
+    try {
+      const secret = decryptMfaSecret(user.mfaSecretEncrypted, this.getMfaEncryptionKey());
+      return verifyTotpCode({ code, secret });
+    } catch {
+      return false;
+    }
+  }
+
+  private getMfaEncryptionKey() {
+    return this.config.getOrThrow<string>('COOKIE_SECRET');
   }
 
   private getRefreshExpiry() {
@@ -500,6 +966,18 @@ function normalizeEmail(email: string) {
 function canUserLogin(user: UserOrmEntity) {
   const lockExpired = !user.lockedUntil || user.lockedUntil.getTime() <= Date.now();
   return lockExpired && (user.status === 'active' || user.status === 'pending_verification');
+}
+
+function isMfaEnabled(user: UserOrmEntity) {
+  return Boolean(user.mfaEnabledAt && user.mfaMethod === 'totp' && user.mfaSecretEncrypted);
+}
+
+function hasUsablePassword(user: UserOrmEntity) {
+  return !user.passwordHash.startsWith(OAUTH_ONLY_PASSWORD_HASH_PREFIX);
+}
+
+function createOAuthOnlyPasswordHash() {
+  return `${OAUTH_ONLY_PASSWORD_HASH_PREFIX}${randomUUID()}`;
 }
 
 function createRefreshSecret() {

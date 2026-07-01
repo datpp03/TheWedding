@@ -1,8 +1,11 @@
 import type { ApiResponse } from '@the-wedding/shared';
 import { createThemeFromPreset, normalizeTheme } from '@the-wedding/shared';
+import type { Metadata } from 'next';
 import { PublicGallery } from '@/features/media/public-gallery';
 import type { PublicGallery as PublicGalleryData } from '@/features/media/media-api';
 import type { PublicTenant } from '@/features/tenants/tenant-api';
+import { t } from '@/lib/i18n/locales';
+import { absoluteAppUrl, absoluteMediaUrl, getApiBaseUrl } from '@/lib/seo';
 
 type PageProps = {
   params: Promise<{
@@ -12,6 +15,56 @@ type PageProps = {
     password?: string;
   }>;
 };
+
+export async function generateMetadata({ params }: Pick<PageProps, 'params'>): Promise<Metadata> {
+  const { siteSlug } = await params;
+  const site = await fetchPublicSite(siteSlug);
+
+  if (!site || site.requiresPassword || site.visibility !== 'public') {
+    return {
+      title: t('public.site.notFoundTitle'),
+      robots: {
+        follow: false,
+        index: false,
+      },
+    };
+  }
+
+  const title = site.seo.title || site.sharing.headline || site.siteName;
+  const description =
+    site.seo.description ||
+    site.sharing.summary ||
+    site.settings.welcomeMessage ||
+    site.description ||
+    t('public.site.metaDescription');
+  const image = absoluteMediaUrl(
+    site.seo.imageUrl || site.sharing.imageUrl || site.settings.coverImageUrl,
+  );
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/${site.slug}`,
+    },
+    openGraph: {
+      title,
+      description,
+      images: image ? [{ url: image }] : undefined,
+      type: 'website',
+      url: absoluteAppUrl(`/${site.slug}`),
+    },
+    robots: {
+      follow: true,
+      index: true,
+      googleBot: {
+        follow: true,
+        index: true,
+        'max-image-preview': 'large',
+      },
+    },
+  };
+}
 
 export default async function PublicSitePage({ params, searchParams }: PageProps) {
   const { siteSlug } = await params;
@@ -24,9 +77,9 @@ export default async function PublicSitePage({ params, searchParams }: PageProps
       <main className="grid min-h-screen place-items-center bg-pearl px-4">
         <section className="max-w-md rounded-md border border-neutral-200 bg-white p-6 text-center shadow-sm">
           <p className="text-sm font-semibold uppercase text-sage">404</p>
-          <h1 className="mt-2 text-2xl font-semibold text-ink">Site not found</h1>
+          <h1 className="mt-2 text-2xl font-semibold text-ink">{t('public.site.notFoundTitle')}</h1>
           <p className="mt-2 text-sm leading-6 text-neutral-600">
-            This wedding site is unavailable or the slug has changed.
+            {t('public.site.notFoundDescription')}
           </p>
         </section>
       </main>
@@ -37,19 +90,21 @@ export default async function PublicSitePage({ params, searchParams }: PageProps
     return (
       <main className="grid min-h-screen place-items-center bg-pearl px-4">
         <form className="w-full max-w-md rounded-md border border-neutral-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-semibold uppercase text-sage">Private celebration</p>
+          <p className="text-sm font-semibold uppercase text-sage">
+            {t('public.site.privateKicker')}
+          </p>
           <h1 className="mt-2 text-2xl font-semibold text-ink">{site.siteName}</h1>
           <p className="mt-2 text-sm leading-6 text-neutral-600">
-            Enter the access password shared by the couple to view this wedding site.
+            {t('public.site.passwordDescription')}
           </p>
           <input
             className="mt-5 h-11 w-full rounded-md border-neutral-300"
             name="password"
-            placeholder="Access password"
+            placeholder={t('public.site.accessPassword')}
             type="password"
           />
           <button className="mt-3 h-11 w-full rounded-md bg-ink text-sm font-semibold text-white">
-            Unlock site
+            {t('public.site.unlockSite')}
           </button>
         </form>
       </main>
@@ -181,9 +236,8 @@ export default async function PublicSitePage({ params, searchParams }: PageProps
 }
 
 async function fetchPublicSite(slug: string, password?: string) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
   const params = password ? `?password=${encodeURIComponent(password)}` : '';
-  const response = await fetch(`${apiUrl}/api/v1/public/sites/${slug}${params}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/public/sites/${slug}${params}`, {
     cache: 'no-store',
   }).catch(() => null);
 
@@ -200,8 +254,7 @@ async function fetchPublicSite(slug: string, password?: string) {
 }
 
 async function fetchPublicGallery(slug: string) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-  const response = await fetch(`${apiUrl}/api/v1/public/sites/${slug}/gallery`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/public/sites/${slug}/gallery`, {
     cache: 'no-store',
   }).catch(() => null);
 
@@ -211,9 +264,4 @@ async function fetchPublicGallery(slug: string) {
 
   const payload = (await response.json()) as ApiResponse<PublicGalleryData>;
   return payload.success ? payload.data : null;
-}
-
-function absoluteMediaUrl(url: string) {
-  if (/^https?:\/\//.test(url)) return url;
-  return `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'}${url}`;
 }

@@ -1,4 +1,4 @@
-# Cloudflare R2 Setup Cho Media Upload
+﻿# Cloudflare R2 Setup Cho Media Upload
 
 Guide này dùng khi chuyển production media từ Render local disk sang Cloudflare R2. Mục tiêu hiện tại là làm upload, xử lý ảnh và xem/tải ảnh chạy ổn định hơn bằng API-managed upload: trình duyệt gửi file lên API, API ghi object vào R2 qua server credentials.
 

@@ -15,6 +15,7 @@ describe(PublicAlbumsService.name, () => {
     createdAt: new Date(),
     description: 'Public memories',
     id: 'album-1',
+    slug: 'ceremony-album-1',
     tenantId: 'tenant-1',
     title: 'Ceremony',
     visibility: ALBUM_VISIBILITY.PUBLIC,
@@ -154,6 +155,17 @@ describe(PublicAlbumsService.name, () => {
     await expect(privateService.getPublicAlbum('album-1')).rejects.toBeInstanceOf(
       NotFoundException,
     );
+  });
+
+  it('resolves public albums by slug for readable public URLs', async () => {
+    const { albums, service } = createService();
+
+    await expect(service.getPublicAlbum('ceremony-album-1')).resolves.toMatchObject({
+      id: 'album-1',
+      slug: 'ceremony-album-1',
+    });
+
+    expect(albums.findOne).toHaveBeenCalledWith({ where: { slug: 'ceremony-album-1' } });
   });
 
   it('returns a permission-checked public file URL for ready images without stored public URLs', async () => {

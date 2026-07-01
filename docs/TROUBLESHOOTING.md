@@ -1,4 +1,4 @@
-# Troubleshooting
+﻿# Troubleshooting
 
 ## Node or pnpm Not Found
 
@@ -60,3 +60,72 @@ See `docs/guides/CI_CD_DOCKER_VPS.md` for the full setup.
 - VPS pulls old image: confirm `.env.production` uses the expected `IMAGE_TAG`, then run `docker compose --env-file .env.production -f docker-compose.prod.yml pull`.
 - Container restarts but app is down: check `docker compose --env-file .env.production -f docker-compose.prod.yml logs --tail=100 api` and `web`, then verify `.env.production`.
 - Rollback needed: pin `IMAGE_TAG` to a previous commit SHA and run `docker compose --env-file .env.production -f docker-compose.prod.yml pull` followed by `docker compose --env-file .env.production -f docker-compose.prod.yml up -d`.
+
+## Next Dev Missing Chunk Or Layout CSS 404
+
+Symptom:
+
+- Browser console or Web log shows `Cannot find module './913.js'`.
+- `apps/web/.next/server/webpack-runtime.js` is in the require stack.
+- `/_next/static/css/app/layout.css` may return 404.
+
+Cause:
+
+- Next dev cache in `apps/web/.next` is stale or partially rebuilt, commonly after running dev/build at the same time or after restarting during compilation.
+- `Download the React DevTools...` is only an informational browser message and is not the cause.
+
+Fix:
+
+1. Stop Web in `RUN_LOCAL_CONTROL.cmd` / `pnpm local:control`.
+2. Choose menu item `18. Clear Web .next cache`.
+3. Start Web again with menu item `2` or `3`.
+4. Refresh `http://localhost:3000`.
+
+Expected result:
+
+- Web log recompiles `/` cleanly.
+- `http://localhost:3000` returns HTTP 200.
+
+## Robots, Sitemap Hoặc Canonical Trỏ Về Localhost
+
+Symptom:
+
+- Production `robots.txt`, `sitemap.xml`, canonical link, hoặc Open Graph URL hiển thị `http://localhost:3000`.
+
+Cause:
+
+- Web app được build/deploy mà chưa set `NEXT_PUBLIC_APP_URL` đúng production origin.
+
+Fix:
+
+1. Trên Vercel/VPS/web host, set `NEXT_PUBLIC_APP_URL=https://thewedding.d-ajt.app` hoặc domain production tương ứng.
+2. Set `NEXT_PUBLIC_API_URL` về API public origin, ví dụ `https://thewedding-api.d-ajt.app`.
+3. Redeploy/rebuild web app.
+4. Mở lại `/robots.txt`, `/sitemap.xml`, public home và public album để kiểm tra URL.
+
+Expected result:
+
+- Robots `Host` và `Sitemap` dùng production domain.
+- Sitemap URL và canonical/Open Graph URL không còn trỏ localhost.
+
+## API Album List Fails With Missing Slug Column
+
+Symptom:
+
+- `/api/v1/tenants/{tenantId}/albums` or `/api/v1/public/home` returns `INTERNAL_SERVER_ERROR`.
+- API log shows `QueryFailedError: column AlbumOrmEntity.slug does not exist`.
+
+Cause:
+
+- The API code expects the album public slug column, but the local/host database has not run the latest migrations.
+
+Fix:
+
+1. Open `RUN_LOCAL_CONTROL.cmd` / `pnpm local:control`.
+2. Choose menu item `19. Run API migrations`.
+3. Refresh the browser or retry the API request.
+
+Expected result:
+
+- Public home and album list no longer fail because `albums.slug` exists.
+- Existing album URLs get readable slugs such as `dam-cuoi-mien-tay-5f9f9361`.

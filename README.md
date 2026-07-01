@@ -13,6 +13,7 @@ packages/config Shared TypeScript, ESLint, and formatting config
 docs            Product, architecture, security, API, and delivery docs
 docker          Runtime Dockerfiles and production env templates
 scripts         Local setup and operational helpers
+RUN_LOCAL_CONTROL.cmd  Double-click local control panel for API/Web/logs
 ```
 
 ## Prerequisites
@@ -26,13 +27,20 @@ scripts         Local setup and operational helpers
 
 ```bash
 pnpm install
+docker compose up -d postgres redis
+pnpm --filter @the-wedding/api migration:run
+pnpm --filter @the-wedding/api seed:roles
 pnpm lint
 pnpm typecheck
+pnpm test
 pnpm build
-docker compose up -d postgres redis
+pnpm local:control
 ```
 
-Runtime tools are not currently available in this Codex environment, so dependency installation and builds have not been executed here.
+On Windows PowerShell, use `pnpm.cmd` if script execution policy blocks `pnpm.ps1`.
+
+For production SEO metadata, set `NEXT_PUBLIC_APP_URL` to the deployed web origin and
+`NEXT_PUBLIC_API_URL` to the deployed API origin before building the web app.
 
 ## Documentation
 
@@ -44,6 +52,7 @@ Start with:
 - [Database Design](docs/DATABASE_DESIGN.md)
 - [API Design](docs/API_DESIGN.md)
 - [Auth & Security](docs/AUTH_SECURITY.md)
+- [AI Frontend Taste Skill Rule](docs/ai/taste-skill-integration.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Guides](docs/guides/README.md)
 - [CI/CD Docker VPS Guide](docs/guides/CI_CD_DOCKER_VPS.md)

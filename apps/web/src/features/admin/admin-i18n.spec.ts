@@ -13,6 +13,10 @@ const adminKeys = [
   'admin.systemParameters.disableDownloads',
   'admin.systemParameters.disablePublicGallery',
   'admin.systemParameters.disablePayment',
+  'language.label',
+  'language.vi',
+  'language.en',
+  'language.ja',
   'admin.empty.audit',
   'media.processing.pending',
   'media.processing.processing',
@@ -21,10 +25,37 @@ const adminKeys = [
   'media.actions.retry',
 ];
 
+const authKeys = [
+  'auth.login.title',
+  'auth.login.submit',
+  'auth.mfa.title',
+  'auth.mfa.verify',
+  'auth.oauth.google',
+  'auth.oauth.facebook',
+  'auth.security.title',
+  'auth.security.startMfa',
+  'auth.security.linkProvider',
+  'dashboard.settings.title',
+];
+
+const publicKeys = [
+  'public.home.metaTitle',
+  'public.home.title',
+  'public.home.todayTitle',
+  'public.home.weekTitle',
+  'public.card.openAlbum',
+  'public.site.notFoundTitle',
+  'public.album.notFoundTitle',
+  'public.album.gallery',
+  'social.title',
+  'social.sendWish',
+  'social.emptyWishes',
+];
+
 describe('admin i18n smoke', () => {
   it('has admin terminology in every supported locale', () => {
     for (const locale of locales) {
-      for (const key of adminKeys) {
+      for (const key of [...adminKeys, ...authKeys, ...publicKeys]) {
         expect(dictionaries[locale][key]).toBeTruthy();
         expect(t(key, locale)).not.toBe(key);
       }

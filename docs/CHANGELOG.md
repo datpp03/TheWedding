@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Internal Taste Skill frontend integration guide in `docs/ai/taste-skill-integration.md` plus Cursor rule `.cursor/rules/taste-skill-frontend.mdc` for contextual UI/design work without changing runtime business logic.
+- `y-tuong-nang-cap/` idea backlog with one file per upgrade idea, grouped by guest interaction, media experience, product/revenue, and operations/quality, plus a reusable idea template.
+- `viec-can-lam/` task backlog with per-item runbooks split by urgency (`00_khan_cap`, `01_uu_tien`, `02_co_the_doi`, `03_quyet_dinh_san_pham`, `99_da_xu_ly`) plus a reusable task template.
 - Phase 7 media processing pipeline with BullMQ/Redis integration, local inline fallback, Sharp image derivatives, media version upserts, retry/failure tracking, and storage usage recalculation.
 - Owner media dashboard processing badges for queued, processing, ready, failed, and retry states with polling for active jobs.
 - Public gallery optimized-derivative display with processing placeholders so original media remains private by default.
@@ -28,15 +31,28 @@ All notable changes to this project will be documented in this file.
 - Database migration for `user_public_handles`, `plan_subscriptions`, `entitlements`, `payment_events`, `custom_domains`, `studio_profiles`, `studio_clients`, `analytics_events`, and `greeting_rules`.
 - Locale keys for the new admin Scale surface in Vietnamese, English, and Japanese.
 - SEO/GEO guideline document covering canonical URLs, robots/noindex, sitemap, structured data, AI crawler policy, public route privacy, media metadata, and verification.
-- Prompt handoff rules now require each `VIEC_CAN_LAM.md` item to include detailed execution instructions, prerequisites, exact places to configure/check, verification steps, and related docs.
+- Prompt handoff rules now require each task file in `viec-can-lam/` to include detailed execution instructions, prerequisites, exact places to configure/check, verification steps, and related docs.
 - SMTP auth email delivery using configured host/user/password/from settings for password reset and email verification links.
 - S3-compatible Cloudflare R2 storage adapter for API-managed media uploads, reads, deletes, and public derivative URL generation when a public base URL is configured.
 - Cloudflare R2 setup guide for bucket creation, access keys, Render env configuration, smoke tests, and rollback.
 - Persistent browser session restoration task in the auth roadmap and 08A prompt, covering browser close/reopen, hard refresh, homepage auth-state restoration, and logout/revoke regression requirements.
 - Phase 9 media upload usage gates now enforce active tenant/user plan limits plus admin entitlements for storage quota, photo/video counts, max file size, and video-upload access before storage writes.
+- Dashboard sidebar language switcher for Vietnamese, English, and Japanese with persisted local preference.
+- Windows local control panel for starting/stopping API and Web dev servers, viewing logs/errors, opening local URLs, and running verification commands from one terminal menu.
+- Public album slugs with a title-derived readable prefix plus stable short id suffix, including database backfill for existing albums.
+- Prompt `08f_public_site_visual_redesign_ui_qa.md` with a detailed plan to redesign the public wedding site UI, responsive states, accessibility, and SEO/GEO privacy checks.
+- Realtime/webhook plan and prompt covering event outbox, SSE browser updates, signed inbound provider webhooks, signed outbound webhooks, retry/dead-letter behavior, and privacy-safe event payloads.
+- Prompt 08A auth completion: TOTP MFA enrollment/challenge/disable, Google/Facebook OAuth callback exchange/link/unlink, verified-email-only OAuth user creation, no-silent-merge guard for existing accounts, and account security UI in dashboard settings.
+- Auth tests for production token hiding, MFA flows, OAuth verified-email/linking rules, signed OAuth state, env-driven auth cookie TTL, and auth i18n key coverage.
+- Prompt 09 release SEO hardening: Next.js `robots.txt` and `sitemap.xml` metadata routes, shared canonical URL helper, public home/site/album canonical/Open Graph metadata, and public album JSON-LD for indexable albums.
+- Public home, public album card, and public album social-panel copy now has Vietnamese, English, and Japanese i18n keys.
 
 ### Changed
 
+- Final release scope now explicitly accepts Phase 9 as a safe foundation release with unfinished scale capabilities kept behind placeholders, gates, admin-only controls, or follow-up prompts; Cloudflare R2 remains documented as integrated for API-managed uploads but still requires production credential setup and smoke tests before relying on it.
+- Frontend prompt and documentation workflow now requires Taste Skill rule review before UI, layout, component, form, dashboard, public page, redesign, accessibility, or responsive QA work.
+- Prompt handoff now uses `viec-can-lam/README.md` and `y-tuong-nang-cap/README.md` as folder indexes; root-level handoff files were removed after their contents moved into structured folders.
+- `viec-can-lam/README.md` is now a concise index linking to task files in `viec-can-lam/`; AGENTS and prompt handoff rules now require future prompts to create/update task files instead of adding long runbooks to the root file.
 - Uploads now return queued media instead of marking originals ready immediately; normal display prefers optimized images when processing completes.
 - Media storage accounting now includes generated derivatives in preparation for Phase 9 plan/storage enforcement.
 - [NEW] Expanded future scale prompts to include B2C SaaS plans, B2B studio workflows, add-ons, admin theme control, dynamic contextual themes, automated greetings, and UI design-gate verification.
@@ -50,7 +66,7 @@ All notable changes to this project will be documented in this file.
 - The web root now renders public album discovery instead of redirecting users to the dashboard/login flow.
 - R2 and MoMo env placeholders are documented and validated as optional values, while production remains on local storage and no public payment webhook is exposed yet.
 - Product plan, roadmap, testing strategy, UI/UX rules, agent rules, and prompt workflow now require SEO/GEO checks for public-facing route/content/metadata work.
-- `VIEC_CAN_LAM.md` now includes a concrete item template so future handoff notes are actionable mini-runbooks instead of short task labels.
+- `viec-can-lam/_TEMPLATE.md` now provides a concrete task template so future handoff notes are actionable mini-runbooks instead of short task labels.
 - Mail environment docs and host guide now use `SMTP_PASSWORD`, `SMTP_SECURE`, and `SMTP_FROM` consistently for Brevo-compatible SMTP setup.
 - Creating a wedding site from the dashboard now refreshes the auth session so newly granted tenant access is available before creating albums or uploading media.
 - Media image uploads now honor configured `MAX_UPLOAD_BYTES` instead of a hard-coded 15 MB ceiling, and media processing falls back to inline mode if the Redis queue is unavailable.
@@ -63,6 +79,18 @@ All notable changes to this project will be documented in this file.
 - Public album detail now falls back to permission-checked public media file URLs when processed media lacks stored optimized URLs, and the album page layout has a softer hero/gallery presentation.
 - Removed unnecessary typed-route assertions that caused GitHub Actions web lint to fail on Linux CI; login now uses a browser redirect after successful sign-in to avoid typed-route cast drift.
 - Added pnpm security overrides for `multer`, `postcss`, and `js-yaml` so GitHub Actions audit no longer reports known moderate/high vulnerabilities.
+- `/dashboard/themes` now follows the selected dashboard locale instead of a hard-coded Vietnamese locale, and its editor form stays single-column until wider screens to avoid cramped controls beside the sidebar.
+- Starting Web from the local control panel now opens `http://localhost:3000` automatically.
+- Starting Web from the local control panel now clears stale `apps/web/.next` first, and the menu includes a manual Web cache clear action for corrupted Next dev chunks.
+- Local control panel now includes an API migration action, and album slug backfill now normalizes Vietnamese titles into readable ASCII slugs.
+- Public album cards now link to slug URLs, while legacy UUID album URLs continue to resolve and redirect to the slug when available.
+- Prompt workflow now includes a dedicated public wedding site visual redesign pass before broad Phase 9 scale features.
+- Prompt workflow now includes a dedicated realtime webhook/event platform pass before broad Phase 9 scale features.
+- Refresh-token cookies now use `REFRESH_TOKEN_EXPIRES_IN`, access-token cookies use `ACCESS_TOKEN_EXPIRES_IN`, and the web client silently refreshes auth state on app/public-home/dashboard boot when the refresh cookie is still valid.
+- Auth, dashboard, and admin route groups now declare noindex robots metadata; public home can show signed-in navigation without exposing private tenant/admin data or redirecting away from discovery.
+- SMTP auth email delivery supports `SMTP_REPLY_TO` and unauthenticated local SMTP relays, while production reset/verification tokens remain hidden from API payloads.
+- README first-run instructions now include migration/seed/test steps and the Windows `pnpm.cmd` workaround.
+- Deployment/env docs now include `NEXT_PUBLIC_APP_URL` for production canonical, robots, sitemap, and Open Graph URL generation.
 
 ## 0.1.0 - 2026-06-12
 

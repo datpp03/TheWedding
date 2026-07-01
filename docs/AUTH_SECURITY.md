@@ -1,4 +1,4 @@
-# Auth & Security
+﻿# Auth & Security
 
 ## Authentication
 
@@ -11,20 +11,23 @@
 - Refresh token reuse revokes the session family.
 - Auth cookies use `HttpOnly`, environment-aware `Secure`, and `SameSite=Lax`.
 - Auth cookies are set with `Path=/` so the frontend can perform route protection and API requests consistently.
+- Access and refresh cookie lifetimes now follow `ACCESS_TOKEN_EXPIRES_IN` and `REFRESH_TOKEN_EXPIRES_IN`. The access token remains short-lived; the refresh cookie is persistent until its configured TTL or explicit revoke/logout.
 - CSRF protection is implemented for non-public mutations with a double-submit token from `GET /api/v1/auth/csrf`.
 - Public auth mutations such as login, register, forgot password, reset password, verify email, refresh, and logout are explicitly public. The frontend still sends CSRF headers for mutations where available.
 - Password reset and email verification tokens use `tokenId.secret`; only the secret hash is stored in PostgreSQL.
-- Development/local responses can expose reset or verification tokens because SMTP delivery is not wired yet. Production must not expose these tokens in responses.
-- Phase 8 adds MFA-ready user fields (`mfaEnabledAt`, `mfaMethod`, `mfaSecretEncrypted`) so TOTP enrollment can be implemented without another identity-table redesign. No MFA challenge is enabled until the OTP enrollment/verification flow ships.
+- Development/local responses can expose reset or verification tokens for QA speed. Production never returns reset or verification tokens in API payloads.
+- Password reset, email verification, and resend verification send SMTP email when `MAIL_PROVIDER=smtp` and SMTP host/from are configured. Provider errors are logged without raw tokens.
+- TOTP MFA is implemented using the existing `users.mfaEnabledAt`, `users.mfaMethod`, and `users.mfaSecretEncrypted` fields. MFA secrets are AES-GCM encrypted using server secret material, are not logged, and are only shown to the user during enrollment.
+- Login and OAuth for users with MFA enabled create a short-lived MFA challenge and do not issue full session cookies until a valid OTP is submitted.
 
 ## OAuth Login [NEW]
 
-- Google and Facebook login should reuse the existing session, cookie, CSRF, and audit model instead of creating a parallel auth path.
-- OAuth account linking must require verified provider identity rules and should avoid silently merging accounts unless the email is verified and the flow is explicitly safe.
+- Google and Facebook login reuse the existing session, cookie, CSRF, and audit model instead of creating a parallel auth path.
+- OAuth account linking requires verified provider email. Existing password accounts are not silently merged; users must sign in first and link the provider from account settings.
 - OAuth callback handling preserves a `returnTo` path for album wish/reaction flows only when it is a relative same-origin path or an explicitly allowlisted app URL.
 - Reject external or malformed `returnTo` values to prevent open redirect vulnerabilities.
 - Do not expose provider access tokens, refresh tokens, authorization codes, or provider secrets in frontend URLs, API responses, logs, or audit metadata.
-- Phase 7A implements safe OAuth start/callback routing and state validation. Provider callback exchange/account linking remains disabled until verified-email linking rules are confirmed.
+- OAuth state is HMAC-signed, includes a nonce and short expiry, and preserves only a validated safe `returnTo`. Provider callback exchange, userinfo fetch, verified-email login, safe new-user creation, explicit link, and unlink guard are implemented.
 
 ## Implemented Auth Endpoints
 
@@ -36,6 +39,13 @@
 - `POST /api/v1/auth/forgot-password`
 - `POST /api/v1/auth/reset-password`
 - `POST /api/v1/auth/verify-email`
+- `POST /api/v1/auth/resend-verification`
+- `POST /api/v1/auth/mfa/enrollment/start`
+- `POST /api/v1/auth/mfa/enrollment/verify`
+- `POST /api/v1/auth/mfa/challenge`
+- `DELETE /api/v1/auth/mfa`
+- `GET /api/v1/auth/oauth/linked/accounts`
+- `DELETE /api/v1/auth/oauth/linked/:provider`
 - `GET /api/v1/auth/me`
 - `GET /api/v1/auth/sessions`
 - `DELETE /api/v1/auth/sessions/:sessionId`
@@ -45,9 +55,22 @@
 
 - `auth.register`
 - `auth.login`
-- `auth.oauth_login_started` [planned]
-- `auth.oauth_login_completed` [planned]
-- `auth.oauth_login_failed` [planned]
+- `auth.email_verification_requested`
+- `auth.oauth_login_started`
+- `auth.oauth_login_completed`
+- `auth.oauth_login_failed`
+- `auth.oauth_link_started`
+- `auth.oauth_link_completed`
+- `auth.oauth_link_failed`
+- `auth.oauth_unlinked`
+- `auth.mfa_enrollment_started`
+- `auth.mfa_enrollment_failed`
+- `auth.mfa_enabled`
+- `auth.mfa_challenge_created`
+- `auth.mfa_challenge_failed`
+- `auth.mfa_challenge_completed`
+- `auth.mfa_disable_failed`
+- `auth.mfa_disabled`
 - `auth.refresh`
 - `auth.logout`
 - `auth.password_reset_requested`
@@ -105,3 +128,11 @@
 - Keep original media private unless explicitly public.
 - Signed URL TTL remains planned for Phase 9 signed URL endpoints. The S3-compatible/R2 adapter is available for API-managed uploads, while protected media still uses permission-checked API endpoints by default. Target default TTL is 900 seconds for future signed media URLs.
 - Add malware scanning integration when available.
+
+## Realtime And Webhook Security [NEW]
+
+- Browser realtime subscriptions must be authorized server-side for every requested channel; never trust a channel name sent by the client.
+- Public realtime channels may only send public-safe approved fields and must not expose private/unlisted albums, pending moderation content, payment/admin data, raw storage keys, signed URLs, provider payloads, emails, cookies, tokens, OTP/MFA values, or private EXIF/location.
+- Inbound provider webhooks must verify signature, timestamp tolerance, replay protection, and idempotency before changing application state.
+- Outbound webhooks must sign payloads with per-endpoint secrets, use bounded retry/dead-letter behavior, and never echo endpoint secrets after creation.
+- Event payloads stored in an outbox or delivery log must be redacted before persistence, following the audit metadata redaction policy.

@@ -4,11 +4,14 @@ import type { PermissionCode, RoleCode } from '@the-wedding/shared';
 import { Repository } from 'typeorm';
 import { UserOrmEntity } from '../../users/infrastructure/user.orm-entity';
 import { EmailVerificationTokenOrmEntity } from './email-verification-token.orm-entity';
+import { OAuthAccountOrmEntity } from './oauth-account.orm-entity';
 import { PasswordResetTokenOrmEntity } from './password-reset-token.orm-entity';
 import { UserLoginHistoryOrmEntity } from './user-login-history.orm-entity';
 import { UserSessionOrmEntity } from './user-session.orm-entity';
 
 export type CreateUserInput = {
+  avatarUrl?: string | null;
+  emailVerifiedAt?: Date | null;
   email: string;
   passwordHash: string;
   displayName: string;
@@ -55,6 +58,13 @@ export type CreateEmailVerificationTokenInput = {
   expiresAt: Date;
 };
 
+export type CreateOAuthAccountInput = {
+  provider: string;
+  providerSubject: string;
+  userId: string;
+  verifiedEmail: string | null;
+};
+
 @Injectable()
 export class TypeOrmAuthRepository {
   constructor(
@@ -68,6 +78,8 @@ export class TypeOrmAuthRepository {
     private readonly passwordResetTokens: Repository<PasswordResetTokenOrmEntity>,
     @InjectRepository(EmailVerificationTokenOrmEntity)
     private readonly emailVerificationTokens: Repository<EmailVerificationTokenOrmEntity>,
+    @InjectRepository(OAuthAccountOrmEntity)
+    private readonly oauthAccounts: Repository<OAuthAccountOrmEntity>,
   ) {}
 
   findUserByEmail(email: string): Promise<UserOrmEntity | null> {
@@ -81,6 +93,22 @@ export class TypeOrmAuthRepository {
   async createUser(input: CreateUserInput): Promise<UserOrmEntity> {
     const user = this.users.create(input);
     return this.users.save(user);
+  }
+
+  async updateUserMfa(input: {
+    mfaEnabledAt: Date | null;
+    mfaMethod: string | null;
+    mfaSecretEncrypted: string | null;
+    userId: string;
+  }): Promise<UserOrmEntity | null> {
+    await this.users.update(input.userId, {
+      mfaEnabledAt: input.mfaEnabledAt,
+      mfaMethod: input.mfaMethod,
+      mfaSecretEncrypted: input.mfaSecretEncrypted,
+      updatedAt: new Date(),
+    });
+
+    return this.findUserById(input.userId);
   }
 
   async updateUserPassword(userId: string, passwordHash: string): Promise<void> {
@@ -268,6 +296,36 @@ export class TypeOrmAuthRepository {
 
   async markEmailVerificationTokenUsed(id: string): Promise<void> {
     await this.emailVerificationTokens.update(id, { usedAt: new Date() });
+  }
+
+  findOAuthAccount(
+    provider: string,
+    providerSubject: string,
+  ): Promise<OAuthAccountOrmEntity | null> {
+    return this.oauthAccounts.findOne({ where: { provider, providerSubject, status: 'active' } });
+  }
+
+  listOAuthAccounts(userId: string): Promise<OAuthAccountOrmEntity[]> {
+    return this.oauthAccounts.find({
+      order: { createdAt: 'ASC' },
+      where: { status: 'active', userId },
+    });
+  }
+
+  async createOAuthAccount(input: CreateOAuthAccountInput): Promise<OAuthAccountOrmEntity> {
+    const account = this.oauthAccounts.create({
+      provider: input.provider,
+      providerSubject: input.providerSubject,
+      status: 'active',
+      userId: input.userId,
+      verifiedEmail: input.verifiedEmail,
+    });
+
+    return this.oauthAccounts.save(account);
+  }
+
+  async deleteOAuthAccount(userId: string, provider: string): Promise<void> {
+    await this.oauthAccounts.update({ provider, userId }, { status: 'unlinked' });
   }
 }
 

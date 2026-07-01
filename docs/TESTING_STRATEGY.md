@@ -1,4 +1,4 @@
-# Testing Strategy
+﻿# Testing Strategy
 
 ## Backend
 
@@ -29,6 +29,7 @@
 - Structured data must match visible, owner-approved content and must not include private EXIF/location, raw storage keys, tokens, audit metadata, or unapproved user-generated content.
 - GEO checks confirm public pages have crawlable, answerable content and AI crawler policy is documented in robots.txt before launch.
 - Locale checks include metadata and `hreflang`/alternate URLs when locale routing exists.
+- Prompt 09 local smoke covered the built web `/`, `/robots.txt`, and `/sitemap.xml`; a future CI smoke should automate canonical/Open Graph/JSON-LD and privacy filtering with public/unlisted/private fixtures.
 
 ## Security
 
@@ -36,11 +37,17 @@
 - Unauthorized and cross-tenant access denial.
 - Album privacy enforcement for public, unlisted/link-only, and private visibility.
 - OAuth `returnTo` validation and open-redirect rejection for Google/Facebook login flows.
+- OAuth provider callback tests must cover signed state validation, verified-email-only profiles, safe new-user creation, existing-email no-silent-merge, authenticated account linking, and unlink guard when no alternate login method exists.
+- MFA tests must cover TOTP enrollment, invalid OTP, login challenge without full session, challenge completion, disable MFA, and expired/invalid challenge behavior.
+- Persistent session tests must cover refresh cookie persistence according to `REFRESH_TOKEN_EXPIRES_IN`, access cookie short TTL, silent refresh on app boot/public home/dashboard visits, logout, revoke current session, revoke all sessions, expired refresh, and refresh-token reuse.
 - Authenticated-only wish/reaction mutations and rate-limit behavior.
 - Invalid file upload denial.
 - Expired token and refresh token reuse.
 - Download permission checks.
 - Audit log redaction: passwords, tokens, cookies, OTP codes, OAuth authorization codes, and provider secrets must not appear in logs or metadata.
+- Realtime/event payload redaction: public streams and webhook payloads must not include private/unlisted album data, signed URLs, raw storage keys, provider secrets, cookies, OTP/MFA values, private EXIF/location, or admin/payment data.
+- Inbound webhook tests must cover signature verification, timestamp tolerance, replay protection, duplicate provider-event idempotency, malformed payloads, and safe error responses.
+- Outbound webhook tests must cover HMAC signing, bounded retry/backoff, disabled endpoint state, dead-letter behavior, audited replay, and redacted delivery logs.
 - Phase 8 automated coverage includes invalid CSRF rejection, refresh token reuse family revocation, upload MIME/extension mismatch denial, tenant quota denial, cross-tenant denial, disabled registration/login/upload/download/public-gallery/payment assertions, fail-safe runtime setting defaults, and audit metadata redaction.
 
 ## Phase 8 UI QA Checklist
@@ -55,6 +62,8 @@
 
 - Plan gates enforce storage, media count, premium themes, custom domain, privacy/security, B2B, and add-on access.
 - Admin-granted entitlements override plans only within documented limits and write audit logs.
+- Realtime features must use authorized channels, reconnect/fallback states, and plan/feature gates for live event wall or outbound webhooks.
+- Public album realtime must include only public-safe approved data and must not reveal pending moderation, unlisted/private albums, raw tenant internals, or signed media.
 - Studio/B2B users cannot access clients or albums outside their studio membership.
 - Contextual themes work without location/weather permission and provide opt-out/reduced-motion behavior.
 - Automated greetings trigger only within the configured date/time window and use locale keys for visible text.
@@ -63,7 +72,8 @@
 - Advanced album search never returns private albums and never returns unlisted albums without direct-link access.
 - Reaction symbol validation uses album/theme-approved keys rather than arbitrary user-submitted markup.
 - Phase 7A automated coverage includes OAuth `returnTo` open-redirect rejection, public/unlisted/private album boundaries, duplicate wish denial, invalid reaction symbol denial, and public featured query constraints.
+- Prompt 08A automated coverage includes production token hiding for reset/verification flows, MFA challenge/enrollment/disable service behavior, OAuth verified-email/no-silent-merge/link/unlink rules, signed OAuth state validation, cookie TTL from env, and auth i18n key completeness.
 
-## Phase 1 Status
+## Current Verification Status
 
-Test scripts are configured. They were not executed in this environment because Node.js and pnpm are not available in PATH.
+Prompt 09 executed the full local automated suite with Node.js and `pnpm.cmd`: format check, lint, typecheck, tests, and build passed. Clean DB migration and browser screenshot QA still require a real PostgreSQL/browser environment.
